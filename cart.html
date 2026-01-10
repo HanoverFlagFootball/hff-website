@@ -73,7 +73,9 @@
       margin-bottom: 0.4rem;
     }
 
+    /* Make the continue link look like a button */
     .btn-continue {
+      display: inline-block;
       padding: 0.35rem 0.85rem;
       border-radius: 999px;
       border: none;
@@ -81,6 +83,8 @@
       color: #fff;
       font-size: 0.85rem;
       cursor: pointer;
+      text-decoration: none;
+      line-height: 1.2;
     }
 
     .cart-header-row,
@@ -235,7 +239,7 @@
       <h1 class="cart-title">Cart</h1>
 
       <div class="cart-header-bar">
-        <a href="shop.html"><button class="btn-continue">Continue Shopping</button></a>
+        <a class="btn-continue" href="shop.html">Continue Shopping</a>
       </div>
 
       <div class="cart-header-row">
@@ -259,11 +263,13 @@
             class="field-input"
             id="athleteName"
             placeholder="e.g. Jordan Smith"
+            autocomplete="name"
           >
         </div>
 
         <div class="summary-actions">
-          <button class="checkout-btn" id="checkoutBtn">Checkout</button>
+          <!-- ✅ type="button" prevents any default submit/scroll behavior -->
+          <button class="checkout-btn" id="checkoutBtn" type="button">Checkout</button>
         </div>
 
         <div class="summary-row">
@@ -282,6 +288,9 @@
 
     </div>
   </div>
+
+  <!-- nav.js first so it cannot overwrite our checkout handler after -->
+  <script src="nav.js"></script>
 
   <script>
     function loadCart() {
@@ -322,8 +331,8 @@
         const row = document.createElement('div');
         row.className = 'cart-item-row';
         row.innerHTML = `
-          <button class="cart-remove-btn" data-i="${i}">&times;</button>
-          <img class="cart-item-img" src="${item.image || ''}">
+          <button class="cart-remove-btn" type="button" data-i="${i}">&times;</button>
+          <img class="cart-item-img" src="${item.image || ''}" alt="">
           <div>
             <div class="cart-item-name">${item.name}</div>
             <div class="cart-item-details">${item.team || ''} ${item.size || ''}</div>
@@ -364,17 +373,29 @@
       });
     }
 
-    function handleCheckout() {
-      const athlete = document.getElementById('athleteName').value.trim();
+    function handleCheckout(e) {
+      // ✅ stop any default behavior + stop any other listeners from hijacking
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
+      }
+
+      const athleteEl = document.getElementById('athleteName');
+      const athlete = (athleteEl ? athleteEl.value : '').trim();
+
       if (!athlete) {
         alert('Please enter the athlete name.');
         return;
       }
 
+      // save for convenience
+      localStorage.setItem('athleteName', athlete);
+
       const cartItems = loadCart().map(i => ({
         name: i.name,
         price: i.price,
-        quantity: i.quantity
+        quantity: i.quantity || 1
       }));
 
       if (!cartItems.length) {
@@ -382,20 +403,27 @@
         return;
       }
 
-      sessionStorage.setItem(
-        'HFF_CHECKOUT_PAYLOAD',
-        JSON.stringify({ cart: cartItems, athleteName: athlete })
-      );
+      const checkoutPayload = JSON.stringify({ cart: cartItems, athleteName: athlete });
 
-      window.location.href = 'loading.html';
+      // ✅ store in BOTH to make flow resilient
+      sessionStorage.setItem('HFF_CHECKOUT_PAYLOAD', checkoutPayload);
+      localStorage.setItem('HFF_CHECKOUT_PAYLOAD', checkoutPayload);
+
+      // ✅ cache-bust loading so you never hit an old redirect script
+      window.location.replace('loading.html?v=' + Date.now());
     }
 
-    document.getElementById('checkoutBtn').onclick = handleCheckout;
-    document.getElementById('athleteName').value = localStorage.getItem('athleteName') || '';
+    document.addEventListener('DOMContentLoaded', () => {
+      // prefill athlete name
+      document.getElementById('athleteName').value = localStorage.getItem('athleteName') || '';
 
-    renderCart();
+      // ✅ attach a capture-phase click handler that wins even if something else binds later
+      const btn = document.getElementById('checkoutBtn');
+      if (btn) btn.addEventListener('click', handleCheckout, true);
+
+      renderCart();
+    });
   </script>
 
-  <script src="nav.js"></script>
 </body>
 </html>

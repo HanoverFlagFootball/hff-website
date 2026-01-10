@@ -15,7 +15,7 @@
       justify-content:center;
       min-height:100vh;
     }
-    .wrap{ text-align:center; padding:2rem; }
+    .wrap{ text-align:center; padding:2rem; max-width:520px; }
     .spinner{
       width:56px; height:56px;
       border:6px solid #333;
@@ -25,27 +25,41 @@
       animation: spin 0.9s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .txt{ opacity:0.9; font-size:1rem; }
-    .sub{ opacity:0.6; margin-top:0.35rem; font-size:0.9rem; }
+    .txt{ opacity:0.92; font-size:1rem; }
+    .sub{ opacity:0.65; margin-top:0.35rem; font-size:0.9rem; line-height:1.35; }
+    .ver{ opacity:0.45; margin-top:0.9rem; font-size:0.8rem; }
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="spinner"></div>
     <div class="txt">Preparing your checkout…</div>
-    <div class="sub">One moment.</div>
+    <div class="sub">One moment. You’ll be redirected automatically.</div>
+    <div class="ver">LOADING VERSION: Jan10-FINAL</div>
   </div>
 
   <script>
     (function () {
-      const payload = sessionStorage.getItem('HFF_CHECKOUT_PAYLOAD');
+      // Read from either storage (we now write to both in cart + register)
+      const raw =
+        sessionStorage.getItem('HFF_CHECKOUT_PAYLOAD') ||
+        localStorage.getItem('HFF_CHECKOUT_PAYLOAD');
 
-      // ✅ Expected flow: register.html sets payload → loading.html → cart.html
-      const next = payload ? 'cart.html' : 'register.html';
+      // Decide next step (never send to shop)
+      let next = 'register.html';
+
+      if (raw) {
+        // If payload exists (cart OR registration), go to cart to review/checkout
+        next = 'cart.html';
+      }
+
+      // Cache-bust the next page so you don't hit old JS/HTML
+      const sep = next.includes('?') ? '&' : '?';
+      next = next + sep + 'v=' + Date.now();
 
       setTimeout(() => {
         window.location.replace(next);
-      }, 1200);
+      }, 900);
     })();
   </script>
 </body>

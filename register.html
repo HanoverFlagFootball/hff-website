@@ -135,7 +135,7 @@
     </a>
 
     <div class="mobile-nav">
-      <button id="mobileMenuBtn" class="mobile-nav-btn" aria-label="Open menu">
+      <button id="mobileMenuBtn" class="mobile-nav-btn" aria-label="Open menu" type="button">
         <span></span><span></span><span></span>
       </button>
       <div class="mobile-nav-menu" id="mobileMenu">
@@ -413,81 +413,88 @@
       });
     })();
 
-    const form = document.getElementById('registrationForm');
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
+    // ✅ BULLETPROOF SUBMIT HANDLER (capture + stopImmediate + dual storage + cache-busted redirect)
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('registrationForm');
+      if (!form) return;
 
-      const liabilityWaiver = document.getElementById('liabilityWaiver');
-      const riskAck = document.getElementById('riskAck');
-      const photoPermission = document.querySelector('input[name="photoPermission"]:checked');
-      const ageGroupRadio = document.querySelector('input[name="ageGroup"]:checked');
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
 
-      if (!ageGroupRadio) {
-        alert('Please select whether this registration is for U6 or Age 6+.');
-        return;
-      }
+        const liabilityWaiver = document.getElementById('liabilityWaiver');
+        const riskAck = document.getElementById('riskAck');
+        const photoPermission = document.querySelector('input[name="photoPermission"]:checked');
+        const ageGroupRadio = document.querySelector('input[name="ageGroup"]:checked');
 
-      if (!liabilityWaiver.checked || !riskAck.checked) {
-        alert('Please agree to the liability waiver and risk acknowledgement to continue.');
-        return;
-      }
-
-      if (!photoPermission) {
-        alert('Please select a photo/video permission option.');
-        return;
-      }
-
-      const requiredIds = [
-        'parentName', 'parentEmail', 'parentPhone',
-        'playerFirstName', 'playerLastName', 'playerDob',
-        'signatureName', 'signatureDate'
-      ];
-      for (const id of requiredIds) {
-        const el = document.getElementById(id);
-        if (!el || !el.value.trim()) {
-          el && el.focus();
-          alert('Please complete all required fields.');
+        if (!ageGroupRadio) {
+          alert('Please select whether this registration is for U6 or Age 6+.');
           return;
         }
-      }
 
-      const payload = {
-        parent: {
-          name: document.getElementById('parentName').value.trim(),
-          email: document.getElementById('parentEmail').value.trim(),
-          phone: document.getElementById('parentPhone').value.trim(),
-          homeTown: document.getElementById('homeTown').value.trim()
-        },
-        player: {
-          firstName: document.getElementById('playerFirstName').value.trim(),
-          lastName: document.getElementById('playerLastName').value.trim(),
-          dob: document.getElementById('playerDob').value,
-          shirtSize: document.getElementById('shirtSize').value,
-          experience: document.getElementById('experience').value
-        },
-        ageGroup: ageGroupRadio.value,
-        coachInterest: document.getElementById('coachInterest').value || null,
-        health: { concerns: document.getElementById('healthConcerns').value.trim() },
-        buddyRequest: document.getElementById('buddyRequest').value.trim(),
-        waivers: {
-          liabilityWaiver: liabilityWaiver.checked,
-          riskAcknowledgement: riskAck.checked,
-          photoPermission: photoPermission.value
-        },
-        signature: {
-          name: document.getElementById('signatureName').value.trim(),
-          date: document.getElementById('signatureDate').value
-        },
-        storeCreditCode: document.getElementById('storeCreditCode').value || null
-      };
+        if (!liabilityWaiver.checked || !riskAck.checked) {
+          alert('Please agree to the liability waiver and risk acknowledgement to continue.');
+          return;
+        }
 
-      // NEW: Redirect immediately to loading page
-      sessionStorage.setItem('HFF_CHECKOUT_PAYLOAD', JSON.stringify({
-        type: 'registration',
-        data: payload
-      }));
+        if (!photoPermission) {
+          alert('Please select a photo/video permission option.');
+          return;
+        }
 
-      window.location.href = 'loading.html';
+        const requiredIds = [
+          'parentName', 'parentEmail', 'parentPhone',
+          'playerFirstName', 'playerLastName', 'playerDob',
+          'signatureName', 'signatureDate'
+        ];
+        for (const id of requiredIds) {
+          const el = document.getElementById(id);
+          if (!el || !el.value.trim()) {
+            el && el.focus();
+            alert('Please complete all required fields.');
+            return;
+          }
+        }
+
+        const payload = {
+          parent: {
+            name: document.getElementById('parentName').value.trim(),
+            email: document.getElementById('parentEmail').value.trim(),
+            phone: document.getElementById('parentPhone').value.trim(),
+            homeTown: document.getElementById('homeTown').value.trim()
+          },
+          player: {
+            firstName: document.getElementById('playerFirstName').value.trim(),
+            lastName: document.getElementById('playerLastName').value.trim(),
+            dob: document.getElementById('playerDob').value,
+            shirtSize: document.getElementById('shirtSize').value,
+            experience: document.getElementById('experience').value
+          },
+          ageGroup: ageGroupRadio.value,
+          coachInterest: document.getElementById('coachInterest').value || null,
+          health: { concerns: document.getElementById('healthConcerns').value.trim() },
+          buddyRequest: document.getElementById('buddyRequest').value.trim(),
+          waivers: {
+            liabilityWaiver: liabilityWaiver.checked,
+            riskAcknowledgement: riskAck.checked,
+            photoPermission: photoPermission.value
+          },
+          signature: {
+            name: document.getElementById('signatureName').value.trim(),
+            date: document.getElementById('signatureDate').value
+          },
+          storeCreditCode: document.getElementById('storeCreditCode').value || null
+        };
+
+        const checkoutPayload = JSON.stringify({ type: 'registration', data: payload });
+
+        sessionStorage.setItem('HFF_CHECKOUT_PAYLOAD', checkoutPayload);
+        localStorage.setItem('HFF_CHECKOUT_PAYLOAD', checkoutPayload);
+
+        // ✅ cache-bust to avoid stale loading.html causing wrong redirects
+        window.location.replace('loading.html?v=' + Date.now());
+      }, true);
     });
   </script>
 
