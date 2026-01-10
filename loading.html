@@ -8,30 +8,78 @@
   <style>
     :root { --ink:#fff; --black:#000; }
     * { box-sizing: border-box; }
-    body{ margin:0; background:#000; color:#fff; font-family: Arial, Helvetica, sans-serif; min-height:100vh; }
-    .top-banner{
-      width:100%; background:#000; aspect-ratio: 8 / 1;
-      display:flex; align-items:center; justify-content:center;
-      min-height:56px; position:relative;
+    body{
+      margin:0;
+      background:#000;
+      color:#fff;
+      font-family: Arial, Helvetica, sans-serif;
+      min-height:100vh;
     }
-    .top-banner img{ height:82%; width:auto; max-width:90vw; object-fit:contain; display:block; }
-    .stage{ display:flex; align-items:center; justify-content:center; padding: 3rem 1rem; }
-    .wrap{ text-align:center; padding:2rem; max-width:760px; width:100%; }
+
+    /* TOP BANNER (LOGO ONLY) */
+    .top-banner{
+      width:100%;
+      background:#000;
+      aspect-ratio: 8 / 1;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:56px;
+      position:relative;
+    }
+    .top-banner img{
+      height:82%;
+      width:auto;
+      max-width:90vw;
+      object-fit:contain;
+      display:block;
+    }
+
+    /* LOADING */
+    .stage{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 3rem 1rem;
+    }
+    .wrap{
+      text-align:center;
+      padding:2rem;
+      max-width:760px;
+      width:100%;
+    }
     .spinner{
-      width:56px; height:56px; border:6px solid #333; border-top-color:#fff;
-      border-radius:50%; margin:0 auto 1rem; animation: spin 0.9s linear infinite;
+      width:56px; height:56px;
+      border:6px solid #333;
+      border-top-color:#fff;
+      border-radius:50%;
+      margin:0 auto 1rem;
+      animation: spin 0.9s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
     .txt{ opacity:0.92; font-size:1rem; }
     .sub{ opacity:0.65; margin-top:0.35rem; font-size:0.9rem; line-height:1.35; }
     .badge{
-      display:inline-block; margin-top:0.9rem; padding:0.25rem 0.6rem;
-      border:1px solid #333; border-radius:999px; font-size:0.8rem; opacity:0.7;
+      display:inline-block;
+      margin-top:0.9rem;
+      padding:0.25rem 0.6rem;
+      border:1px solid #333;
+      border-radius:999px;
+      font-size:0.8rem;
+      opacity:0.7;
     }
     .err{
-      display:none; margin-top:1.1rem; background:#111; border:1px solid #333;
-      padding:1rem; border-radius:12px; color:#fff; text-align:left;
-      font-size:0.92rem; opacity:0.95; white-space:pre-wrap;
+      display:none;
+      margin-top:1.1rem;
+      background:#111;
+      border:1px solid #333;
+      padding:1rem;
+      border-radius:12px;
+      color:#fff;
+      text-align:left;
+      font-size:0.92rem;
+      opacity:0.95;
+      white-space:pre-wrap;
     }
   </style>
 </head>
@@ -48,7 +96,7 @@
       <div class="spinner"></div>
       <div class="txt">Preparing your secure Stripe checkout…</div>
       <div class="sub">One moment. You’ll be redirected automatically.</div>
-      <div class="badge">LOADING VERSION: HFF-REG-ROUTER-001</div>
+      <div class="badge">LOADING VERSION: REG-AS-CART-001</div>
       <div class="err" id="errBox"></div>
     </div>
   </div>
@@ -82,59 +130,69 @@
         return;
       }
 
+      // Your register.html stores:
+      // { type:'registration', data: payload }
       const isRegistration =
         parsed.type === 'registration' ||
         (parsed.data && parsed.data.parent && parsed.data.player);
 
-      const isCart =
-        Array.isArray(parsed.cart) && parsed.cart.length > 0;
-
       const successUrl = window.location.origin + '/success.html';
       const cancelUrl  = window.location.origin + (isRegistration ? '/register.html' : '/cart.html');
 
-      async function postJson(path, body) {
-        const res = await fetch(BACKEND_URL + path, {
+      // Build a cart body that your backend already understands
+      let body;
+
+      if (isRegistration) {
+        const reg = parsed.data || parsed;
+
+        const ageGroup = reg.ageGroup; // "U6" or "7plus"
+        const fee = (ageGroup === 'U6') ? 80 : 185;
+
+        const playerName =
+          (reg.player && (reg.player.firstName || reg.player.lastName))
+            ? ((reg.player.firstName || '') + ' ' + (reg.player.lastName || '')).trim()
+            : '';
+
+        // Turn registration into a 1-item cart line
+        const cart = [{
+          name: (ageGroup === 'U6') ? 'Player Registration (U6)' : 'Player Registration (Age 6+)',
+          price: fee,
+          quantity: 1
+        }];
+
+        body = {
+          cart,
+          athleteName: playerName || (reg.parent && reg.parent.name) || 'Registration',
+          // Pass the full registration data too (backend can ignore it, but it’s useful if you later store it)
+          registration: reg,
+          successUrl,
+          cancelUrl
+        };
+      } else {
+        // Cart flow (already in the right shape)
+        body = {
+          cart: parsed.cart,
+          athleteName: parsed.athleteName || '',
+          successUrl,
+          cancelUrl
+        };
+      }
+
+      try {
+        const res = await fetch(BACKEND_URL + '/create-checkout-session', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body)
         });
+
         const text = await res.text();
-        if (!res.ok) throw new Error(`POST ${path} failed (${res.status}).\n${text}`);
+        if (!res.ok) throw new Error(`POST /create-checkout-session failed (${res.status}).\n${text}`);
 
-        let out;
-        try { out = JSON.parse(text); } catch { throw new Error(`POST ${path} returned non-JSON:\n${text}`); }
-
+        const out = JSON.parse(text);
         const url = out.url || out.checkoutUrl || out.sessionUrl;
-        if (!url) throw new Error(`POST ${path} returned no checkout URL.\n${text}`);
-        return url;
-      }
-
-      try {
-        let url;
-
-        if (isRegistration) {
-          // 1) Try a dedicated registration endpoint (if your backend has it)
-          const regBody = { data: parsed.data || parsed, successUrl, cancelUrl };
-
-          try {
-            url = await postJson('/create-registration-checkout-session', regBody);
-          } catch (e1) {
-            // 2) Fallback: use the general endpoint but force a registration type
-            const genericRegBody = { type: 'registration', data: parsed.data || parsed, successUrl, cancelUrl };
-            url = await postJson('/create-checkout-session', genericRegBody);
-          }
-
-        } else if (isCart) {
-          const cartBody = { cart: parsed.cart, athleteName: parsed.athleteName || '', successUrl, cancelUrl };
-          url = await postJson('/create-checkout-session', cartBody);
-
-        } else {
-          showError("Payload format not recognized.\n\nRaw payload:\n" + raw);
-          return;
-        }
+        if (!url) throw new Error('No Stripe checkout URL returned.\n\n' + text);
 
         window.location.href = url;
-
       } catch (e) {
         showError(
           "Stripe checkout failed.\n\nBackend:\n" + BACKEND_URL + "\n\n" +
