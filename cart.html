@@ -198,6 +198,10 @@
       font-weight: 600;
       cursor: pointer;
     }
+    .checkout-btn:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
 
     .summary-row {
       display: flex;
@@ -217,6 +221,49 @@
         grid-template-columns: 40px 70px 1fr;
       }
     }
+
+    /* =========================
+       LOADING OVERLAY (NEW)
+       ========================= */
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 1rem;
+    }
+    .loading-box {
+      background: #fff;
+      color: #000;
+      border-radius: 14px;
+      padding: 1rem 1.2rem;
+      width: min(420px, 92vw);
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+    .loading-title {
+      font-weight: 800;
+      font-size: 1.05rem;
+      margin-bottom: 0.35rem;
+    }
+    .loading-sub {
+      font-size: 0.9rem;
+      color: #444;
+      line-height: 1.3;
+    }
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #ddd;
+      border-top-color: #000;
+      border-radius: 50%;
+      margin: 0.75rem auto 0.2rem;
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
@@ -248,7 +295,7 @@
       <div class="cart-summary" id="cartSummary" style="display:none;">
 
         <div class="checkout-fields">
-          <label class="field-label">Athlete name (for pickup)</label>
+          <label class="field-label" for="athleteName">Athlete name (for pickup)</label>
           <input class="field-input" id="athleteName" placeholder="e.g. Jordan Smith">
         </div>
 
@@ -270,6 +317,18 @@
     </div>
   </div>
 
+  <!-- LOADING OVERLAY -->
+  <div class="loading-overlay" id="loadingOverlay" role="dialog" aria-modal="true" aria-live="polite">
+    <div class="loading-box">
+      <div class="loading-title">Loading checkout…</div>
+      <div class="loading-sub">
+        Our payment server may take a moment to wake up.<br>
+        Please don’t refresh — this can take up to 20–30 seconds.
+      </div>
+      <div class="loading-spinner" aria-hidden="true"></div>
+    </div>
+  </div>
+
   <script>
     const stripe = Stripe('pk_test_51QpvmRITKnXMLroip1KMIOTGK2aACIhEvZzgdClAvR61B8lvwbwZmuuuVj9rfwYgJkmzrBDXN0I1gN0nD9eaEvgp00MYbmtTve');
 
@@ -284,6 +343,16 @@
 
     function money(v) {
       return '$' + v.toFixed(2);
+    }
+
+    function showLoading() {
+      const overlay = document.getElementById('loadingOverlay');
+      if (overlay) overlay.style.display = 'flex';
+    }
+
+    function hideLoading() {
+      const overlay = document.getElementById('loadingOverlay');
+      if (overlay) overlay.style.display = 'none';
     }
 
     function renderCart() {
@@ -308,15 +377,15 @@
         const row = document.createElement('div');
         row.className = 'cart-item-row';
         row.innerHTML = `
-          <button class="cart-remove-btn" data-i="${i}">&times;</button>
-          <img class="cart-item-img" src="${item.image || ''}">
+          <button class="cart-remove-btn" data-i="${i}" aria-label="Remove item">&times;</button>
+          <img class="cart-item-img" src="${item.image || ''}" alt="">
           <div>
             <div class="cart-item-name">${item.name}</div>
-            <div class="cart-item-details">${item.team || ''} ${item.size || ''}</div>
+            <div class="cart-item-details">${(item.team || '')} ${(item.size || '')}</div>
           </div>
           <input class="cart-qty-input" type="number" min="1" value="${qty}" data-i="${i}">
-          <div>${money(item.price)}</div>
-          <div>${money(total)}</div>
+          <div class="cart-price">${money(item.price)}</div>
+          <div class="cart-line-total">${money(total)}</div>
         `;
         box.appendChild(row);
       });
@@ -356,26 +425,60 @@
         alert('Please enter the athlete name.');
         return;
       }
+
       localStorage.setItem('athleteName', athlete);
 
-      const cart = loadCart().map(i => ({
-        name: i.name,
-        price: i.price,
-        quantity: i.quantity
-      }));
+      const checkoutBtn = document.getElementById('checkoutBtn');
+      if (checkoutBtn) checkoutBtn.disabled = true;
 
-      const res = await fetch('https://hff-server.onrender.com/create-checkout-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cart, athleteName: athlete })
-      });
+      showLoading();
 
-      const data = await res.json();
-      await stripe.redirectToCheckout({ sessionId: data.id });
+      try {
+        const cart = loadCart().map(i => ({
+          name: i.name,
+          price: i.price,
+          quantity: i.quantity
+        }));
+
+        const res = await fetch('https://hff-server.onrender.com/create-checkout-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cart, athleteName: athlete })
+        });
+
+        if (!res.ok) {
+          let msg = 'Unable to start checkout.';
+          try {
+            const errData = await res.json();
+            msg = errData.error || msg;
+          } catch {}
+          throw new Error(msg);
+        }
+
+        const data = await res.json();
+
+        if (!data.id) {
+          throw new Error('Checkout session created but no session id returned.');
+        }
+
+        const result = await stripe.redirectToCheckout({ sessionId: data.id });
+
+        // If Stripe redirect fails, it returns an error here
+        if (result && result.error) {
+          throw new Error(result.error.message);
+        }
+
+      } catch (err) {
+        console.error(err);
+        hideLoading();
+        if (checkoutBtn) checkoutBtn.disabled = false;
+        alert('Checkout error: ' + err.message);
+      }
     }
 
     document.getElementById('checkoutBtn').onclick = handleCheckout;
     document.getElementById('athleteName').value = localStorage.getItem('athleteName') || '';
+
     renderCart();
   </script>
 
