@@ -5,14 +5,11 @@
   <title>Cart</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- Stripe.js (needed for redirectToCheckout) -->
+  <!-- Stripe.js -->
   <script src="https://js.stripe.com/v3/"></script>
 
   <style>
     :root {
-      --ink: #fff;
-      --line: #333;
-      --black: #000;
       --accent: #0b5ed7;
       --danger: #d9534f;
     }
@@ -20,15 +17,12 @@
     body {
       margin: 0;
       font-family: Arial, Helvetica, sans-serif;
-      background: #000; /* banner area */
-      color: var(--ink);
+      background: #000;
+      color: #fff;
     }
 
-    /* =========================
-       TOP BANNER
-       ========================= */
+    /* TOP BANNER */
     .top-banner {
-      width: 100%;
       background: #000;
       aspect-ratio: 8 / 1;
       display: flex;
@@ -39,36 +33,30 @@
     }
     .top-banner img {
       height: 82%;
-      width: auto;
       max-width: 90vw;
       object-fit: contain;
-      display: block;
     }
 
-    /* =========================
-       MAIN CART AREA
-       ========================= */
+    /* CART */
     .cart-page-bg {
-      background: #fff;          /* white below banner */
+      background: #fff;
       min-height: 100vh;
       padding: 1.5rem 1rem 3rem;
       display: flex;
       justify-content: center;
+      color: #000;
     }
     .cart-wrapper {
       width: 100%;
       max-width: 1100px;
-      color: #000;
     }
 
     .cart-title {
       font-size: 1.8rem;
       font-weight: 700;
-      margin: 0 0 1rem;
-      text-align: left;
+      margin-bottom: 1rem;
     }
 
-    /* Continue Shopping button bar */
     .cart-header-bar {
       display: flex;
       justify-content: flex-end;
@@ -83,39 +71,27 @@
       font-size: 0.85rem;
       cursor: pointer;
     }
-    .btn-continue:hover {
-      opacity: 0.9;
-    }
 
-    .cart-header-row {
+    .cart-header-row,
+    .cart-item-row {
       display: grid;
       grid-template-columns: 40px 80px 1fr 80px 80px 90px;
       gap: 0.75rem;
-      padding: 0.6rem 0.2rem 0.4rem;
+      align-items: center;
+    }
+
+    .cart-header-row {
+      padding: 0.6rem 0.2rem;
       border-bottom: 1px solid #ddd;
       font-size: 0.85rem;
       font-weight: 600;
       color: #555;
     }
 
-    .cart-items {
-      margin-top: 0.25rem;
-    }
-
     .cart-item-row {
-      display: grid;
-      grid-template-columns: 40px 80px 1fr 80px 80px 90px;
-      gap: 0.75rem;
-      align-items: center;
       padding: 0.6rem 0.2rem;
       border-bottom: 1px solid #eee;
       font-size: 0.9rem;
-    }
-
-    .cart-empty {
-      padding: 1rem 0.2rem;
-      font-size: 0.95rem;
-      color: #666;
     }
 
     .cart-remove-btn {
@@ -126,11 +102,6 @@
       background: var(--danger);
       color: #fff;
       cursor: pointer;
-      font-size: 1rem;
-      line-height: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
 
     .cart-item-img {
@@ -142,39 +113,40 @@
       background: #fff;
     }
 
-    .cart-item-name {
-      font-weight: 600;
-      margin-bottom: 0.15rem;
-    }
-
-    .cart-item-details {
-      font-size: 0.8rem;
-      color: #666;
-    }
-
     .cart-qty-input {
       width: 60px;
-      padding: 0.25rem;
       text-align: center;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-      font-size: 0.85rem;
+      padding: 0.25rem;
     }
 
-    .cart-price,
-    .cart-line-total {
-      font-size: 0.9rem;
-      text-align: right;
-      white-space: nowrap;
-    }
-
-    /* SUMMARY */
     .cart-summary {
       margin-top: 1.5rem;
       padding-top: 1rem;
       border-top: 1px solid #ddd;
       max-width: 360px;
       margin-left: auto;
+    }
+
+    .checkout-fields {
+      margin-bottom: 1rem;
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      background: #fafafa;
+    }
+
+    .field-label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+      display: block;
+    }
+
+    .field-input {
+      width: 100%;
+      padding: 0.45rem 0.6rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
       font-size: 0.95rem;
     }
 
@@ -190,12 +162,8 @@
       border: none;
       background: var(--accent);
       color: #fff;
-      font-size: 0.9rem;
       font-weight: 600;
       cursor: pointer;
-    }
-    .checkout-btn:hover {
-      opacity: 0.9;
     }
 
     .summary-row {
@@ -203,112 +171,36 @@
       justify-content: space-between;
       margin-bottom: 0.35rem;
     }
+
     .summary-row.total {
       font-weight: 700;
       font-size: 1.05rem;
-      margin-top: 0.25rem;
       border-top: 1px solid #ddd;
       padding-top: 0.35rem;
     }
 
-    /* Athlete + discount fields */
-    .checkout-fields {
-      margin: 0.75rem 0 0.9rem;
-      padding: 0.75rem;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      background: #fafafa;
-    }
-    .field-label {
-      display: block;
-      font-size: 0.85rem;
-      font-weight: 700;
-      margin: 0 0 0.25rem;
-      color: #222;
-    }
-    .field-input {
-      width: 100%;
-      padding: 0.45rem 0.6rem;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 0.95rem;
-    }
-    .helper-text {
-      font-size: 0.8rem;
-      color: #555;
-      margin-top: 0.35rem;
-      line-height: 1.25;
-    }
-
-    .discount-area {
-      margin-top: 0.45rem;
-      padding-top: 0.45rem;
-      border-top: 1px dashed #ddd;
-    }
-    .discount-title {
-      font-size: 0.78rem;
-      font-weight: 700;
-      color: #333;
-      margin-bottom: 0.35rem;
-    }
-    .code-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.35rem;
-    }
-    .code-input {
-      width: 100%;
-      padding: 0.35rem 0.5rem;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 0.85rem;
-    }
-
     @media (max-width: 780px) {
-      .cart-header-row {
-        display: none; /* hide header on small screens */
-      }
+      .cart-header-row { display: none; }
       .cart-item-row {
         grid-template-columns: 40px 70px 1fr;
-        grid-template-rows: auto auto auto;
-        gap: 0.4rem 0.75rem;
-      }
-      .cart-item-row > :nth-child(4),
-      .cart-item-row > :nth-child(5),
-      .cart-item-row > :nth-child(6) {
-        text-align: left;
-      }
-      .cart-item-row .cart-price,
-      .cart-item-row .cart-line-total {
-        font-size: 0.85rem;
-      }
-      .cart-qty-input {
-        width: 70px;
-      }
-      .code-grid {
-        grid-template-columns: 1fr;
       }
     }
   </style>
 </head>
 <body>
 
-  <!-- BANNER -->
   <div class="top-banner">
-    <a href="index.html" style="display:flex; align-items:center; justify-content:center; height:100%; width:100%;">
+    <a href="index.html">
       <img src="White Logo.jpg" alt="League Logo">
     </a>
-
-    <!-- SHARED HAMBURGER (from nav.js) -->
     <div id="site-nav"></div>
   </div>
 
-  <!-- MAIN CART AREA -->
   <div class="cart-page-bg">
     <div class="cart-wrapper">
+
       <h1 class="cart-title">Cart</h1>
 
-      <!-- Continue Shopping button (top right) -->
       <div class="cart-header-bar">
         <a href="shop.html">
           <button class="btn-continue">Continue Shopping</button>
@@ -316,73 +208,43 @@
       </div>
 
       <div class="cart-header-row">
-        <div></div>
-        <div>Item</div>
-        <div>Name</div>
-        <div>Qty</div>
-        <div>Unit</div>
-        <div>Total</div>
+        <div></div><div>Item</div><div>Name</div><div>Qty</div><div>Unit</div><div>Total</div>
       </div>
 
-      <div id="cartItems" class="cart-items"></div>
+      <div id="cartItems"></div>
 
       <div class="cart-summary" id="cartSummary" style="display:none;">
 
-        <!-- Athlete name -->
         <div class="checkout-fields">
-          <label class="field-label" for="athleteName">Athlete name (for pickup)</label>
-          <input class="field-input" id="athleteName" type="text" placeholder="e.g., Jordan Smith" />
-          <div class="helper-text">
-            Discount codes are validated at checkout. One code per item unit (qty=3 → 3 codes max).
-          </div>
+          <label class="field-label">Athlete name (for pickup)</label>
+          <input class="field-input" id="athleteName" placeholder="e.g. Jordan Smith">
         </div>
 
-        <!-- Checkout button to the left of the totals -->
         <div class="summary-actions">
           <button class="checkout-btn" id="checkoutBtn">Checkout</button>
         </div>
 
         <div class="summary-row">
-          <span>Subtotal (before tax)</span>
-          <span id="subtotalText">$0.00</span>
+          <span>Subtotal</span><span id="subtotalText">$0.00</span>
         </div>
         <div class="summary-row">
-          <span>Tax (13%)</span>
-          <span id="taxText">$0.00</span>
+          <span>Tax (13%)</span><span id="taxText">$0.00</span>
         </div>
         <div class="summary-row total">
-          <span>Total (with tax)</span>
-          <span id="totalText">$0.00</span>
+          <span>Total</span><span id="totalText">$0.00</span>
         </div>
       </div>
+
     </div>
   </div>
 
   <script>
-    // =========================
-    // STRIPE SETUP
-    // =========================
-    // NOTE: publishable key is safe to expose in frontend
     const stripe = Stripe('pk_test_51QpvmRITKnXMLroip1KMIOTGK2aACIhEvZzgdClAvR61B8lvwbwZmuuuVj9rfwYgJkmzrBDXN0I1gN0nD9eaEvgp00MYbmtTve');
 
-    // Helper: build display name: e.g. "Team Gloves - Buffalo Bills (Small)"
-    function buildDisplayName(item) {
-      let displayName = item.name || item.label || 'Item';
-      if (item.team) displayName += ' - ' + item.team;
-      if (item.size) displayName += ' (' + item.size + ')';
-      return displayName;
-    }
-
-    // ===== CART LOGIC =====
     function loadCart() {
       try {
-        let raw = localStorage.getItem('cartItems');
-        if (!raw) raw = localStorage.getItem('cart');
-        if (!raw) return [];
-        const parsed = JSON.parse(raw);
-        return Array.isArray(parsed) ? parsed : [];
-      } catch (e) {
-        console.error('Error reading cart from localStorage', e);
+        return JSON.parse(localStorage.getItem('cartItems')) || [];
+      } catch {
         return [];
       }
     }
@@ -391,267 +253,100 @@
       localStorage.setItem('cartItems', JSON.stringify(cart));
     }
 
-    function formatMoney(amount) {
-      return '$' + amount.toFixed(2);
-    }
-
-    // Athlete name persistence
-    function loadAthleteName() {
-      return (localStorage.getItem('athleteName') || '').trim();
-    }
-    function saveAthleteName(name) {
-      localStorage.setItem('athleteName', (name || '').trim());
-    }
-
-    // Ensure discountCodes array exists and matches quantity length
-    function normalizeDiscountCodes(item) {
-      const qty = Number(item.quantity) || 1;
-      if (!Array.isArray(item.discountCodes)) item.discountCodes = [];
-
-      if (item.discountCodes.length > qty) item.discountCodes = item.discountCodes.slice(0, qty);
-      while (item.discountCodes.length < qty) item.discountCodes.push('');
+    function money(v) {
+      return '$' + v.toFixed(2);
     }
 
     function renderCart() {
-      const cartContainer = document.getElementById('cartItems');
-      const summaryBox = document.getElementById('cartSummary');
-      const subtotalText = document.getElementById('subtotalText');
-      const taxText = document.getElementById('taxText');
-      const totalText = document.getElementById('totalText');
-
       const cart = loadCart();
-      cartContainer.innerHTML = '';
+      const box = document.getElementById('cartItems');
+      const summary = document.getElementById('cartSummary');
+      box.innerHTML = '';
 
       if (!cart.length) {
-        summaryBox.style.display = 'none';
-        cartContainer.innerHTML = '<div class="cart-empty">Your cart is empty.</div>';
+        summary.style.display = 'none';
+        box.innerHTML = '<p>Your cart is empty.</p>';
         return;
       }
 
       let subtotal = 0;
 
-      cart.forEach((item, index) => {
-        const qty = Number(item.quantity) || 1;
-        const price = Number(item.price) || 0;
-        const lineTotal = qty * price;
-        subtotal += lineTotal;
-
-        normalizeDiscountCodes(item);
+      cart.forEach((item, i) => {
+        const qty = item.quantity || 1;
+        const total = qty * item.price;
+        subtotal += total;
 
         const row = document.createElement('div');
         row.className = 'cart-item-row';
-
-        // Build display name for UI
-        const displayName = buildDisplayName(item);
-
-        // Build team-specific image filename if possible:
-        let imgSrc = item.image || '';
-        if (item.name && item.team) {
-          const safeName = item.name.replace(/[\/\\]/g, '-');
-          const safeTeam = item.team.replace(/[\/\\]/g, '-');
-          imgSrc = `${safeName} - ${safeTeam}.png`;
-        }
-
-        // Build per-unit discount code inputs (one per unit)
-        const codeInputsHtml = item.discountCodes.map((code, i) => {
-          const safeVal = (code || '').replace(/"/g, '&quot;');
-          return `<input
-            class="code-input"
-            type="text"
-            placeholder="Discount code #${i + 1}"
-            value="${safeVal}"
-            data-index="${index}"
-            data-codepos="${i}"
-          />`;
-        }).join('');
-
         row.innerHTML = `
-          <div>
-            <button class="cart-remove-btn" aria-label="Remove item" data-index="${index}">&times;</button>
-          </div>
-          <div>
-            <img src="${imgSrc}" alt="${displayName}" class="cart-item-img">
-          </div>
-          <div>
-            <div class="cart-item-name">${displayName}</div>
-            <div class="cart-item-details">
-              ${item.team ? 'Team: ' + item.team + ' &bull; ' : ''}
-              ${item.size ? 'Size: ' + item.size : ''}
-            </div>
-
-            <div class="discount-area">
-              <div class="discount-title">Discount codes (1 per item)</div>
-              <div class="code-grid">
-                ${codeInputsHtml}
-              </div>
-            </div>
-          </div>
-          <div>
-            <input
-              type="number"
-              min="1"
-              value="${qty}"
-              class="cart-qty-input"
-              data-index="${index}"
-            >
-          </div>
-          <div class="cart-price">${formatMoney(price)}</div>
-          <div class="cart-line-total">${formatMoney(lineTotal)}</div>
+          <button class="cart-remove-btn" data-i="${i}">&times;</button>
+          <img class="cart-item-img" src="${item.image || ''}">
+          <div>${item.name}</div>
+          <input class="cart-qty-input" type="number" min="1" value="${qty}" data-i="${i}">
+          <div>${money(item.price)}</div>
+          <div>${money(total)}</div>
         `;
-
-        cartContainer.appendChild(row);
+        box.appendChild(row);
       });
-
-      // Save any normalization adjustments
-      saveCart(cart);
 
       const tax = subtotal * 0.13;
-      const total = subtotal + tax;
+      document.getElementById('subtotalText').textContent = money(subtotal);
+      document.getElementById('taxText').textContent = money(tax);
+      document.getElementById('totalText').textContent = money(subtotal + tax);
+      summary.style.display = 'block';
 
-      subtotalText.textContent = formatMoney(subtotal);
-      taxText.textContent = formatMoney(tax);
-      totalText.textContent = formatMoney(total);
-      summaryBox.style.display = 'block';
-
-      attachRowListeners();
-      attachDiscountListeners();
-      attachAthleteListener();
+      attachListeners();
     }
 
-    function attachRowListeners() {
+    function attachListeners() {
       const cart = loadCart();
 
-      // Remove buttons
       document.querySelectorAll('.cart-remove-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const index = Number(btn.getAttribute('data-index'));
-          if (!isNaN(index)) {
-            cart.splice(index, 1);
-            saveCart(cart);
-            renderCart();
-          }
-        });
-      });
-
-      // Quantity inputs
-      document.querySelectorAll('.cart-qty-input').forEach(input => {
-        input.addEventListener('change', () => {
-          let val = Number(input.value);
-          if (isNaN(val) || val < 1) val = 1;
-          input.value = val;
-
-          const index = Number(input.getAttribute('data-index'));
-          if (!isNaN(index) && cart[index]) {
-            cart[index].quantity = val;
-            normalizeDiscountCodes(cart[index]);
-            saveCart(cart);
-            renderCart();
-          }
-        });
-      });
-    }
-
-    function attachDiscountListeners() {
-      const cart = loadCart();
-
-      document.querySelectorAll('.code-input').forEach(inp => {
-        inp.addEventListener('change', () => {
-          const index = Number(inp.getAttribute('data-index'));
-          const pos = Number(inp.getAttribute('data-codepos'));
-          const val = (inp.value || '').trim();
-
-          if (!isNaN(index) && !isNaN(pos) && cart[index]) {
-            normalizeDiscountCodes(cart[index]);
-            cart[index].discountCodes[pos] = val;
-            saveCart(cart);
-          }
-        });
-      });
-    }
-
-    function attachAthleteListener() {
-      const athlete = document.getElementById('athleteName');
-      if (!athlete) return;
-
-      athlete.value = loadAthleteName();
-
-      athlete.addEventListener('change', () => {
-        saveAthleteName(athlete.value);
-      });
-    }
-
-    // =========================
-    // CHECKOUT HANDLER
-    // =========================
-    async function handleCheckout() {
-      const cart = loadCart();
-
-      if (!cart.length) {
-        alert('Your cart is empty.');
-        return;
-      }
-
-      const athleteName = (document.getElementById('athleteName')?.value || '').trim();
-      if (!athleteName) {
-        alert('Please enter the athlete name for pickup.');
-        return;
-      }
-      saveAthleteName(athleteName);
-
-      // Build cart payload for the backend INCLUDING discount codes
-      const payloadCart = cart.map(item => {
-        normalizeDiscountCodes(item);
-        return {
-          name: buildDisplayName(item),
-          price: Number(item.price) || 0,      // per unit, BEFORE tax
-          quantity: Number(item.quantity) || 1,
-          // send non-empty codes; backend limits to qty and validates/consumes
-          discountCodes: (item.discountCodes || []).map(c => (c || '').trim()).filter(Boolean)
+        btn.onclick = () => {
+          cart.splice(btn.dataset.i, 1);
+          saveCart(cart);
+          renderCart();
         };
       });
 
-      try {
-        const response = await fetch('https://hff-server.onrender.com/create-checkout-session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ cart: payloadCart, athleteName })
-        });
+      document.querySelectorAll('.cart-qty-input').forEach(inp => {
+        inp.onchange = () => {
+          cart[inp.dataset.i].quantity = Math.max(1, Number(inp.value));
+          saveCart(cart);
+          renderCart();
+        };
+      });
+    }
 
-        const text = await response.text();
-        let data;
-        try { data = JSON.parse(text); } catch { data = {}; }
-
-        if (!response.ok || !data.id) {
-          console.error('Checkout session error. Status:', response.status);
-          console.error('Raw response body:', text);
-          const msg = data.error || `Server returned status ${response.status}`;
-          alert('Checkout error: ' + msg);
-          return;
-        }
-
-        const result = await stripe.redirectToCheckout({ sessionId: data.id });
-
-        if (result.error) {
-          alert(result.error.message);
-        }
-      } catch (err) {
-        console.error('Network or JS error:', err);
-        alert('Unable to connect to checkout. Please try again.');
+    async function handleCheckout() {
+      const athlete = document.getElementById('athleteName').value.trim();
+      if (!athlete) {
+        alert('Please enter the athlete name.');
+        return;
       }
+      localStorage.setItem('athleteName', athlete);
+
+      const cart = loadCart().map(i => ({
+        name: i.name,
+        price: i.price,
+        quantity: i.quantity
+      }));
+
+      const res = await fetch('https://hff-server.onrender.com/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cart, athleteName: athlete })
+      });
+
+      const data = await res.json();
+      await stripe.redirectToCheckout({ sessionId: data.id });
     }
 
-    // Initial render
+    document.getElementById('checkoutBtn').onclick = handleCheckout;
+    document.getElementById('athleteName').value = localStorage.getItem('athleteName') || '';
     renderCart();
-
-    // Hook up Checkout button
-    const checkoutBtn = document.getElementById('checkoutBtn');
-    if (checkoutBtn) {
-      checkoutBtn.addEventListener('click', handleCheckout);
-    }
   </script>
 
-  <!-- shared hamburger nav (central file) -->
   <script src="nav.js"></script>
-
 </body>
 </html>
