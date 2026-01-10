@@ -2,17 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Loading Order...</title>
+  <title>Cart</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <!-- Stripe.js -->
-  <script src="https://js.stripe.com/v3/"></script>
 
   <style>
     :root {
       --ink: #fff;
       --black: #000;
       --accent: #0b5ed7;
+      --danger: #d9534f;
     }
     * { box-sizing: border-box; }
     body {
@@ -22,9 +20,6 @@
       color: var(--ink);
     }
 
-    /* =========================
-       TOP BANNER (SAME AS CART)
-       ========================= */
     .top-banner {
       width: 100%;
       background: #000;
@@ -43,199 +38,300 @@
       display: block;
     }
 
-    /* =========================
-       LOADING CONTENT
-       ========================= */
-    .page {
-      background: #000;
-      min-height: calc(100vh - 56px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    .cart-page-bg {
+      background: #fff;
+      min-height: 100vh;
       padding: 1.5rem 1rem 3rem;
-    }
-
-    .card {
-      width: min(560px, 94vw);
-      background: #fff;
-      color: #000;
-      border: 1px solid #333;
-      border-radius: 14px;
-      padding: 1.2rem 1.25rem 1.1rem;
-      text-align: center;
-      box-shadow: 0 0 18px rgba(255,255,255,0.06);
-    }
-
-    .title {
-      font-size: 1.2rem;
-      font-weight: 800;
-      margin: 0 0 0.35rem;
-    }
-
-    .sub {
-      font-size: 0.95rem;
-      color: #333;
-      margin: 0 0 0.9rem;
-      line-height: 1.35;
-    }
-
-    .spinner {
-      width: 48px;
-      height: 48px;
-      border: 5px solid #ddd;
-      border-top-color: #000;
-      border-radius: 50%;
-      margin: 0 auto 0.7rem;
-      animation: spin 0.9s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .small {
-      font-size: 0.85rem;
-      color: #666;
-      margin: 0.25rem 0 0;
-    }
-
-    .error {
-      display: none;
-      margin-top: 0.9rem;
-      padding: 0.75rem 0.85rem;
-      border-radius: 10px;
-      border: 1px solid #f2b8b5;
-      background: #fff5f5;
-      color: #8a1f17;
-      text-align: left;
-      font-size: 0.9rem;
-      line-height: 1.35;
-    }
-
-    .actions {
-      margin-top: 0.85rem;
-      display: none;
-      gap: 0.5rem;
+      display: flex;
       justify-content: center;
-      flex-wrap: wrap;
+      color: #000;
+    }
+    .cart-wrapper {
+      width: 100%;
+      max-width: 1100px;
+    }
+    .cart-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+    .cart-header-bar {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 0.4rem;
+    }
+    .btn-continue {
+      padding: 0.35rem 0.85rem;
+      border-radius: 999px;
+      border: none;
+      background: #000;
+      color: #fff;
+      font-size: 0.85rem;
+      cursor: pointer;
     }
 
-    .btn {
-      padding: 0.55rem 0.9rem;
-      border-radius: 999px;
-      border: 1px solid #333;
-      background: #fff;
-      color: #000;
-      cursor: pointer;
-      font-weight: 700;
+    .cart-header-row,
+    .cart-item-row {
+      display: grid;
+      grid-template-columns: 40px 80px 1fr 80px 80px 90px;
+      gap: 0.75rem;
+      align-items: center;
+    }
+    .cart-header-row {
+      padding: 0.6rem 0.2rem;
+      border-bottom: 1px solid #ddd;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #555;
+    }
+    .cart-item-row {
+      padding: 0.6rem 0.2rem;
+      border-bottom: 1px solid #eee;
       font-size: 0.9rem;
     }
-    .btn.primary {
-      background: var(--accent);
-      border-color: var(--accent);
+
+    .cart-empty { padding: 1rem 0.2rem; color: #666; }
+
+    .cart-remove-btn {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: none;
+      background: var(--danger);
       color: #fff;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    .cart-item-img {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: #fff;
+    }
+    .cart-item-name { font-weight: 600; }
+    .cart-item-details { font-size: 0.8rem; color: #666; }
+    .cart-qty-input { width: 60px; text-align: center; }
+    .cart-price, .cart-line-total { text-align: right; white-space: nowrap; }
+
+    .cart-summary {
+      margin-top: 1.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid #ddd;
+      max-width: 360px;
+      margin-left: auto;
+    }
+
+    .checkout-fields {
+      margin-bottom: 1rem;
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      background: #fafafa;
+    }
+    .field-label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+      display: block;
+    }
+    .field-input {
+      width: 100%;
+      padding: 0.45rem 0.6rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 0.95rem;
+    }
+
+    .summary-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 0.5rem;
+    }
+    .checkout-btn {
+      padding: 0.4rem 0.9rem;
+      border-radius: 999px;
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.35rem;
+    }
+    .summary-row.total {
+      font-weight: 700;
+      border-top: 1px solid #ddd;
+      padding-top: 0.35rem;
+    }
+
+    @media (max-width: 780px) {
+      .cart-header-row { display: none; }
+      .cart-item-row { grid-template-columns: 40px 70px 1fr; }
     }
   </style>
 </head>
 <body>
 
-  <!-- BANNER (NO HAMBURGER ON PURPOSE) -->
   <div class="top-banner">
     <a href="index.html" style="display:flex; align-items:center; justify-content:center; height:100%; width:100%;">
       <img src="White Logo.jpg" alt="League Logo">
     </a>
+    <div id="site-nav"></div>
   </div>
 
-  <main class="page">
-    <div class="card">
-      <div class="spinner" aria-hidden="true"></div>
-      <h1 class="title">Your order is loading…</h1>
-      <p class="sub">
-        Our payment server may be waking up (Render sleep mode).<br>
-        Please wait — this can take a little while.
-      </p>
-      <p class="small" id="statusText">Starting checkout…</p>
+  <div class="cart-page-bg">
+    <div class="cart-wrapper">
 
-      <div class="error" id="errorBox"></div>
+      <h1 class="cart-title">Cart</h1>
 
-      <div class="actions" id="actions">
-        <button class="btn" id="backBtn" type="button">Back to Cart</button>
-        <button class="btn primary" id="retryBtn" type="button">Try Again</button>
+      <div class="cart-header-bar">
+        <a href="shop.html"><button class="btn-continue">Continue Shopping</button></a>
       </div>
+
+      <div class="cart-header-row">
+        <div></div><div>Item</div><div>Name</div><div>Qty</div><div>Unit</div><div>Total</div>
+      </div>
+
+      <div id="cartItems"></div>
+
+      <div class="cart-summary" id="cartSummary" style="display:none;">
+
+        <div class="checkout-fields">
+          <label class="field-label" for="athleteName">Athlete name (for pickup)</label>
+          <input class="field-input" id="athleteName" placeholder="e.g. Jordan Smith">
+        </div>
+
+        <div class="summary-actions">
+          <button class="checkout-btn" id="checkoutBtn">Checkout</button>
+        </div>
+
+        <div class="summary-row"><span>Subtotal</span><span id="subtotalText">$0.00</span></div>
+        <div class="summary-row"><span>Tax (13%)</span><span id="taxText">$0.00</span></div>
+        <div class="summary-row total"><span>Total</span><span id="totalText">$0.00</span></div>
+      </div>
+
     </div>
-  </main>
+  </div>
 
   <script>
-    const stripe = Stripe('pk_test_51QpvmRITKnXMLroip1KMIOTGK2aACIhEvZzgdClAvR61B8lvwbwZmuuuVj9rfwYgJkmzrBDXN0I1gN0nD9eaEvgp00MYbmtTve');
-
-    const statusText = document.getElementById('statusText');
-    const errorBox = document.getElementById('errorBox');
-    const actions = document.getElementById('actions');
-    const backBtn = document.getElementById('backBtn');
-    const retryBtn = document.getElementById('retryBtn');
-
-    backBtn.addEventListener('click', () => {
-      window.location.href = 'cart.html';
-    });
-
-    retryBtn.addEventListener('click', () => {
-      startCheckout();
-    });
-
-    function showError(msg) {
-      errorBox.style.display = 'block';
-      errorBox.textContent = msg;
-      actions.style.display = 'flex';
-      if (statusText) statusText.textContent = 'Something went wrong.';
+    function loadCart() {
+      try { return JSON.parse(localStorage.getItem('cartItems')) || []; }
+      catch { return []; }
     }
 
-    async function startCheckout() {
-      errorBox.style.display = 'none';
-      actions.style.display = 'none';
-      if (statusText) statusText.textContent = 'Waking payment server…';
+    function saveCart(cart) {
+      localStorage.setItem('cartItems', JSON.stringify(cart));
+    }
 
-      // Pull payload from sessionStorage (set by cart.html)
-      let payload;
-      try {
-        payload = JSON.parse(sessionStorage.getItem('HFF_CHECKOUT_PAYLOAD') || 'null');
-      } catch {
-        payload = null;
-      }
+    function money(v) {
+      return '$' + v.toFixed(2);
+    }
 
-      if (!payload || !payload.cart || !payload.cart.length || !payload.athleteName) {
-        showError('Missing checkout details. Please go back to the cart and try again.');
+    function renderCart() {
+      const cart = loadCart();
+      const list = document.getElementById('cartItems');
+      const summary = document.getElementById('cartSummary');
+      list.innerHTML = '';
+
+      if (!cart.length) {
+        summary.style.display = 'none';
+        list.innerHTML = '<p class="cart-empty">Your cart is empty.</p>';
         return;
       }
 
-      try {
-        const res = await fetch('https://hff-server.onrender.com/create-checkout-session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
+      let subtotal = 0;
 
-        if (!res.ok) {
-          let msg = 'Unable to start checkout.';
-          try {
-            const errData = await res.json();
-            msg = errData.error || msg;
-          } catch {}
-          throw new Error(msg);
-        }
+      cart.forEach((item, i) => {
+        const qty = item.quantity || 1;
+        const line = qty * item.price;
+        subtotal += line;
 
-        if (statusText) statusText.textContent = 'Redirecting to secure payment…';
+        const row = document.createElement('div');
+        row.className = 'cart-item-row';
+        row.innerHTML = `
+          <button class="cart-remove-btn" data-i="${i}" aria-label="Remove item">&times;</button>
+          <img class="cart-item-img" src="${item.image || ''}" alt="">
+          <div>
+            <div class="cart-item-name">${item.name}</div>
+            <div class="cart-item-details">${item.team || ''} ${item.size || ''}</div>
+          </div>
+          <input class="cart-qty-input" type="number" min="1" value="${qty}" data-i="${i}">
+          <div class="cart-price">${money(item.price)}</div>
+          <div class="cart-line-total">${money(line)}</div>
+        `;
+        list.appendChild(row);
+      });
 
-        const data = await res.json();
-        if (!data.id) throw new Error('Checkout session created but no session id returned.');
+      const tax = subtotal * 0.13;
+      document.getElementById('subtotalText').textContent = money(subtotal);
+      document.getElementById('taxText').textContent = money(tax);
+      document.getElementById('totalText').textContent = money(subtotal + tax);
+      summary.style.display = 'block';
 
-        const result = await stripe.redirectToCheckout({ sessionId: data.id });
-        if (result && result.error) throw new Error(result.error.message);
-
-      } catch (err) {
-        console.error(err);
-        showError('Checkout error: ' + err.message);
-      }
+      attachCartListeners();
     }
 
-    // Start automatically on page load
-    startCheckout();
+    function attachCartListeners() {
+      const cart = loadCart();
+
+      document.querySelectorAll('.cart-remove-btn').forEach(btn => {
+        btn.onclick = () => {
+          cart.splice(btn.dataset.i, 1);
+          saveCart(cart);
+          renderCart();
+        };
+      });
+
+      document.querySelectorAll('.cart-qty-input').forEach(inp => {
+        inp.onchange = () => {
+          cart[inp.dataset.i].quantity = Math.max(1, Number(inp.value));
+          saveCart(cart);
+          renderCart();
+        };
+      });
+    }
+
+    function handleCheckout() {
+      const athlete = document.getElementById('athleteName').value.trim();
+      if (!athlete) {
+        alert('Please enter the athlete name.');
+        return;
+      }
+      localStorage.setItem('athleteName', athlete);
+
+      const cartItems = loadCart().map(i => ({
+        name: i.name,
+        price: i.price,
+        quantity: i.quantity
+      }));
+
+      if (!cartItems.length) {
+        alert('Your cart is empty.');
+        return;
+      }
+
+      sessionStorage.setItem('HFF_CHECKOUT_PAYLOAD', JSON.stringify({
+        type: 'cart',
+        data: {
+          cart: cartItems,
+          athleteName: athlete
+        }
+      }));
+
+      window.location.href = 'loading.html';
+    }
+
+    document.getElementById('checkoutBtn').onclick = handleCheckout;
+    document.getElementById('athleteName').value = localStorage.getItem('athleteName') || '';
+    renderCart();
   </script>
+
+  <script src="nav.js"></script>
 </body>
 </html>
