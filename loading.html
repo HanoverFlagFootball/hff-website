@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <title>Loading...</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
   <style>
     :root { --ink:#fff; --black:#000; }
     * { box-sizing: border-box; }
@@ -15,8 +14,6 @@
       font-family: Arial, Helvetica, sans-serif;
       min-height:100vh;
     }
-
-    /* TOP BANNER (same style as your pages, no hamburger) */
     .top-banner{
       width:100%;
       background:#000;
@@ -34,8 +31,6 @@
       object-fit:contain;
       display:block;
     }
-
-    /* LOADING CENTER */
     .stage{
       display:flex;
       align-items:center;
@@ -45,7 +40,7 @@
     .wrap{
       text-align:center;
       padding:2rem;
-      max-width:560px;
+      max-width:680px;
       width:100%;
     }
     .spinner{
@@ -64,14 +59,15 @@
       margin-top:1rem;
       background:#111;
       border:1px solid #333;
-      padding:0.75rem;
-      border-radius:10px;
+      padding:0.85rem;
+      border-radius:12px;
       color:#fff;
       text-align:left;
       font-size:0.9rem;
-      opacity:0.9;
+      opacity:0.92;
       white-space:pre-wrap;
     }
+    .muted { opacity:0.6; }
   </style>
 </head>
 
@@ -88,13 +84,13 @@
       <div class="txt">Preparing your secure Stripe checkout…</div>
       <div class="sub">One moment. You’ll be redirected automatically.</div>
       <div class="err" id="errBox"></div>
+      <div class="sub muted" style="margin-top:0.9rem;">LOADING VERSION: Jan10-DEBUG</div>
     </div>
   </div>
 
   <script>
     (async function () {
-      // ✅ SET THIS to your Render backend URL
-      // Example: https://hff-stripe-backend.onrender.com
+      // ✅ PUT YOUR REAL RENDER URL HERE (no trailing slash)
       const BACKEND_URL = "https://YOUR-RENDER-BACKEND.onrender.com";
 
       const errBox = document.getElementById('errBox');
@@ -118,77 +114,67 @@
       const raw = getRawPayload();
       const parsed = raw ? safeJson(raw) : null;
 
-      // If nothing to checkout, go back safely (never shop)
       if (!raw || !parsed) {
+        // No payload = go back safely
         window.location.replace('register.html?v=' + Date.now());
         return;
       }
 
-      // Determine what kind of payload this is
+      // Build a "best-effort" body that supports both of your payload shapes
       // Registration: { type:'registration', data:{...} }
-      const isRegistration =
-        parsed.type === 'registration' ||
-        (!!parsed.data && !!parsed.data.parent && !!parsed.data.player);
+      // Cart: { cart:[...], athleteName:'...' }
+      const body = {
+        ...parsed,
+        // If it's registration, your data is in parsed.data
+        data: parsed.data || parsed.data === null ? parsed.data : undefined,
+        type: parsed.type || (parsed.data ? 'registration' : undefined),
+        // Provide URLs (backend may use them)
+        successUrl: window.location.origin + '/success.html',
+        cancelUrl:  window.location.origin + (parsed.data ? '/register.html' : '/cart.html')
+      };
 
-      // Shop/cart: { cart:[...], athleteName:'...' } (your cart page sets this)
-      const isShopCart =
-        Array.isArray(parsed.cart) && parsed.cart.length > 0;
+      const base = BACKEND_URL.replace(/\/$/, '');
+      const endpoints = ['/create-checkout-session', '/create-checkout'];
 
-      const successUrl = window.location.origin + '/success.html';
-      const cancelUrl  = window.location.origin + (isRegistration ? '/register.html' : '/cart.html');
-
-      let body;
-
-      if (isRegistration) {
-        body = {
-          type: 'registration',
-          data: parsed.data || parsed,   // supports either shape
-          successUrl,
-          cancelUrl
-        };
-      } else if (isShopCart) {
-        body = {
-          cart: parsed.cart,
-          athleteName: parsed.athleteName || '',
-          successUrl,
-          cancelUrl
-        };
-      } else {
-        // Unknown payload shape
-        showError('Could not determine checkout type from payload. Redirecting back…');
-        setTimeout(() => window.location.replace('register.html?v=' + Date.now()), 900);
-        return;
-      }
-
-      try {
-        const res = await fetch(BACKEND_URL.replace(/\/$/, '') + '/create-checkout-session', {
+      async function tryEndpoint(path) {
+        const res = await fetch(base + path, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body)
         });
-
-        if (!res.ok) {
-          const txt = await res.text();
-          throw new Error(txt || 'Checkout request failed.');
-        }
-
-        const out = await res.json();
+        const text = await res.text();
+        if (!res.ok) throw new Error(`Endpoint ${path} failed (${res.status}).\n${text}`);
+        let out;
+        try { out = JSON.parse(text); } catch { throw new Error(`Endpoint ${path} returned non-JSON:\n${text}`); }
         const url = out.url || out.checkoutUrl || out.sessionUrl;
+        if (!url) throw new Error(`Endpoint ${path} did not return a checkout URL.\nResponse: ${text}`);
+        return url;
+      }
 
-        if (!url) {
-          throw new Error('No Stripe checkout URL returned from the server.');
+      try {
+        let lastErr = null;
+        for (const ep of endpoints) {
+          try {
+            const url = await tryEndpoint(ep);
+            window.location.href = url;
+            return;
+          } catch (e) {
+            lastErr = e;
+          }
         }
-
-        // ✅ Go to Stripe
-        window.location.href = url;
-
+        throw lastErr || new Error('Unknown checkout failure.');
       } catch (e) {
-        showError('Stripe checkout error:\n' + (e && e.message ? e.message : String(e)));
+        showError(
+          `Stripe checkout failed.\n\n` +
+          `Most common cause: BACKEND_URL is not set correctly.\n\n` +
+          `Details:\n${e && e.message ? e.message : String(e)}`
+        );
 
-        // Safe fallback (no shop)
+        // Safe fallback after showing error
         setTimeout(() => {
-          window.location.replace((isRegistration ? 'register.html' : 'cart.html') + '?v=' + Date.now());
-        }, 1400);
+          const back = (parsed.data || parsed.type === 'registration') ? 'register.html' : 'cart.html';
+          window.location.replace(back + '?v=' + Date.now());
+        }, 2500);
       }
     })();
   </script>
