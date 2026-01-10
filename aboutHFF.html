@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>About HFF</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --ink: #fff;
+      --line: #333;
+      --black: #000;
+      --accent: #0b5ed7;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #000;
+      color: var(--ink);
+    }
+
+    /* =========================
+       SCORES STRIP
+       ========================= */
+    .scores-strip {
+      width: 100%;
+      background: #000;
+      padding: 0.35rem 1rem;
+      overflow: hidden;
+    }
+    .score-row {
+      display: flex;
+      gap: 0.5rem;
+      align-items: stretch;
+      min-height: 70px;
+    }
+    .score-box {
+      background: #fff;
+      color: #000;
+      border: 1px solid #ccc;
+      border-radius: 0.5rem;
+      padding: 0.35rem 0.45rem;
+      flex: 0 0 calc((100% - 4.5rem) / 10);
+      min-height: 74px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .score-title {
+      font-size: 0.65rem;
+      text-align: center;
+      border-bottom: 1px solid #ddd;
+      margin-bottom: 0.15rem;
+      padding-bottom: 0.15rem;
+    }
+    .team-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.15rem;
+      line-height: 1.05;
+    }
+    .team-left {
+      display: flex;
+      align-items: center;
+      gap: 0.2rem;
+      min-width: 0;
+      flex: 1;
+    }
+    .team-logo {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+      background: #fff;
+      border-radius: 4px;
+      padding: 1px;
+    }
+    .team-name {
+      flex: 1;
+      font-size: 0.68rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .team-score {
+      width: 1.9rem;
+      text-align: right;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+    .score-status {
+      font-size: 0.58rem;
+      text-align: center;
+      margin-top: 0.2rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    @media (max-width: 700px) {
+      .scores-strip { overflow: hidden; }
+      .score-row { justify-content: center; }
+      .score-box {
+        flex: 0 0 calc((100% - 0.6rem) / 2);
+      }
+      .score-box:nth-child(n + 3) { display: none; }
+    }
+
+    /* =========================
+       TOP BANNER
+       ========================= */
+    .top-banner {
+      width: 100%;
+      background: #000;
+      aspect-ratio: 8 / 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 56px;
+      position: relative;
+    }
+    .top-banner img {
+      height: 82%;
+      width: auto;
+      max-width: 90vw;
+      object-fit: contain;
+      display: block;
+    }
+
+    /* =========================
+       PAGE CONTENT
+       ========================= */
+    .content-wrapper {
+      padding: 1.5rem 2rem 3rem;
+      background: #000;
+      display: flex;
+      justify-content: center;
+    }
+    .by-team-box {
+      background: #fff;
+      color: #000;
+      border: 1px solid #333;
+      border-radius: 0.7rem;
+      padding: 1.3rem 1.4rem 1.6rem;
+      max-width: 1100px;
+      width: 100%;
+      box-shadow: 0 0 15px rgba(255,255,255,0.05);
+    }
+
+    /* =========================
+       ABOUT CONTENT STYLES
+       ========================= */
+    .page-title {
+      text-align: center;
+      font-weight: 800;
+      font-size: 1.35rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin: 0.2rem 0 0.9rem;
+    }
+    .about-text {
+      font-size: 0.98rem;
+      line-height: 1.55;
+      margin: 0;
+    }
+    .about-text p {
+      margin: 0 0 0.9rem;
+    }
+    .about-text p:last-child {
+      margin-bottom: 0;
+    }
+    .about-section-title {
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin: 1.2rem 0 0.55rem;
+      border-top: 2px solid #333;
+      padding-top: 0.8rem;
+      font-size: 0.95rem;
+      text-align: center;
+    }
+    .bullets {
+      margin: 0.2rem 0 0.9rem;
+      padding-left: 1.1rem;
+    }
+    .bullets li {
+      margin: 0.35rem 0;
+    }
+
+    @media (max-width: 620px) {
+      .content-wrapper { padding: 1.2rem 1rem 3rem; }
+      .page-title { font-size: 1.2rem; }
+      .about-text { font-size: 0.95rem; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- SCORE STRIP -->
+  <div class="scores-strip">
+    <div class="score-row" id="scoreRow"></div>
+  </div>
+
+  <!-- BANNER -->
+  <div class="top-banner">
+    <a href="HFF.html" style="display:flex; align-items:center; justify-content:center; height:100%; width:100%;">
+      <img src="White Logo.jpg" alt="League Logo" style="height:82%; width:auto; max-width:90vw; object-fit:contain; display:block; cursor:pointer;">
+    </a>
+
+    <!-- SHARED HAMBURGER (from nav.js) -->
+    <div id="site-nav"></div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="content-wrapper">
+    <div class="by-team-box">
+
+      <div class="page-title">About Hanover Flag Football</div>
+
+      <div class="about-text">
+        <p>
+          Welcome to Hanover Flag Football (HFF) — a fast, fun, inclusive way to play the game.
+          Our league is built for players of all experience levels, with a focus on sportsmanship,
+          skill development, and creating an awesome community atmosphere.
+        </p>
+
+        <p>
+          We play on Saturdays at the Hanover Soccer Fields, with age groups from U6 to U18.
+        </p>
+
+        <p>
+          Our teams are coached by parent volunteers, with drills and play ideas provided to support you throughout the season.
+          Coaching is a great way to be involved in your child’s team. If you’d like to coach, just let us know when you register or send us a quick email.
+        </p>
+
+        <div class="about-section-title">What We’re About</div>
+        <ul class="bullets">
+          <li><strong>Fun first:</strong> a positive, high-energy environment every week.</li>
+          <li><strong>Skill development:</strong> coaches focus on fundamentals and confidence.</li>
+          <li><strong>Fair play:</strong> respect for teammates, opponents, and officials.</li>
+          <li><strong>Community:</strong> a league built for families, friends, and fans.</li>
+        </ul>
+
+        <div class="about-section-title">How Flag Football Works</div>
+        <p>
+          Flag football is a non-contact version of football where players “tackle” by pulling a flag
+          from the ball carrier’s belt. It keeps the action fast while emphasizing agility, teamwork,
+          and strategy.
+        </p>
+
+<p>
+  Want to learn more? 
+  <a href="rules.html" style="color:#0b5ed7; font-weight:600; text-decoration:none;">
+    Check out the full league rules here
+  </a>.
+</p>
+
+
+        <div class="about-section-title">League Info</div>
+        <ul class="bullets">
+          <li>A practice and game each week</li>
+          <li>6 weeks of regular season play and 2 weeks of playoffs</li>
+          <li>A skill competition on the final week</li>
+        </ul>
+
+        <div class="about-section-title">Contact</div>
+        <p>
+          Questions about registration, schedules, or teams? Email us anytime at <strong>info@hanoverflagfootball.ca</strong>.
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- shared score strip JS (central file) -->
+  <script src="scores-strip.js"></script>
+
+  <!-- shared hamburger nav (central file) -->
+  <script src="nav.js"></script>
+
+</body>
+</html>
+
+

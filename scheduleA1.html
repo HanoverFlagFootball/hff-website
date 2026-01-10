@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dolphins Team Schedule</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --ink: #fff;
+      --line: #333;
+      --black: #000;
+      --accent: #0b5ed7;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #000;
+      color: var(--ink);
+    }
+
+    /* =========================
+       SCORES STRIP
+       ========================= */
+    .scores-strip {
+      width: 100%;
+      background: #000;
+      padding: 0.35rem 1rem;
+      overflow: hidden;
+    }
+    .score-row {
+      display: flex;
+      gap: 0.5rem;
+      align-items: stretch;
+      min-height: 70px;
+    }
+    .score-box {
+      background: #fff;
+      color: #000;
+      border: 1px solid #ccc;
+      border-radius: 0.5rem;
+      padding: 0.35rem 0.45rem;
+      flex: 0 0 calc((100% - 4.5rem) / 10);
+      min-height: 74px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .score-title {
+      font-size: 0.65rem;
+      text-align: center;
+      border-bottom: 1px solid #ddd;
+      margin-bottom: 0.15rem;
+      padding-bottom: 0.15rem;
+    }
+    .team-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.15rem;
+      line-height: 1.05;
+    }
+    .team-left {
+      display: flex;
+      align-items: center;
+      gap: 0.2rem;
+      min-width: 0;
+      flex: 1;
+    }
+    .team-logo {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+      background: #fff;
+      border-radius: 4px;
+      padding: 1px;
+    }
+    .team-name {
+      flex: 1;
+      font-size: 0.68rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .team-score {
+      width: 1.9rem;
+      text-align: right;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+    .score-status {
+      font-size: 0.58rem;
+      text-align: center;
+      margin-top: 0.2rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    @media (max-width: 700px) {
+      .scores-strip { overflow: hidden; }
+      .score-row { justify-content: center; }
+      .score-box {
+        flex: 0 0 calc((100% - 0.6rem) / 2);
+      }
+      .score-box:nth-child(n + 3) { display: none; }
+    }
+
+    /* =========================
+       TOP BANNER
+       ========================= */
+    .top-banner {
+      width: 100%;
+      background: #000;
+      aspect-ratio: 8 / 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 56px;
+      position: relative;
+    }
+    .top-banner img {
+      height: 82%;
+      width: auto;
+      max-width: 90vw;
+      object-fit: contain;
+      display: block;
+    }
+
+    /* =========================
+       PAGE CONTENT
+       ========================= */
+    .content-wrapper {
+      padding: 1.5rem 2rem 3rem;
+      background: #000;
+      display: flex;
+      justify-content: center;
+    }
+    .by-team-box {
+      background: #fff;
+      color: #000;
+      border: 1px solid #333;
+      border-radius: 0.7rem;
+      padding: 1.3rem 1.4rem 1.6rem;
+      max-width: 1100px;
+      width: 100%;
+      box-shadow: 0 0 15px rgba(255,255,255,0.05);
+    }
+
+    /* ====== TEAM HEADER (logo + name) ====== */
+    .team-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+    .team-header-logo {
+      width: 110px;
+      height: 110px;
+      object-fit: contain;
+      margin-bottom: 0.5rem;
+    }
+    .team-header-name {
+      font-weight: 800;
+      font-size: 1.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      text-align: center;
+    }
+
+    /* ====== BY WEEK (full-width game boxes) ====== */
+    .weekly-date {
+      text-align: center;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    .week-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .week-game {
+      display: flex;
+      gap: 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: 0.5rem;
+      background: #fff;
+      padding: 0.65rem 0.75rem;
+      align-items: stretch;
+    }
+    .week-left {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+      min-width: 0;
+    }
+    .week-team-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+    .week-team-info {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      min-width: 0;
+      flex: 1;
+    }
+    .week-team-logo {
+      width: 30px;
+      height: 30px;
+      object-fit: contain;
+      background: #fff;
+      border-radius: 4px;
+      flex: 0 0 30px;
+    }
+    .week-team-name-wrap {
+      display: flex;
+      align-items: baseline;
+      gap: 0.3rem;
+      min-width: 0;
+      flex-wrap: wrap;
+    }
+    .week-team-name {
+      font-weight: 700;
+      font-size: 0.86rem;
+      white-space: nowrap;
+    }
+    .week-team-record {
+      font-size: 0.7rem;
+      color: #888;
+      white-space: nowrap;
+    }
+    .week-score {
+      font-weight: 600;
+      font-size: 0.8rem;
+      white-space: nowrap;
+      margin-left: 0.6rem;
+    }
+    .week-divider {
+      width: 1px;
+      background: #ddd;
+      margin: 0 0.5rem;
+    }
+    .week-right {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 0.2rem;
+      min-width: 145px;
+    }
+    .week-datetime {
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+    .week-field {
+      font-size: 0.7rem;
+      color: #333;
+    }
+
+    @media (max-width: 720px) {
+      .week-game {
+        flex-direction: column;
+      }
+      .week-divider {
+        height: 1px;
+        width: 100%;
+        margin: 0.5rem 0;
+      }
+      .week-right {
+        min-width: 0;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .content-wrapper { padding: 1.2rem 1rem 3rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SCORE STRIP -->
+  <div class="scores-strip">
+    <div class="score-row" id="scoreRow"></div>
+  </div>
+
+  <!-- BANNER -->
+  <div class="top-banner">
+    <a href="HFF.html" style="display:flex; align-items:center; justify-content:center; height:100%; width:100%;">
+      <img src="White Logo.jpg" alt="League Logo" style="height:82%; width:auto; max-width:90vw; object-fit:contain; display:block; cursor:pointer;">
+    </a>
+
+    <!-- SHARED HAMBURGER (from nav.js) -->
+    <div id="site-nav"></div>
+  </div>
+
+  <!-- MAIN CONTENT: BY WEEK ONLY -->
+  <div class="content-wrapper">
+    <div class="by-team-box">
+
+      <!-- TEAM HEADER (logo + name instead of text title) -->
+      <div class="team-header">
+        <img src="Dolphins.png" alt="U6 Team 1 logo" class="team-header-logo" id="teamHeaderLogo">
+        <div class="team-header-name" id="teamHeaderName">U6 Team 1 Schedule</div>
+      </div>
+
+      <!-- BY WEEK LIST -->
+      <div class="week-list" id="weekList"></div>
+
+    </div>
+  </div>
+
+  <!-- shared score strip JS (central file) -->
+  <script src="scores-strip.js"></script>
+
+  <!-- shared hamburger nav (central file) -->
+  <script src="nav.js"></script>
+
+  <!-- shared season schedule data (central file) -->
+  <script src="season-schedule.js"></script>
+
+  <!-- page->team directory (central file) -->
+  <script src="team-directory.js"></script>
+
+  <script>
+    // BY WEEK data - NOW FROM season-schedule.js filtered by team-directory.js
+    const weekList = document.getElementById('weekList');
+
+    const teamHeaderLogo = document.getElementById('teamHeaderLogo');
+    const teamHeaderName = document.getElementById('teamHeaderName');
+
+    // Find which team this page represents
+    const pageName = (window.HFF_TEAM_DIRECTORY && typeof window.HFF_TEAM_DIRECTORY.getCurrentPageName === 'function')
+      ? window.HFF_TEAM_DIRECTORY.getCurrentPageName()
+      : '';
+
+    const teamInfo = (window.HFF_TEAM_DIRECTORY && typeof window.HFF_TEAM_DIRECTORY.getTeamForPage === 'function')
+      ? window.HFF_TEAM_DIRECTORY.getTeamForPage(pageName)
+      : null;
+
+    // Update header based on directory (so you can change it next year without touching this HTML)
+    if (teamInfo) {
+      if (teamHeaderLogo && teamInfo.teamLogo) {
+        teamHeaderLogo.src = teamInfo.teamLogo;
+      }
+      if (teamHeaderName && teamInfo.headerText) {
+        teamHeaderName.textContent = teamInfo.headerText;
+      }
+      if (teamInfo.teamLabel) {
+        document.title = teamInfo.teamLabel + ' Schedule';
+      }
+    }
+
+    // Pull only games for this team
+    const teamLabel = teamInfo && teamInfo.teamLabel ? teamInfo.teamLabel : '';
+    const weekGames = (window.HFF_SCHEDULE && typeof window.HFF_SCHEDULE.getGamesForTeam === 'function' && teamLabel)
+      ? window.HFF_SCHEDULE.getGamesForTeam(teamLabel)
+      : [];
+
+    weekGames.forEach(g => {
+      const box = document.createElement('div');
+      box.className = 'week-game';
+      box.innerHTML = `
+        <div class="week-left">
+          <div class="week-team-row">
+            <div class="week-team-info">
+              <img src="${g.awayLogo}" alt="${g.away}" class="week-team-logo">
+              <div class="week-team-name-wrap">
+                <span class="week-team-name">${g.away}</span>
+                <span class="week-team-record">${g.awayRecord || ''}</span>
+              </div>
+            </div>
+            <div class="week-score">${g.awayScore || 'TBD'}</div>
+          </div>
+          <div class="week-team-row">
+            <div class="week-team-info">
+              <img src="${g.homeLogo}" alt="${g.home}" class="week-team-logo">
+              <div class="week-team-name-wrap">
+                <span class="week-team-name">${g.home}</span>
+                <span class="week-team-record">${g.homeRecord || ''}</span>
+              </div>
+            </div>
+            <div class="week-score">${g.homeScore || 'TBD'}</div>
+          </div>
+        </div>
+        <div class="week-divider"></div>
+        <div class="week-right">
+          <div class="week-datetime">${g.datetime}</div>
+          <div class="week-field">${g.field}</div>
+        </div>
+      `;
+      weekList.appendChild(box);
+    });
+  </script>
+
+</body>
+</html>

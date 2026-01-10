@@ -1,0 +1,594 @@
+<<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Flag Football League</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --ink: #fff;
+      --line: #333;
+      --black: #000;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #000;
+      color: var(--ink);
+    }
+
+    /* =========================
+       SCORES STRIP
+       ========================= */
+    .scores-strip {
+      width: 100%;
+      background: #000;
+      padding: 0.35rem 1rem;
+      overflow: hidden;
+    }
+    .score-row {
+      display: flex;
+      gap: 0.5rem;
+      align-items: stretch;
+      min-height: 70px;
+    }
+    .score-box {
+      background: #fff;
+      color: #000;
+      border: 1px solid #ccc;
+      border-radius: 0.5rem;
+      padding: 0.35rem 0.45rem;
+      flex: 0 0 calc((100% - 4.5rem) / 10); /* 10 across desktop */
+      min-height: 74px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .score-title {
+      font-size: 0.65rem;
+      text-align: center;
+      border-bottom: 1px solid #ddd;
+      margin-bottom: 0.15rem;
+      padding-bottom: 0.15rem;
+    }
+    .team-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.15rem;
+      line-height: 1.05;
+    }
+    .team-left {
+      display: flex;
+      align-items: center;
+      gap: 0.2rem;
+      min-width: 0;
+      flex: 1;
+    }
+    .team-logo {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+      background: #fff;
+      border-radius: 4px;
+      padding: 1px;
+    }
+    .team-name {
+      flex: 1;
+      font-size: 0.68rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .team-score {
+      width: 1.9rem;
+      text-align: right;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+    .score-status {
+      font-size: 0.58rem;
+      text-align: center;
+      margin-top: 0.2rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    /* MOBILE: show only 2 boxes */
+    @media (max-width: 700px) {
+      .scores-strip {
+        overflow: hidden;
+      }
+      .score-row {
+        justify-content: center;
+      }
+      .score-box {
+        flex: 0 0 calc((100% - 0.6rem) / 2);
+      }
+      .score-box:nth-child(n + 3) {
+        display: none;
+      }
+    }
+
+    /* =========================
+       TOP BANNER
+       ========================= */
+    .top-banner {
+      width: 100%;
+      background: #000;
+      aspect-ratio: 8 / 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 56px;
+      position: relative;
+    }
+    .top-banner img {
+      height: 82%;
+      width: auto;
+      max-width: 90vw;
+      object-fit: contain;
+      display: block;
+    }
+
+    /* =========================
+       HAMBURGER IN BANNER
+       ========================= */
+    .mobile-nav {
+      position: absolute;
+      bottom: 6px;
+      left: 10px;
+      display: flex;
+      align-items: center;
+    }
+    .mobile-nav-btn {
+      width: 34px;
+      height: 28px;
+      border: 1px solid #fff;
+      background: rgba(0,0,0,0.3);
+      display: inline-flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+    .mobile-nav-btn span {
+      display: block;
+      height: 2px;
+      background: #fff;
+    }
+    .mobile-nav-menu {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 10px;
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 0.5rem;
+      display: none;
+      flex-direction: column;
+      z-index: 999;
+      min-width: 180px;
+    }
+    .mobile-nav-menu a {
+      color: #fff;
+      text-decoration: none;
+      padding: 0.6rem 0.8rem;
+      border-bottom: 1px solid #222;
+      font-size: 0.9rem;
+    }
+    .mobile-nav-menu a:last-child {
+      border-bottom: none;
+    }
+    .mobile-nav-menu.show {
+      display: flex;
+    }
+
+    /* make hamburger bigger + move on desktop */
+    @media (min-width: 701px) {
+      .mobile-nav {
+        bottom: 38px;
+        left: 44px;
+      }
+      .mobile-nav-btn {
+        width: 65px;
+        height: 50px;
+        gap: 5px;
+        border-width: 2px;
+      }
+      .mobile-nav-btn span {
+        height: 3px;
+      }
+    }
+
+    /* =========================
+       3 COLUMNS
+       ========================= */
+    .three-cols {
+      display: grid;
+      grid-template-columns: 1fr 3fr 1fr;
+      gap: 2vw;
+      padding: 1.2vw 2vw 2vw;
+      background: #000;
+    }
+    .col {
+      background: #fff;
+      color: #000;
+      border: 1px solid #333;
+      border-radius: 0.7vw;
+      padding: 1.2vw;
+      min-height: 50px;
+      box-shadow: 0 0 15px rgba(255,255,255,0.07);
+    }
+
+    /* LEFT COLUMN */
+    .left-col .register-btn {
+      display: block;
+      width: 100%;
+      aspect-ratio: 712 / 151;
+      margin-bottom: 1.2vw;
+    }
+    .left-col .register-btn img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+    .left-col .link-img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #ddd;
+      border-radius: 0.5vw;
+      overflow: hidden;
+      margin-bottom: 1.2vw;
+    }
+    .left-col .link-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* CENTER COLUMN */
+    .center-col h2 {
+      margin-top: 0;
+      font-size: clamp(1.1rem, 2.3vw, 1.4rem);
+      text-align: center;
+      color: #000;
+    }
+    .news-item {
+      display: grid;
+      grid-template-columns: minmax(70px, 90px) 1fr;
+      gap: 1vw;
+      margin-bottom: 1.2vw;
+      align-items: start;
+    }
+    .news-thumb {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: #ddd;
+      border-radius: 0.5vw;
+      overflow: hidden;
+    }
+    .news-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .news-content h3 {
+      margin: 0;
+      font-size: clamp(0.9rem, 2vw, 1.1rem);
+      color: #000;
+    }
+    .news-content p {
+      margin: 0.3rem 0 0;
+      font-size: clamp(0.75rem, 1.6vw, 0.9rem);
+      line-height: 1.4;
+      color: #000;
+    }
+    .video-box {
+      margin-top: 1vw;
+      background: #000;
+      border-radius: 0.5vw;
+      overflow: hidden;
+      aspect-ratio: 16 / 9;
+    }
+    .video-box iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    /* RIGHT COLUMN */
+    .right-col h3 {
+      margin-top: 0;
+      font-size: clamp(0.9rem, 1.9vw, 1.1rem);
+      text-align: center;
+      color: #000;
+    }
+    .past-item {
+      display: grid;
+      grid-template-columns: minmax(50px, 60px) 1fr;
+      gap: 0.7vw;
+      margin-bottom: 1vw;
+      align-items: start;
+    }
+    .past-thumb {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: #eee;
+      border-radius: 0.4vw;
+      overflow: hidden;
+    }
+    .past-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .past-content h4 {
+      margin: 0;
+      font-size: clamp(0.78rem, 1.5vw, 0.9rem);
+      color: #000;
+    }
+    .past-content p {
+      margin: 0.3rem 0 0;
+      font-size: clamp(0.7rem, 1.4vw, 0.8rem);
+      line-height: 1.35;
+      color: #000;
+    }
+
+    @media (max-width: 1050px) {
+      .three-cols {
+        grid-template-columns: 1fr;
+      }
+      .center-col { order: 1; }
+      .left-col   { order: 2; }
+      .right-col  { order: 3; }
+    }
+
+    /* =========================
+       SPONSORS (restored)
+       ========================= */
+    .sponsor-strip {
+      background: #000;
+      color: #fff;
+      padding: 1.5vw 2vw 3vw;
+      text-align: center;
+    }
+    .sponsor-strip h2 {
+      margin: 0 0 1vw;
+      font-size: clamp(1rem, 2.2vw, 1.2rem);
+      letter-spacing: 0.08em;
+    }
+    .sponsor-track-wrapper {
+      overflow: hidden;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+    .sponsor-track {
+      display: flex;
+      justify-content: space-around;
+      gap: 2.5vw;
+      width: 100%;
+      transition: transform 0.4s ease;
+    }
+    .sponsor-logo {
+      flex: 0 0 auto;
+      width: clamp(80px, 10vw, 130px);
+      aspect-ratio: 1 / 1;
+      border-radius: 1vw;
+      overflow: hidden;
+      background: #fff;
+    }
+    .sponsor-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    @media (max-width: 600px) {
+      .sponsor-track { gap: 4vw; }
+      .sponsor-logo { width: 22vw; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SCORE STRIP -->
+  <div class="scores-strip">
+    <div class="score-row" id="scoreRow"></div>
+  </div>
+
+  <!-- BANNER with HAMBURGER -->
+  <div class="top-banner">
+    <img src="White Logo.jpg" alt="League Logo">
+    <div class="mobile-nav">
+      <button id="mobileMenuBtn" class="mobile-nav-btn" aria-label="Open menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <div id="mobileMenu" class="mobile-nav-menu">
+        <a href="#scores">Scores &amp; Schedules</a>
+        <a href="#shop">Shop</a>
+        <a href="#rep">Rep Flag</a>
+        <a href="#contact">Contact</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3 COLUMNS -->
+  <section class="three-cols">
+    <!-- LEFT -->
+    <div class="col left-col">
+      <a class="register-btn" href="#register">
+        <img src="register.png" alt="Register">
+      </a>
+      <a class="link-img" href="#register">
+        <img src="https://via.placeholder.com/400x180/ef476f/fff?text=Register+Here" alt="Register">
+      </a>
+      <a class="link-img" href="#schedule">
+        <img src="https://via.placeholder.com/400x180/06d6a0/fff?text=Schedule" alt="Schedule">
+      </a>
+    </div>
+
+    <!-- CENTER -->
+    <div class="col center-col">
+      <h2>Announcements &amp; News</h2>
+      <div class="news-item">
+        <div class="news-thumb">
+          <img src="registerannouncement2.png" alt="">
+        </div>
+        <div class="news-content">
+          <h3>REGISTRATION IS OPEN</h3>
+          <p>The countdown to kickoff starts now! Big plays and even bigger fun are just around the corner.</p>
+        </div>
+      </div>
+      <div class="video-box">
+        <iframe src="https://rumble.com/embed/v6thm3z/?pub=4ma38h" title="Semi-Finals Bengals vs Ravens" allowfullscreen></iframe>
+      </div>
+      <div class="video-box">
+        <iframe src="https://rumble.com/embed/v6thq9r/?pub=4ma38h" title="Semi-Finals Steelers vs Vikings" allowfullscreen></iframe>
+      </div>
+
+    </div>
+
+    <!-- RIGHT -->
+    <div class="col right-col">
+      <h3>Past Announcements</h3>
+      <div class="past-item">
+        <div class="past-thumb"><img src="thankyou.jpg" alt=""></div>
+        <div class="past-content">
+          <h4>Thank you!</h4>
+          <p>Thank you players, coaches, refs & families for a great first season!</p>
+        </div>
+      </div>
+      <div class="past-item">
+        <div class="past-thumb"><img src="2025CongratsU16.jpg" alt=""></div>
+        <div class="past-content">
+          <h4>Congratulations!</h4>
+          <p>Congratulations to the U16 Bengals on taking home the title!</p>
+        </div>
+      </div>
+      <div class="past-item">
+        <div class="past-thumb"><img src="2025CongratsU12.jpg" alt=""></div>
+        <div class="past-content">
+          <h4>Congratulations!</h4>
+          <p>Congrats U12 Rams on a great season!</p>
+        </div>
+      </div>
+      <div class="past-item">
+        <div class="past-thumb"><img src="2025CongratsU9.jpg" alt=""></div>
+        <div class="past-content">
+          <h4>Congratulations!</h4>
+          <p>Congratulations Falcons, the U9 champions!</p>
+        </div>
+      </div>
+
+
+    </div>
+  </section>
+
+  <!-- SPONSORS (restored) -->
+  <div class="sponsor-strip">
+    <h2>SPONSORED BY</h2>
+    <div class="sponsor-track-wrapper">
+      <div class="sponsor-track" id="sponsorTrack">
+        <div class="sponsor-logo"><img src="DC Cab.png" alt="Sponsor 1"></div>
+        <div class="sponsor-logo"><img src="https://via.placeholder.com/100x100?text=2" alt="Sponsor 2"></div>
+        <div class="sponsor-logo"><img src="https://via.placeholder.com/100x100?text=3" alt="Sponsor 3"></div>
+        <div class="sponsor-logo"><img src="https://via.placeholder.com/100x100?text=4" alt="Sponsor 4"></div>
+        <div class="sponsor-logo"><img src="https://via.placeholder.com/100x100?text=5" alt="Sponsor 5"></div>
+        <div class="sponsor-logo"><img src="https://via.placeholder.com/100x100?text=6" alt="Sponsor 6"></div>
+        <div class="sponsor-logo"><img src="https://via.placeholder.com/100x100?text=7" alt="Sponsor 7"></div>
+        <div class="sponsor-logo"><img src="https://via.placeholder.com/100x100?text=8" alt="Sponsor 8"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Automatically get logo path based on team name (spaces removed)
+    function getTeamLogo(teamName) {
+      const cleanName = teamName.replace(/\s+/g, '');
+      return `${cleanName}.png`;
+    }
+
+    // === GAMES DATA ===
+    const games = [
+      { home: "Ravens",  homeScore: 27, away: "Steelers", awayScore: 17, date: "Nov 9, 1:00 PM", status: "Final" },
+      { home: "Bengals", homeRecord: "3-4", away: "Broncos", awayRecord: "5-2", date: "Nov 10, 3:00 PM", status: "Field A" },
+      { home: "Eagles",  homeScore: 14, away: "Cowboys", awayScore: 21, date: "Nov 8, 7:00 PM", status: "Final" },
+      { home: "Patriots", homeRecord: "2-5", away: "Jets", awayRecord: "4-3", date: "Nov 11, 3:00 PM", status: "Field B" },
+      { home: "Bills",   homeScore: 30, away: "Dolphins", awayScore: 28, date: "Nov 7, 6:00 PM", status: "Final" },
+      { home: "Packers", homeRecord: "4-2", away: "Bears", awayRecord: "1-6", date: "Nov 12, 2:30 PM", status: "Field C" },
+      { home: "Chiefs",  homeScore: 34, away: "Raiders", awayScore: 10, date: "Nov 6, 4:00 PM", status: "Final" },
+      { home: "49ers",   homeRecord: "6-1", away: "Seahawks", awayRecord: "5-2", date: "Nov 13, 5:00 PM", status: "Field A" },
+      { home: "Giants",  homeRecord: "2-6", away: "Jets", awayRecord: "4-3", date: "Nov 14, 7:00 PM", status: "Field B" },
+      { home: "Lions",   homeRecord: "5-2", away: "Cowboys", awayRecord: "4-3", date: "Nov 15, 6:00 PM", status: "Field C" }
+    ];
+
+    const scoreRow = document.getElementById('scoreRow');
+
+    games.forEach(game => {
+      const box = document.createElement('div');
+      box.className = 'score-box';
+
+      const homeLogo = getTeamLogo(game.home);
+      const awayLogo = getTeamLogo(game.away);
+
+      const homeDisplay = (typeof game.homeScore === 'number')
+        ? game.homeScore : (game.homeRecord || '');
+      const awayDisplay = (typeof game.awayScore === 'number')
+        ? game.awayScore : (game.awayRecord || '');
+
+      box.innerHTML = `
+        <div class="score-title">${game.date || ""}</div>
+        <div class="team-row">
+          <div class="team-left">
+            <img src="${homeLogo}" alt="${game.home}" class="team-logo">
+            <span class="team-name">${game.home}</span>
+          </div>
+          <span class="team-score">${homeDisplay}</span>
+        </div>
+        <div class="team-row">
+          <div class="team-left">
+            <img src="${awayLogo}" alt="${game.away}" class="team-logo">
+            <span class="team-name">${game.away}</span>
+          </div>
+          <span class="team-score">${awayDisplay}</span>
+        </div>
+        <div class="score-status">${game.status}</div>
+      `;
+
+      scoreRow.appendChild(box);
+    });
+
+    // rotate score boxes every 5s
+    setInterval(() => {
+      const firstBox = scoreRow.firstElementChild;
+      if (firstBox) scoreRow.appendChild(firstBox);
+    }, 5000);
+
+    // sponsor rotation every 5s
+    const sponsorTrack = document.getElementById('sponsorTrack');
+    if (sponsorTrack) {
+      setInterval(() => {
+        const firstLogo = sponsorTrack.firstElementChild;
+        if (firstLogo) sponsorTrack.appendChild(firstLogo);
+      }, 5000);
+    }
+
+    // hamburger toggle
+    const mobileBtn = document.getElementById('mobileMenuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    if (mobileBtn && mobileMenu) {
+      mobileBtn.addEventListener('click', () => {
+        mobileMenu.classList.toggle('show');
+      });
+    }
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Order Received</title>
+  <style>
+    body { font-family: Arial, Helvetica, sans-serif; margin: 0; background:#000; color:#fff; }
+    .wrap { max-width: 900px; margin: 0 auto; padding: 2rem 1rem; }
+    .card { background:#111; border:1px solid #222; border-radius: 14px; padding: 1.5rem; }
+    h1 { margin: 0 0 0.5rem; }
+    .muted { color:#bbb; line-height:1.5; }
+    .order { margin-top: 1rem; padding: 0.75rem 1rem; background:#0b5ed7; border-radius: 10px; display:inline-block; font-weight:700; }
+    a { color:#9fd1ff; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Thank you for your order!</h1>
+      <div class="muted">
+        Your order has been received and is being processed.<br/>
+        An order confirmation email will be sent shortly.
+      </div>
+
+      <div id="orderBox" class="order" style="display:none;"></div>
+
+      <div class="muted" style="margin-top:1rem;">
+        <a href="Shop.html">Continue shopping</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // If we pass an order number in the URL, show it:
+    const params = new URLSearchParams(window.location.search);
+    const orderNumber = params.get('order');
+    if (orderNumber) {
+      const box = document.getElementById('orderBox');
+      box.textContent = 'Order #: ' + orderNumber;
+      box.style.display = 'inline-block';
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Shop</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    :root {
+      --ink: #000;
+      --accent: #ff0000;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #fff;
+      color: var(--ink);
+    }
+
+    /* =========================
+       TOP BANNER (same as homepage)
+       ========================= */
+    .top-banner {
+      width: 100%;
+      background: #000;
+      aspect-ratio: 8 / 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 56px;
+      position: relative;
+    }
+    .top-banner img {
+      height: 82%;
+      width: auto;
+      max-width: 90vw;
+      object-fit: contain;
+      display: block;
+    }
+
+    /* =========================
+       TITLE + CART ROW
+       ========================= */
+    .title-row {
+      width: 100%;
+      background: #fff;
+      padding: 1.5rem 2rem 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .shop-title-box {
+      flex: 1;
+      text-align: center;
+    }
+
+    .shop-title-box h1 {
+      margin: 0;
+      font-size: clamp(1.3rem, 3vw, 2rem);
+      font-weight: 800;
+    }
+
+    .shop-title-box p {
+      margin: 0.3rem 0 0;
+      font-size: clamp(0.9rem, 1.5vw, 1.1rem);
+      font-weight: 500;
+      opacity: 0.8;
+    }
+
+    .cart-icon-box {
+      position: relative;
+      width: 50px;
+      height: 50px;
+      cursor: pointer;
+    }
+
+    .cart-icon-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .cart-count {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background: red;
+      color: #fff;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    /* =========================
+       PRODUCTS WRAPPER + GRID
+       (centered on the page)
+       ========================= */
+    .products-wrapper {
+      background: #fff;
+      padding: 1rem 2rem 3rem;
+      display: flex;
+      justify-content: center;
+    }
+
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 1.8rem;
+      width: 100%;
+      max-width: 1000px; /* keeps grid centered and not too wide */
+    }
+
+    /* =========================
+       PRODUCT CARD (uniform size)
+       ========================= */
+    .product-card {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 0.5rem;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 350px; /* SAME height for all boxes */
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+      cursor: pointer;
+    }
+
+    .product-card:hover {
+      transform: translateY(-4px) scale(1.04);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+
+    .product-image-wrap {
+      width: 100%;
+      height: 200px; /* SAME image area height */
+      background: #f5f5f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .product-image-wrap img {
+      max-width: 80%;
+      max-height: 80%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .product-content {
+      flex: 1;
+      padding: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: stretch;
+    }
+
+    .product-title {
+      font-weight: 700;
+      font-size: 1rem;
+      text-align: center;
+    }
+
+    .product-price {
+      font-weight: 600;
+      font-size: 0.95rem;
+      text-align: center;
+      margin-top: 0.25rem;
+    }
+
+    /* OPTIONS (Team + Size: selects only) */
+    .product-options {
+      width: 100%;
+      margin: 0.4rem 0 0.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .product-select {
+      width: 100%;
+      padding: 0.25rem 0.35rem;
+      border-radius: 0.35rem;
+      border: 1px solid #ccc;
+      font-size: 0.8rem;
+      background: #fff;
+    }
+
+    .product-button {
+      padding: 0.45rem 0.9rem;
+      border-radius: 999px;
+      border: none;
+      background: #000;
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      max-width: 140px;
+      align-self: center;
+    }
+
+    .product-button:hover {
+      opacity: 0.9;
+    }
+
+    /* =========================
+       CART TOAST (Added to Cart popup)
+       ========================= */
+    .cart-toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.85);
+      color: #fff;
+      padding: 0.75rem 1.2rem;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      z-index: 1000;
+    }
+
+    .cart-toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BANNER -->
+  <div class="top-banner">
+    <a href="HFF.html" style="display:flex; align-items:center; justify-content:center; height:100%; width:100%;">
+      <img src="White Logo.jpg" alt="League Logo" style="height:82%; width:auto; max-width:90vw; object-fit:contain; display:block; cursor:pointer;">
+    </a>
+
+    <!-- SHARED HAMBURGER (from nav.js) -->
+    <div id="site-nav"></div>
+  </div>
+
+  <!-- TITLE + CART -->
+  <div class="title-row">
+    <div></div> <!-- spacer to help keep title centered -->
+    <div class="shop-title-box">
+      <h1>League Shop</h1>
+      <p>Gear up and get game-ready.</p>
+    </div>
+
+    <a href="cart.html" class="cart-icon-box" style="position:relative; display:block;">
+      <img src="Cart.png" alt="Cart">
+      <div class="cart-count" id="cartCount">0</div>
+    </a>
+  </div>
+
+  <!-- PRODUCTS (centered grid) -->
+  <div class="products-wrapper">
+    <div class="products-grid">
+
+      <!-- PRODUCT 1 -->
+      <div class="product-card">
+        <div class="product-image-wrap">
+          <img src="gloves.png" alt="Gloves">
+        </div>
+        <div class="product-content">
+          <div class="product-title">Gloves</div>
+          <div class="product-price">$40</div>
+
+          <div class="product-options">
+            <select class="product-select option-team">
+             <option value="" disabled selected>Team</option>
+              <option value="Arizona Cardinal">Arizona Cardinals</option> 		
+              <option value="Atlanta Falcons">Atlanta Falcons</option>
+              <option value="Baltimore Ravens">Baltimore Ravens</option>
+              <option value="Buffalo Bills">Buffalo Bills</option> 		
+              <option value="Carolina Panthers">Carolina Panthers</option>
+              <option value="Chicago Bears">Chicago Bears</option>
+              <option value="Cincinnati Bengals">Cincinnati Bengals</option> 		
+              <option value="Cleveland Browns">Cleveland Browns</option>
+              <option value="Dallas Cowboys">Dallas Cowboys</option>
+              <option value="Denver Broncos">Denver Broncos</option> 		
+              <option value="Detroit Lions">Detroit Lions</option>
+              <option value="Green Bay Packers">Green Bay Packers</option>
+              <option value="Houston Texans">Houston Texans</option> 		
+              <option value="Indianapolis Colts">Indianapolis Colts</option>
+              <option value="Jacksonville Jaguars">Jacksonville Jaguars</option>
+              <option value="Kansas City Chiefs">Kansas City Chiefs</option> 		
+              <option value="Las Vegas Raiders">Las Vegas Raiders</option>
+              <option value="Los Angeles Chargers">Los Angeles Chargers</option>
+              <option value="Los Angeles Rams">Los Angeles Rams</option> 		
+              <option value="Miami Dolphins">Miami Dolphins</option>
+              <option value="Minnesota Vikings">Minnesota Vikings</option>
+              <option value="New England Patriots">New England Patriots</option> 		
+              <option value="New Orleans Saints">New Orleans Saints</option>
+              <option value="New York Giants">New York Giants</option>
+              <option value="New York Jets">New York Jets</option>
+              <option value="Philadelphia Eagles">Philadelphia Eagles</option>
+              <option value="Pittsburgh Steelers">Pittsburgh Steelers</option> 		
+              <option value="San Francisco 49ers">San Francisco 49ers</option>
+              <option value="Seattle Seahawks">Seattle Seahawks</option>
+              <option value="Tampa Bay Buccaneers">Tampa Bay Buccaneers</option> 		
+              <option value="Tennessee Titans">Tennessee Titans</option>
+              <option value="Washington Commanders">Washington Commanders</option>
+            </select>
+
+            <select class="product-select option-size">
+              <option value="" disabled selected>Size</option>
+              <option value="Youth Extra Small/Youth Small">Youth Extra Small/Youth Small</option>
+              <option value="Youth Medium/Youth Large">Youth Medium/Youth Large</option>
+            </select>
+          </div>
+
+          <button
+            class="product-button"
+            data-product="Gloves"
+            data-price="40"
+            onclick="addToCart(this)"
+          >
+            Add to Cart
+          </button>
+        </div>
+      </div>
+
+      <!-- PRODUCT 2 -->
+      <div class="product-card">
+        <div class="product-image-wrap">
+          <img src="headband.png" alt="Headband">
+        </div>
+        <div class="product-content">
+          <div class="product-title">Headband</div>
+          <div class="product-price">$25</div>
+
+          <div class="product-options">
+            <select class="product-select option-team">
+              <option value="" disabled selected>Team</option>
+              <option value="Arizona Cardinal">Arizona Cardinals</option> 		
+              <option value="Atlanta Falcons">Atlanta Falcons</option>
+              <option value="Baltimore Ravens">Baltimore Ravens</option>
+              <option value="Buffalo Bills">Buffalo Bills</option> 		
+              <option value="Carolina Panthers">Carolina Panthers</option>
+              <option value="Chicago Bears">Chicago Bears</option>
+              <option value="Cincinnati Bengals">Cincinnati Bengals</option> 		
+              <option value="Cleveland Browns">Cleveland Browns</option>
+              <option value="Dallas Cowboys">Dallas Cowboys</option>
+              <option value="Denver Broncos">Denver Broncos</option> 		
+              <option value="Detroit Lions">Detroit Lions</option>
+              <option value="Green Bay Packers">Green Bay Packers</option>
+              <option value="Houston Texans">Houston Texans</option> 		
+              <option value="Indianapolis Colts">Indianapolis Colts</option>
+              <option value="Jacksonville Jaguars">Jacksonville Jaguars</option>
+              <option value="Kansas City Chiefs">Kansas City Chiefs</option> 		
+              <option value="Las Vegas Raiders">Las Vegas Raiders</option>
+              <option value="Los Angeles Chargers">Los Angeles Chargers</option>
+              <option value="Los Angeles Rams">Los Angeles Rams</option> 		
+              <option value="Miami Dolphins">Miami Dolphins</option>
+              <option value="Minnesota Vikings">Minnesota Vikings</option>
+              <option value="New England Patriots">New England Patriots</option> 		
+              <option value="New Orleans Saints">New Orleans Saints</option>
+              <option value="New York Giants">New York Giants</option>
+              <option value="New York Jets">New York Jets</option>
+              <option value="Philadelphia Eagles">Philadelphia Eagles</option>
+              <option value="Pittsburgh Steelers">Pittsburgh Steelers</option> 		
+              <option value="San Francisco 49ers">San Francisco 49ers</option>
+              <option value="Seattle Seahawks">Seattle Seahawks</option>
+              <option value="Tampa Bay Buccaneers">Tampa Bay Buccaneers</option> 		
+              <option value="Tennessee Titans">Tennessee Titans</option>
+              <option value="Washington Commanders">Washington Commanders</option>
+            </select>
+
+            <select class="product-select option-size">
+              <option value="" disabled selected>Size</option>
+              <option value="One Size">One Size Fits All</option>
+            </select>
+          </div>
+
+          <button
+            class="product-button"
+            data-product="Headband"
+            data-price="25"
+            onclick="addToCart(this)"
+          >
+            Add to Cart
+          </button>
+        </div>
+      </div>
+
+      <!-- PRODUCT 3 -->
+      <div class="product-card">
+        <div class="product-image-wrap">
+          <img src="sleeve.png" alt="Sleeve">
+        </div>
+        <div class="product-content">
+          <div class="product-title">Arm Sleeve</div>
+          <div class="product-price">$25</div>
+
+          <div class="product-options">
+            <select class="product-select option-team">
+              <option value="" disabled selected>Team</option>
+              <option value="Arizona Cardinal">Arizona Cardinals</option> 		
+              <option value="Atlanta Falcons">Atlanta Falcons</option>
+              <option value="Baltimore Ravens">Baltimore Ravens</option>
+              <option value="Buffalo Bills">Buffalo Bills</option> 		
+              <option value="Carolina Panthers">Carolina Panthers</option>
+              <option value="Chicago Bears">Chicago Bears</option>
+              <option value="Cincinnati Bengals">Cincinnati Bengals</option> 		
+              <option value="Cleveland Browns">Cleveland Browns</option>
+              <option value="Dallas Cowboys">Dallas Cowboys</option>
+              <option value="Denver Broncos">Denver Broncos</option> 		
+              <option value="Detroit Lions">Detroit Lions</option>
+              <option value="Green Bay Packers">Green Bay Packers</option>
+              <option value="Houston Texans">Houston Texans</option> 		
+              <option value="Indianapolis Colts">Indianapolis Colts</option>
+              <option value="Jacksonville Jaguars">Jacksonville Jaguars</option>
+              <option value="Kansas City Chiefs">Kansas City Chiefs</option> 		
+              <option value="Las Vegas Raiders">Las Vegas Raiders</option>
+              <option value="Los Angeles Chargers">Los Angeles Chargers</option>
+              <option value="Los Angeles Rams">Los Angeles Rams</option> 		
+              <option value="Miami Dolphins">Miami Dolphins</option>
+              <option value="Minnesota Vikings">Minnesota Vikings</option>
+              <option value="New England Patriots">New England Patriots</option> 		
+              <option value="New Orleans Saints">New Orleans Saints</option>
+              <option value="New York Giants">New York Giants</option>
+              <option value="New York Jets">New York Jets</option>
+              <option value="Philadelphia Eagles">Philadelphia Eagles</option>
+              <option value="Pittsburgh Steelers">Pittsburgh Steelers</option> 		
+              <option value="San Francisco 49ers">San Francisco 49ers</option>
+              <option value="Seattle Seahawks">Seattle Seahawks</option>
+              <option value="Tampa Bay Buccaneers">Tampa Bay Buccaneers</option> 		
+              <option value="Tennessee Titans">Tennessee Titans</option>
+              <option value="Washington Commanders">Washington Commanders</option>
+            </select>
+
+            <select class="product-select option-size">
+              <option value="" disabled selected>Size</option>
+              <option value="Small/Medium">Small/Medium</option>
+              <option value="Large/Extra Large">Large/Extra Large</option>
+            </select>
+          </div>
+
+          <button
+            class="product-button"
+            data-product="Arm Sleeve"
+            data-price="25"
+            onclick="addToCart(this)"
+          >
+            Add to Cart
+          </button>
+        </div>
+      </div>
+
+      <!-- PRODUCT 4 -->
+      <div class="product-card">
+        <div class="product-image-wrap">
+          <img src="shorts.png" alt="Reversible Shorts">
+        </div>
+        <div class="product-content">
+          <div class="product-title">Reversible Shorts</div>
+          <div class="product-price">$35</div>
+
+          <div class="product-options">
+            <select class="product-select option-team">
+              <option value="" disabled selected>Team</option>
+              <option value="Arizona Cardinal">Arizona Cardinals</option> 		
+              <option value="Atlanta Falcons">Atlanta Falcons</option>
+              <option value="Baltimore Ravens">Baltimore Ravens</option>
+              <option value="Buffalo Bills">Buffalo Bills</option> 		
+              <option value="Carolina Panthers">Carolina Panthers</option>
+              <option value="Chicago Bears">Chicago Bears</option>
+              <option value="Cincinnati Bengals">Cincinnati Bengals</option> 		
+              <option value="Cleveland Browns">Cleveland Browns</option>
+              <option value="Dallas Cowboys">Dallas Cowboys</option>
+              <option value="Denver Broncos">Denver Broncos</option> 		
+              <option value="Detroit Lions">Detroit Lions</option>
+              <option value="Green Bay Packers">Green Bay Packers</option>
+              <option value="Houston Texans">Houston Texans</option> 		
+              <option value="Indianapolis Colts">Indianapolis Colts</option>
+              <option value="Jacksonville Jaguars">Jacksonville Jaguars</option>
+              <option value="Kansas City Chiefs">Kansas City Chiefs</option> 		
+              <option value="Las Vegas Raiders">Las Vegas Raiders</option>
+              <option value="Los Angeles Chargers">Los Angeles Chargers</option>
+              <option value="Los Angeles Rams">Los Angeles Rams</option> 		
+              <option value="Miami Dolphins">Miami Dolphins</option>
+              <option value="Minnesota Vikings">Minnesota Vikings</option>
+              <option value="New England Patriots">New England Patriots</option> 		
+              <option value="New Orleans Saints">New Orleans Saints</option>
+              <option value="New York Giants">New York Giants</option>
+              <option value="New York Jets">New York Jets</option>
+              <option value="Philadelphia Eagles">Philadelphia Eagles</option>
+              <option value="Pittsburgh Steelers">Pittsburgh Steelers</option> 		
+              <option value="San Francisco 49ers">San Francisco 49ers</option>
+              <option value="Seattle Seahawks">Seattle Seahawks</option>
+              <option value="Tampa Bay Buccaneers">Tampa Bay Buccaneers</option> 		
+              <option value="Tennessee Titans">Tennessee Titans</option>
+              <option value="Washington Commanders">Washington Commanders</option>
+            </select>
+
+            <select class="product-select option-size">
+              <option value="" disabled selected>Size</option>
+              <option value="Youth Small">Youth Small</option>
+              <option value="Youth Medium">Youth Medium</option>
+              <option value="Youth Large">Youth Large</option>
+              <option value="Adult Small">Adult Small</option>
+              <option value="Adult Medium">Adult Medium</option>
+              <option value="Adult Large">Adult Large</option>
+              <option value="Adult Extra Large">Adult Extra Large</option>
+              <option value="Double Extra Large">Double Extra Large</option>
+            </select>
+          </div>
+
+          <button
+            class="product-button"
+            data-product="Shorts"
+            data-price="35"
+            onclick="addToCart(this)"
+          >
+            Add to Cart
+          </button>
+        </div>
+      </div>
+
+ <!-- PRODUCT 5 -->
+      <div class="product-card">
+        <div class="product-image-wrap">
+          <img src="socks.png" alt="Socks">
+        </div>
+        <div class="product-content">
+          <div class="product-title">Socks</div>
+          <div class="product-price">$20</div>
+
+          <div class="product-options">
+            <select class="product-select option-team">
+              <option value="" disabled selected>Team</option>
+              <option value="Arizona Cardinal">Arizona Cardinals</option> 		
+              <option value="Atlanta Falcons">Atlanta Falcons</option>
+              <option value="Baltimore Ravens">Baltimore Ravens</option>
+              <option value="Buffalo Bills">Buffalo Bills</option> 		
+              <option value="Carolina Panthers">Carolina Panthers</option>
+              <option value="Chicago Bears">Chicago Bears</option>
+              <option value="Cincinnati Bengals">Cincinnati Bengals</option> 		
+              <option value="Cleveland Browns">Cleveland Browns</option>
+              <option value="Dallas Cowboys">Dallas Cowboys</option>
+              <option value="Denver Broncos">Denver Broncos</option> 		
+              <option value="Detroit Lions">Detroit Lions</option>
+              <option value="Green Bay Packers">Green Bay Packers</option>
+              <option value="Houston Texans">Houston Texans</option> 		
+              <option value="Indianapolis Colts">Indianapolis Colts</option>
+              <option value="Jacksonville Jaguars">Jacksonville Jaguars</option>
+              <option value="Kansas City Chiefs">Kansas City Chiefs</option> 		
+              <option value="Las Vegas Raiders">Las Vegas Raiders</option>
+              <option value="Los Angeles Chargers">Los Angeles Chargers</option>
+              <option value="Los Angeles Rams">Los Angeles Rams</option> 		
+              <option value="Miami Dolphins">Miami Dolphins</option>
+              <option value="Minnesota Vikings">Minnesota Vikings</option>
+              <option value="New England Patriots">New England Patriots</option> 		
+              <option value="New Orleans Saints">New Orleans Saints</option>
+              <option value="New York Giants">New York Giants</option>
+              <option value="New York Jets">New York Jets</option>
+              <option value="Philadelphia Eagles">Philadelphia Eagles</option>
+              <option value="Pittsburgh Steelers">Pittsburgh Steelers</option> 		
+              <option value="San Francisco 49ers">San Francisco 49ers</option>
+              <option value="Seattle Seahawks">Seattle Seahawks</option>
+              <option value="Tampa Bay Buccaneers">Tampa Bay Buccaneers</option> 		
+              <option value="Tennessee Titans">Tennessee Titans</option>
+              <option value="Washington Commanders">Washington Commanders</option>
+            </select>
+
+            <select class="product-select option-size">
+              <option value="" disabled selected>Size</option>
+              <option value="Youth Small">Youth Small</option>
+              <option value="Youth Medium/Youth Large">Youth Medium/Youth Large</option>
+              <option value="Adult Small/Adult Medium">Adult Small/Adult Medium</option>
+            </select>
+          </div>
+
+          <button
+            class="product-button"
+            data-product="Socks"
+            data-price="20"
+            onclick="addToCart(this)"
+          >
+            Add to Cart
+          </button>
+        </div>
+      </div>
+
+<!-- PRODUCT 6 -->
+      <div class="product-card">
+        <div class="product-image-wrap">
+          <img src="belt.png" alt="Flag Belt">
+        </div>
+        <div class="product-content">
+          <div class="product-title">Flag Belt</div>
+          <div class="product-price">$20</div>
+
+          <div class="product-options">
+            <select class="product-select option-team">
+              <option value="" disabled selected>Team</option>
+              <option value="Arizona Cardinal">Arizona Cardinals</option> 		
+              <option value="Atlanta Falcons">Atlanta Falcons</option>
+              <option value="Baltimore Ravens">Baltimore Ravens</option>
+              <option value="Buffalo Bills">Buffalo Bills</option> 		
+              <option value="Carolina Panthers">Carolina Panthers</option>
+              <option value="Chicago Bears">Chicago Bears</option>
+              <option value="Cincinnati Bengals">Cincinnati Bengals</option> 		
+              <option value="Cleveland Browns">Cleveland Browns</option>
+              <option value="Dallas Cowboys">Dallas Cowboys</option>
+              <option value="Denver Broncos">Denver Broncos</option> 		
+              <option value="Detroit Lions">Detroit Lions</option>
+              <option value="Green Bay Packers">Green Bay Packers</option>
+              <option value="Houston Texans">Houston Texans</option> 		
+              <option value="Indianapolis Colts">Indianapolis Colts</option>
+              <option value="Jacksonville Jaguars">Jacksonville Jaguars</option>
+              <option value="Kansas City Chiefs">Kansas City Chiefs</option> 		
+              <option value="Las Vegas Raiders">Las Vegas Raiders</option>
+              <option value="Los Angeles Chargers">Los Angeles Chargers</option>
+              <option value="Los Angeles Rams">Los Angeles Rams</option> 		
+              <option value="Miami Dolphins">Miami Dolphins</option>
+              <option value="Minnesota Vikings">Minnesota Vikings</option>
+              <option value="New England Patriots">New England Patriots</option> 		
+              <option value="New Orleans Saints">New Orleans Saints</option>
+              <option value="New York Giants">New York Giants</option>
+              <option value="New York Jets">New York Jets</option>
+              <option value="Philadelphia Eagles">Philadelphia Eagles</option>
+              <option value="Pittsburgh Steelers">Pittsburgh Steelers</option> 		
+              <option value="San Francisco 49ers">San Francisco 49ers</option>
+              <option value="Seattle Seahawks">Seattle Seahawks</option>
+              <option value="Tampa Bay Buccaneers">Tampa Bay Buccaneers</option> 		
+              <option value="Tennessee Titans">Tennessee Titans</option>
+              <option value="Washington Commanders">Washington Commanders</option>
+            </select>
+
+            <select class="product-select option-size">
+              <option value="" disabled selected>Size</option>
+              <option value="One Size">One Size Fits All</option>
+            </select>
+          </div>
+
+          <button
+            class="product-button"
+            data-product="Flag Belt"
+            data-price="20"
+            onclick="addToCart(this)"
+          >
+            Add to Cart
+          </button>
+        </div>
+      </div>
+
+<!-- PRODUCT 7 -->
+      <div class="product-card">
+        <div class="product-image-wrap">
+          <img src="Mini Football (U6) - Mini.png" alt="Mini Football">
+        </div>
+        <div class="product-content">
+          <div class="product-title">Mini Football (U6)</div>
+          <div class="product-price">$25</div>
+
+          <div class="product-options">
+            <select class="product-select option-team">
+              <option value="" disabled selected>Team</option>
+              <option value="Mini">Not team specific</option> 		
+            </select>
+
+            <select class="product-select option-size">
+              <option value="" disabled selected>Size</option>
+              <option value="Mini">Mini</option>
+            </select>
+          </div>
+
+          <button
+            class="product-button"
+            data-product="Mini Football"
+            data-price="25"
+            onclick="addToCart(this)"
+          >
+            Add to Cart
+          </button>
+        </div>
+      </div>
+
+<!-- PRODUCT 8 -->
+      <div class="product-card">
+        <div class="product-image-wrap">
+          <img src="Peewee Football (U10) - Peewee.png" alt="Peewee Football (U10)">
+        </div>
+        <div class="product-content">
+          <div class="product-title">Peewee Football (U10)</div>
+          <div class="product-price">$25</div>
+
+          <div class="product-options">
+            <select class="product-select option-team">
+              <option value="" disabled selected>Team</option>
+              <option value="Peewee">Not team specific</option> 		
+            </select>
+
+            <select class="product-select option-size">
+              <option value="" disabled selected>Size</option>
+              <option value="Peewee">Peewee</option>
+            </select>
+          </div>
+
+          <button
+            class="product-button"
+            data-product="Peewee Football"
+            data-price="25"
+            onclick="addToCart(this)"
+          >
+            Add to Cart
+          </button>
+        </div>
+      </div>
+
+<!-- PRODUCT 9 -->
+      <div class="product-card">
+        <div class="product-image-wrap">
+          <img src="Junior Football (10+) - Junior.png" alt="Junior Football (10+)">
+        </div>
+        <div class="product-content">
+          <div class="product-title">Junior Football (10+)</div>
+          <div class="product-price">$25</div>
+
+          <div class="product-options">
+            <select class="product-select option-team">
+              <option value="" disabled selected>Team</option>
+              <option value="Junior">Not team specific</option> 		
+            </select>
+
+            <select class="product-select option-size">
+              <option value="" disabled selected>Size</option>
+              <option value="Junior">Junior</option>
+            </select>
+          </div>
+
+          <button
+            class="product-button"
+            data-product="Junior Football"
+            data-price="25"
+            onclick="addToCart(this)"
+          >
+            Add to Cart
+          </button>
+        </div>
+      </div>
+
+
+      <!-- Add more products by copying a product-card and changing:
+           - image src
+           - alt text
+           - .product-title text
+           - data-product value on the button
+           - product-price text / data-price if needed
+      -->
+
+    </div>
+  </div>
+
+
+      <!-- Add more products by copying a product-card and changing:
+           - image src
+           - alt text
+           - .product-title text
+           - data-product value on the button
+           - product-price text / data-price if needed
+      -->
+
+    </div>
+  </div>
+
+
+  <!-- Added to Cart Toast -->
+  <div id="cartToast" class="cart-toast">Added to Cart</div>
+
+  <script>
+    // CART LOGIC (localStorage)
+    function loadCart() {
+      const cart = JSON.parse(localStorage.getItem("cartItems")) || [];
+      const countEl = document.getElementById("cartCount");
+      if (countEl) {
+        countEl.textContent = cart.length;
+      }
+      return cart;
+    }
+
+    let toastTimeout;
+
+    function showCartToast(message) {
+      const toast = document.getElementById('cartToast');
+      if (!toast) return;
+
+      toast.textContent = message || 'Added to Cart';
+      toast.classList.add('show');
+
+      if (toastTimeout) {
+        clearTimeout(toastTimeout);
+      }
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 1500); // 1.5 seconds
+    }
+
+    function addToCart(btn) {
+      const card = btn.closest('.product-card');
+      if (!card) return;
+
+      // Prefer the visible product title under the image
+      const titleEl = card.querySelector('.product-title');
+      let productName = titleEl ? titleEl.textContent.trim() : '';
+
+      // Fallback to data-product if needed
+      if (!productName) {
+        productName = btn.getAttribute('data-product') || 'Item';
+      }
+
+      // Grab unit price from data-price (default 35 if missing)
+      const priceAttr = btn.getAttribute('data-price');
+      const unitPrice = priceAttr ? parseFloat(priceAttr) : 35;
+
+      // Grab image src so the cart can show the thumbnail
+      const imgEl = card.querySelector('.product-image-wrap img');
+      const imageSrc = imgEl ? imgEl.getAttribute('src') : '';
+
+      const teamSelect = card.querySelector('.option-team');
+      const sizeSelect = card.querySelector('.option-size');
+
+      const team = teamSelect ? teamSelect.value : '';
+      const size = sizeSelect ? sizeSelect.value : '';
+
+      // Block if either dropdown is still on placeholder
+      if (!team || !size) {
+        alert('Please select a Team and Size before adding to cart.');
+        return;
+      }
+
+      const label = `${productName} - ${team} (${size})`;
+
+      const cart = loadCart();
+
+      cart.push({
+        label,
+        product: productName,
+        name: productName,
+        team,
+        size,
+        quantity: 1,
+        image: imageSrc,
+        price: unitPrice,     // total or unit price, depending on your cart logic
+        unitPrice: unitPrice  // explicit unit price field for the cart page
+      });
+
+      localStorage.setItem("cartItems", JSON.stringify(cart));
+      loadCart(); // update cart badge
+
+      // Show "Added to Cart" popup
+      showCartToast('Added to Cart');
+    }
+
+    // IMAGE SWAP ON TEAM CHANGE
+    function setupProductImageSwap() {
+      const cards = document.querySelectorAll('.product-card');
+
+      cards.forEach(card => {
+        const titleEl = card.querySelector('.product-title');
+        const teamSelect = card.querySelector('.option-team');
+        const imgEl = card.querySelector('.product-image-wrap img');
+
+        if (!titleEl || !teamSelect || !imgEl) return;
+
+        const productName = titleEl.textContent.trim(); // e.g. "Gloves"
+
+        teamSelect.addEventListener('change', () => {
+          const team = teamSelect.value; // e.g. "Buffalo Bills"
+          if (!team) return;
+
+          // Build file name like: "Gloves - Buffalo Bills.png"
+          const filename = `${productName} - ${team}.png`;
+
+          imgEl.src = filename;
+          imgEl.alt = `${productName} - ${team}`;
+        });
+      });
+    }
+
+    // Run on page load
+    loadCart();
+    setupProductImageSwap();
+  </script>
+
+  <!-- shared hamburger nav (central file) -->
+  <script src="nav.js"></script>
+
+</body>
+</html>

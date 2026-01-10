@@ -1,0 +1,7 @@
+Cart checkout page has the registration success message - and this message says to keep a number but does not give one
+
+Stripe did not add tax
+
+Cart checkout needs an additional page where you can apply discount code, enter athlete name and parent/guardian name, and email are given
+
+A loading message when checking out due to Render lag under free version

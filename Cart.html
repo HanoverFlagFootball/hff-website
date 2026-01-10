@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cart</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Stripe.js (needed for redirectToCheckout) -->
+  <script src="https://js.stripe.com/v3/"></script>
+
+  <style>
+    :root {
+      --ink: #fff;
+      --line: #333;
+      --black: #000;
+      --accent: #0b5ed7;
+      --danger: #d9534f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #000; /* banner area */
+      color: var(--ink);
+    }
+
+    /* =========================
+       TOP BANNER
+       ========================= */
+    .top-banner {
+      width: 100%;
+      background: #000;
+      aspect-ratio: 8 / 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 56px;
+      position: relative;
+    }
+    .top-banner img {
+      height: 82%;
+      width: auto;
+      max-width: 90vw;
+      object-fit: contain;
+      display: block;
+    }
+
+    /* =========================
+       MAIN CART AREA
+       ========================= */
+    .cart-page-bg {
+      background: #fff;          /* white below banner */
+      min-height: 100vh;
+      padding: 1.5rem 1rem 3rem;
+      display: flex;
+      justify-content: center;
+    }
+    .cart-wrapper {
+      width: 100%;
+      max-width: 1100px;
+      color: #000;
+    }
+
+    .cart-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin: 0 0 1rem;
+      text-align: left;
+    }
+
+    /* Continue Shopping button bar */
+    .cart-header-bar {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 0.4rem;
+    }
+    .btn-continue {
+      padding: 0.35rem 0.85rem;
+      border-radius: 999px;
+      border: none;
+      background: #000;
+      color: #fff;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    .btn-continue:hover {
+      opacity: 0.9;
+    }
+
+    .cart-header-row {
+      display: grid;
+      grid-template-columns: 40px 80px 1fr 80px 80px 90px;
+      gap: 0.75rem;
+      padding: 0.6rem 0.2rem 0.4rem;
+      border-bottom: 1px solid #ddd;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #555;
+    }
+
+    .cart-items {
+      margin-top: 0.25rem;
+    }
+
+    .cart-item-row {
+      display: grid;
+      grid-template-columns: 40px 80px 1fr 80px 80px 90px;
+      gap: 0.75rem;
+      align-items: center;
+      padding: 0.6rem 0.2rem;
+      border-bottom: 1px solid #eee;
+      font-size: 0.9rem;
+    }
+
+    .cart-empty {
+      padding: 1rem 0.2rem;
+      font-size: 0.95rem;
+      color: #666;
+    }
+
+    .cart-remove-btn {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: none;
+      background: var(--danger);
+      color: #fff;
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .cart-item-img {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: #fff;
+    }
+
+    .cart-item-name {
+      font-weight: 600;
+      margin-bottom: 0.15rem;
+    }
+
+    .cart-item-details {
+      font-size: 0.8rem;
+      color: #666;
+    }
+
+    .cart-qty-input {
+      width: 60px;
+      padding: 0.25rem;
+      text-align: center;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      font-size: 0.85rem;
+    }
+
+    .cart-price,
+    .cart-line-total {
+      font-size: 0.9rem;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    /* SUMMARY */
+    .cart-summary {
+      margin-top: 1.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid #ddd;
+      max-width: 300px;
+      margin-left: auto;
+      font-size: 0.95rem;
+    }
+
+    .summary-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 0.5rem;
+    }
+
+    .checkout-btn {
+      padding: 0.4rem 0.9rem;
+      border-radius: 999px;
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .checkout-btn:hover {
+      opacity: 0.9;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.35rem;
+    }
+    .summary-row.total {
+      font-weight: 700;
+      font-size: 1.05rem;
+      margin-top: 0.25rem;
+      border-top: 1px solid #ddd;
+      padding-top: 0.35rem;
+    }
+
+    @media (max-width: 780px) {
+      .cart-header-row {
+        display: none; /* hide header on small screens */
+      }
+      .cart-item-row {
+        grid-template-columns: 40px 70px 1fr;
+        grid-template-rows: auto auto auto;
+        gap: 0.4rem 0.75rem;
+      }
+      .cart-item-row > :nth-child(4),
+      .cart-item-row > :nth-child(5),
+      .cart-item-row > :nth-child(6) {
+        text-align: left;
+      }
+      .cart-item-row .cart-price,
+      .cart-item-row .cart-line-total {
+        font-size: 0.85rem;
+      }
+      .cart-qty-input {
+        width: 70px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BANNER -->
+  <div class="top-banner">
+    <a href="HFF.html" style="display:flex; align-items:center; justify-content:center; height:100%; width:100%;">
+      <img src="White Logo.jpg" alt="League Logo">
+    </a>
+
+    <!-- SHARED HAMBURGER (from nav.js) -->
+    <div id="site-nav"></div>
+  </div>
+
+  <!-- MAIN CART AREA -->
+  <div class="cart-page-bg">
+    <div class="cart-wrapper">
+      <h1 class="cart-title">Cart</h1>
+
+      <!-- Continue Shopping button (top right) -->
+      <div class="cart-header-bar">
+        <a href="Shop.html">
+          <button class="btn-continue">Continue Shopping</button>
+        </a>
+      </div>
+
+      <div class="cart-header-row">
+        <div></div>
+        <div>Item</div>
+        <div>Name</div>
+        <div>Qty</div>
+        <div>Unit</div>
+        <div>Total</div>
+      </div>
+
+      <div id="cartItems" class="cart-items"></div>
+
+      <div class="cart-summary" id="cartSummary" style="display:none;">
+
+        <!-- Checkout button to the left of the totals -->
+        <div class="summary-actions">
+          <button class="checkout-btn" id="checkoutBtn">
+            Checkout
+          </button>
+        </div>
+
+        <div class="summary-row">
+          <span>Subtotal (before tax)</span>
+          <span id="subtotalText">$0.00</span>
+        </div>
+        <div class="summary-row">
+          <span>Tax (13%)</span>
+          <span id="taxText">$0.00</span>
+        </div>
+        <div class="summary-row total">
+          <span>Total (with tax)</span>
+          <span id="totalText">$0.00</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =========================
+    // STRIPE SETUP
+    // =========================
+    // TODO: replace with your real Stripe publishable TEST key (starts with pk_test_)
+    const stripe = Stripe('pk_test_51QpvmRITKnXMLroip1KMIOTGK2aACIhEvZzgdClAvR61B8lvwbwZmuuuVj9rfwYgJkmzrBDXN0I1gN0nD9eaEvgp00MYbmtTve');
+
+    // Helper: build display name: e.g. "Team Gloves - Buffalo Bills (Small)"
+    function buildDisplayName(item) {
+      let displayName = item.name || item.label || 'Item';
+      if (item.team) {
+        displayName += ' - ' + item.team;
+      }
+      if (item.size) {
+        displayName += ' (' + item.size + ')';
+      }
+      return displayName;
+    }
+
+    // ===== CART LOGIC =====
+    function loadCart() {
+      try {
+        // Primary key used by our shop
+        let raw = localStorage.getItem('cartItems');
+
+        // Fallback: if for some reason the shop is storing under "cart"
+        if (!raw) {
+          raw = localStorage.getItem('cart');
+        }
+
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        console.error('Error reading cart from localStorage', e);
+        return [];
+      }
+    }
+
+    function saveCart(cart) {
+      localStorage.setItem('cartItems', JSON.stringify(cart));
+    }
+
+    function formatMoney(amount) {
+      return '$' + amount.toFixed(2);
+    }
+
+    function renderCart() {
+      const cartContainer = document.getElementById('cartItems');
+      const summaryBox = document.getElementById('cartSummary');
+      const subtotalText = document.getElementById('subtotalText');
+      const taxText = document.getElementById('taxText');
+      const totalText = document.getElementById('totalText');
+
+      const cart = loadCart();
+      cartContainer.innerHTML = '';
+
+      if (!cart.length) {
+        summaryBox.style.display = 'none';
+        cartContainer.innerHTML = '<div class="cart-empty">Your cart is empty.</div>';
+        return;
+      }
+
+      let subtotal = 0;
+
+      cart.forEach((item, index) => {
+        const qty = Number(item.quantity) || 1;
+        const price = Number(item.price) || 0;
+        const lineTotal = qty * price;
+        subtotal += lineTotal;
+
+        const row = document.createElement('div');
+        row.className = 'cart-item-row';
+
+        // Build display name for UI
+        const displayName = buildDisplayName(item);
+
+        // Build team-specific image filename if possible:
+        let imgSrc = item.image || '';
+        if (item.name && item.team) {
+          const safeName = item.name.replace(/[\/\\]/g, '-');
+          const safeTeam = item.team.replace(/[\/\\]/g, '-');
+          imgSrc = `${safeName} - ${safeTeam}.png`;
+        }
+
+        row.innerHTML = `
+          <div>
+            <button class="cart-remove-btn" aria-label="Remove item" data-index="${index}">&times;</button>
+          </div>
+          <div>
+            <img src="${imgSrc}" alt="${displayName}" class="cart-item-img">
+          </div>
+          <div>
+            <div class="cart-item-name">${displayName}</div>
+            <div class="cart-item-details">
+              ${item.team ? 'Team: ' + item.team + ' &bull; ' : ''}
+              ${item.size ? 'Size: ' + item.size : ''}
+            </div>
+          </div>
+          <div>
+            <input 
+              type="number" 
+              min="1" 
+              value="${qty}" 
+              class="cart-qty-input" 
+              data-index="${index}"
+            >
+          </div>
+          <div class="cart-price">${formatMoney(price)}</div>
+          <div class="cart-line-total">${formatMoney(lineTotal)}</div>
+        `;
+
+        cartContainer.appendChild(row);
+      });
+
+      const tax = subtotal * 0.13;
+      const total = subtotal + tax;
+
+      subtotalText.textContent = formatMoney(subtotal);
+      taxText.textContent = formatMoney(tax);
+      totalText.textContent = formatMoney(total);
+      summaryBox.style.display = 'block';
+
+      attachRowListeners();
+    }
+
+    function attachRowListeners() {
+      const cart = loadCart();
+
+      // Remove buttons
+      document.querySelectorAll('.cart-remove-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const index = Number(btn.getAttribute('data-index'));
+          if (!isNaN(index)) {
+            cart.splice(index, 1);
+            saveCart(cart);
+            renderCart();
+          }
+        });
+      });
+
+      // Quantity inputs
+      document.querySelectorAll('.cart-qty-input').forEach(input => {
+        input.addEventListener('change', () => {
+          let val = Number(input.value);
+          if (isNaN(val) || val < 1) val = 1;
+          input.value = val;
+
+          const index = Number(input.getAttribute('data-index'));
+          if (!isNaN(index) && cart[index]) {
+            cart[index].quantity = val;
+            saveCart(cart);
+            renderCart();
+          }
+        });
+      });
+    }
+
+    // =========================
+    // CHECKOUT HANDLER
+    // =========================
+    async function handleCheckout() {
+      const cart = loadCart();
+
+      if (!cart.length) {
+        alert('Your cart is empty.');
+        return;
+      }
+
+      // Build simplified cart payload for the backend
+      const payloadCart = cart.map(item => ({
+        name: buildDisplayName(item),
+        price: Number(item.price) || 0,      // per unit, BEFORE tax
+        quantity: Number(item.quantity) || 1
+      }));
+
+      try {
+        const response = await fetch('https://hff-server.onrender.com/create-checkout-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cart: payloadCart })
+        });
+
+        const text = await response.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch {
+          data = {};
+        }
+
+        if (!response.ok || !data.id) {
+          console.error('Checkout session error. Status:', response.status);
+          console.error('Raw response body:', text);
+          const msg = data.error || `Server returned status ${response.status}`;
+          alert('Checkout error: ' + msg);
+          return;
+        }
+
+        const result = await stripe.redirectToCheckout({
+          sessionId: data.id
+        });
+
+        if (result.error) {
+          alert(result.error.message);
+        }
+      } catch (err) {
+        console.error('Network or JS error:', err);
+        alert('Unable to connect to checkout. Please try again.');
+      }
+    }
+
+    // Initial render
+    renderCart();
+
+    // Hook up Checkout button
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    if (checkoutBtn) {
+      checkoutBtn.addEventListener('click', handleCheckout);
+    }
+  </script>
+
+  <!-- shared hamburger nav (central file) -->
+  <script src="nav.js"></script>
+
+</body>
+</html>
+

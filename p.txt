@@ -1,0 +1,15 @@
+Supabase:
+Password: HanoverFlagFootball2025!
+Database password: FtWktIXKc2vqsB0x
+
+Stripe:
+HanFF2025!
+
+GitHub:
+Username: HanoverFlagFootball
+Password: HanoverFlagFootball2025!
+
+
+git config --global user.name "Kyle Cooke"
+git config --global user.email "kylebcooke@outlook.com"
+
