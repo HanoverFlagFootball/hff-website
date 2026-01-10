@@ -276,10 +276,7 @@
           <span>Subtotal</span>
           <span id="subtotalText">$0.00</span>
         </div>
-        <div class="summary-row">
-          <span>Tax (13%)</span>
-          <span id="taxText">$0.00</span>
-        </div>
+
         <div class="summary-row total">
           <span>Total</span>
           <span id="totalText">$0.00</span>
@@ -344,10 +341,8 @@
         list.appendChild(row);
       });
 
-      const tax = subtotal * 0.13;
       document.getElementById('subtotalText').textContent = money(subtotal);
-      document.getElementById('taxText').textContent = money(tax);
-      document.getElementById('totalText').textContent = money(subtotal + tax);
+      document.getElementById('totalText').textContent = money(subtotal);
       summary.style.display = 'block';
 
       attachCartListeners();
