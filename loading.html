@@ -4,107 +4,140 @@
   <meta charset="UTF-8" />
   <title>Loading...</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <style>
-    :root { --ink:#fff; --black:#000; }
+    :root {
+      --ink: #fff;
+      --black: #000;
+    }
     * { box-sizing: border-box; }
-    body{
-      margin:0;
-      background:#000;
-      color:#fff;
+
+    body {
+      margin: 0;
+      background: #000;
+      color: #fff;
       font-family: Arial, Helvetica, sans-serif;
-      min-height:100vh;
+      min-height: 100vh;
     }
 
-    /* TOP BANNER (no hamburger) */
-    .top-banner{
-      width:100%;
-      background:#000;
+    /* =========================
+       TOP BANNER (LOGO ONLY)
+       ========================= */
+    .top-banner {
+      width: 100%;
+      background: #000;
       aspect-ratio: 8 / 1;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      min-height:56px;
-      position:relative;
-    }
-    .top-banner img{
-      height:82%;
-      width:auto;
-      max-width:90vw;
-      object-fit:contain;
-      display:block;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 56px;
+      position: relative;
     }
 
-    .stage{
-      display:flex;
-      align-items:center;
-      justify-content:center;
+    .top-banner img {
+      height: 82%;
+      width: auto;
+      max-width: 90vw;
+      object-fit: contain;
+      display: block;
+    }
+
+    /* =========================
+       LOADING CONTENT
+       ========================= */
+    .stage {
+      display: flex;
+      align-items: center;
+      justify-content: center;
       padding: 3rem 1rem;
     }
-    .wrap{
-      text-align:center;
-      padding:2rem;
-      max-width:760px;
-      width:100%;
+
+    .wrap {
+      text-align: center;
+      padding: 2rem;
+      max-width: 760px;
+      width: 100%;
     }
-    .spinner{
-      width:56px; height:56px;
-      border:6px solid #333;
-      border-top-color:#fff;
-      border-radius:50%;
-      margin:0 auto 1rem;
+
+    .spinner {
+      width: 56px;
+      height: 56px;
+      border: 6px solid #333;
+      border-top-color: #fff;
+      border-radius: 50%;
+      margin: 0 auto 1rem;
       animation: spin 0.9s linear infinite;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .txt{ opacity:0.92; font-size:1rem; }
-    .sub{ opacity:0.65; margin-top:0.35rem; font-size:0.9rem; line-height:1.35; }
 
-    .err{
-      display:none;
-      margin-top:1.1rem;
-      background:#111;
-      border:1px solid #333;
-      padding:1rem;
-      border-radius:12px;
-      color:#fff;
-      text-align:left;
-      font-size:0.92rem;
-      opacity:0.95;
-      white-space:pre-wrap;
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
-    .badge{
-      display:inline-block;
-      margin-top:0.9rem;
-      padding:0.25rem 0.6rem;
-      border:1px solid #333;
-      border-radius:999px;
-      font-size:0.8rem;
-      opacity:0.6;
+
+    .txt {
+      opacity: 0.92;
+      font-size: 1rem;
+    }
+
+    .sub {
+      opacity: 0.65;
+      margin-top: 0.35rem;
+      font-size: 0.9rem;
+      line-height: 1.35;
+    }
+
+    .badge {
+      display: inline-block;
+      margin-top: 0.9rem;
+      padding: 0.25rem 0.6rem;
+      border: 1px solid #333;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      opacity: 0.6;
+    }
+
+    .err {
+      display: none;
+      margin-top: 1.1rem;
+      background: #111;
+      border: 1px solid #333;
+      padding: 1rem;
+      border-radius: 12px;
+      color: #fff;
+      text-align: left;
+      font-size: 0.92rem;
+      opacity: 0.95;
+      white-space: pre-wrap;
     }
   </style>
 </head>
 
 <body>
+
+  <!-- LOGO BANNER -->
   <div class="top-banner">
     <a href="index.html" style="display:flex; align-items:center; justify-content:center; height:100%; width:100%;">
       <img src="White Logo.jpg" alt="League Logo">
     </a>
   </div>
 
+  <!-- LOADING CONTENT -->
   <div class="stage">
     <div class="wrap">
       <div class="spinner"></div>
       <div class="txt">Preparing your secure Stripe checkout…</div>
       <div class="sub">One moment. You’ll be redirected automatically.</div>
-      <div class="badge">LOADING VERSION: Jan10-STRIPE-FIX</div>
+      <div class="badge">LOADING VERSION: HFF-STRIPE-FINAL</div>
       <div class="err" id="errBox"></div>
     </div>
   </div>
 
   <script>
     (async function () {
-      // ✅ MUST be your real Render backend URL (no trailing slash)
-      // Example: https://hff-stripe-backend.onrender.com
-      const BACKEND_URL = "https://YOUR-RENDER-BACKEND.onrender.com";
+
+      /* =========================
+         CONFIG
+         ========================= */
+      const BACKEND_URL = "https://hff-server.onrender.com";
 
       const errBox = document.getElementById('errBox');
 
@@ -121,7 +154,8 @@
       }
 
       function safeJson(raw) {
-        try { return JSON.parse(raw); } catch { return null; }
+        try { return JSON.parse(raw); }
+        catch { return null; }
       }
 
       const raw = getRawPayload();
@@ -132,10 +166,12 @@
         return;
       }
 
-      // Detect payload kind
+      /* =========================
+         DETECT FLOW TYPE
+         ========================= */
       const isRegistration =
         parsed.type === 'registration' ||
-        (!!parsed.data && !!parsed.data.parent && !!parsed.data.player);
+        (parsed.data && parsed.data.parent && parsed.data.player);
 
       const isCart =
         Array.isArray(parsed.cart) && parsed.cart.length > 0;
@@ -143,8 +179,8 @@
       const successUrl = window.location.origin + '/success.html';
       const cancelUrl  = window.location.origin + (isRegistration ? '/register.html' : '/cart.html');
 
-      // Build request body for backend (supports both flows)
       let body;
+
       if (isRegistration) {
         body = {
           type: 'registration',
@@ -161,66 +197,48 @@
         };
       } else {
         showError(
-          "Checkout payload found, but it doesn't match registration or cart format.\n\n" +
-          "Payload (first 500 chars):\n" + String(raw).slice(0, 500)
+          "Checkout payload exists but does not match registration or cart format.\n\n" +
+          "Payload:\n" + raw
         );
         return;
       }
 
-      const base = BACKEND_URL.replace(/\/$/, '');
-      const endpoints = ['/create-checkout-session', '/create-checkout', '/checkout'];
-
-      async function postJson(path) {
-        const res = await fetch(base + path, {
+      /* =========================
+         CREATE STRIPE SESSION
+         ========================= */
+      try {
+        const res = await fetch(BACKEND_URL + '/create-checkout-session', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body)
         });
 
         const text = await res.text();
-        if (!res.ok) {
-          throw new Error(`POST ${path} failed (${res.status}).\n\n${text}`);
-        }
+        if (!res.ok) throw new Error(text);
 
-        let out;
-        try { out = JSON.parse(text); }
-        catch { throw new Error(`POST ${path} returned non-JSON:\n\n${text}`); }
-
+        const out = JSON.parse(text);
         const url = out.url || out.checkoutUrl || out.sessionUrl;
-        if (!url) throw new Error(`POST ${path} did not include a checkout URL.\n\nResponse:\n${text}`);
 
-        return url;
-      }
+        if (!url) throw new Error('No Stripe checkout URL returned.');
 
-      try {
-        let lastErr = null;
+        // ✅ Redirect to Stripe
+        window.location.href = url;
 
-        for (const ep of endpoints) {
-          try {
-            const url = await postJson(ep);
-            window.location.href = url;
-            return;
-          } catch (e) {
-            lastErr = e;
-          }
-        }
-
-        throw lastErr || new Error('Unknown checkout failure.');
       } catch (e) {
         showError(
-          "Stripe checkout could not start.\n\n" +
-          "Most common cause: BACKEND_URL is wrong or the backend endpoint path is different.\n\n" +
-          "BACKEND_URL currently set to:\n" + BACKEND_URL + "\n\n" +
-          "Error details:\n" + (e && e.message ? e.message : String(e))
+          "Stripe checkout failed.\n\n" +
+          "Backend: " + BACKEND_URL + "\n\n" +
+          (e && e.message ? e.message : String(e))
         );
 
-        // Fallback after showing the error (so you can read/copy it)
         setTimeout(() => {
           const back = isRegistration ? 'register.html' : 'cart.html';
           window.location.replace(back + '?v=' + Date.now());
         }, 6000);
       }
+
     })();
   </script>
+
 </body>
 </html>
