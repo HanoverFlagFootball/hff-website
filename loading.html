@@ -14,6 +14,8 @@
       font-family: Arial, Helvetica, sans-serif;
       min-height:100vh;
     }
+
+    /* TOP BANNER (no hamburger) */
     .top-banner{
       width:100%;
       background:#000;
@@ -31,6 +33,7 @@
       object-fit:contain;
       display:block;
     }
+
     .stage{
       display:flex;
       align-items:center;
@@ -40,7 +43,7 @@
     .wrap{
       text-align:center;
       padding:2rem;
-      max-width:680px;
+      max-width:760px;
       width:100%;
     }
     .spinner{
@@ -54,20 +57,29 @@
     @keyframes spin { to { transform: rotate(360deg); } }
     .txt{ opacity:0.92; font-size:1rem; }
     .sub{ opacity:0.65; margin-top:0.35rem; font-size:0.9rem; line-height:1.35; }
+
     .err{
       display:none;
-      margin-top:1rem;
+      margin-top:1.1rem;
       background:#111;
       border:1px solid #333;
-      padding:0.85rem;
+      padding:1rem;
       border-radius:12px;
       color:#fff;
       text-align:left;
-      font-size:0.9rem;
-      opacity:0.92;
+      font-size:0.92rem;
+      opacity:0.95;
       white-space:pre-wrap;
     }
-    .muted { opacity:0.6; }
+    .badge{
+      display:inline-block;
+      margin-top:0.9rem;
+      padding:0.25rem 0.6rem;
+      border:1px solid #333;
+      border-radius:999px;
+      font-size:0.8rem;
+      opacity:0.6;
+    }
   </style>
 </head>
 
@@ -83,14 +95,15 @@
       <div class="spinner"></div>
       <div class="txt">Preparing your secure Stripe checkout…</div>
       <div class="sub">One moment. You’ll be redirected automatically.</div>
+      <div class="badge">LOADING VERSION: Jan10-STRIPE-FIX</div>
       <div class="err" id="errBox"></div>
-      <div class="sub muted" style="margin-top:0.9rem;">LOADING VERSION: Jan10-DEBUG</div>
     </div>
   </div>
 
   <script>
     (async function () {
-      // ✅ PUT YOUR REAL RENDER URL HERE (no trailing slash)
+      // ✅ MUST be your real Render backend URL (no trailing slash)
+      // Example: https://hff-stripe-backend.onrender.com
       const BACKEND_URL = "https://YOUR-RENDER-BACKEND.onrender.com";
 
       const errBox = document.getElementById('errBox');
@@ -115,66 +128,97 @@
       const parsed = raw ? safeJson(raw) : null;
 
       if (!raw || !parsed) {
-        // No payload = go back safely
         window.location.replace('register.html?v=' + Date.now());
         return;
       }
 
-      // Build a "best-effort" body that supports both of your payload shapes
-      // Registration: { type:'registration', data:{...} }
-      // Cart: { cart:[...], athleteName:'...' }
-      const body = {
-        ...parsed,
-        // If it's registration, your data is in parsed.data
-        data: parsed.data || parsed.data === null ? parsed.data : undefined,
-        type: parsed.type || (parsed.data ? 'registration' : undefined),
-        // Provide URLs (backend may use them)
-        successUrl: window.location.origin + '/success.html',
-        cancelUrl:  window.location.origin + (parsed.data ? '/register.html' : '/cart.html')
-      };
+      // Detect payload kind
+      const isRegistration =
+        parsed.type === 'registration' ||
+        (!!parsed.data && !!parsed.data.parent && !!parsed.data.player);
+
+      const isCart =
+        Array.isArray(parsed.cart) && parsed.cart.length > 0;
+
+      const successUrl = window.location.origin + '/success.html';
+      const cancelUrl  = window.location.origin + (isRegistration ? '/register.html' : '/cart.html');
+
+      // Build request body for backend (supports both flows)
+      let body;
+      if (isRegistration) {
+        body = {
+          type: 'registration',
+          data: parsed.data || parsed,
+          successUrl,
+          cancelUrl
+        };
+      } else if (isCart) {
+        body = {
+          cart: parsed.cart,
+          athleteName: parsed.athleteName || '',
+          successUrl,
+          cancelUrl
+        };
+      } else {
+        showError(
+          "Checkout payload found, but it doesn't match registration or cart format.\n\n" +
+          "Payload (first 500 chars):\n" + String(raw).slice(0, 500)
+        );
+        return;
+      }
 
       const base = BACKEND_URL.replace(/\/$/, '');
-      const endpoints = ['/create-checkout-session', '/create-checkout'];
+      const endpoints = ['/create-checkout-session', '/create-checkout', '/checkout'];
 
-      async function tryEndpoint(path) {
+      async function postJson(path) {
         const res = await fetch(base + path, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body)
         });
+
         const text = await res.text();
-        if (!res.ok) throw new Error(`Endpoint ${path} failed (${res.status}).\n${text}`);
+        if (!res.ok) {
+          throw new Error(`POST ${path} failed (${res.status}).\n\n${text}`);
+        }
+
         let out;
-        try { out = JSON.parse(text); } catch { throw new Error(`Endpoint ${path} returned non-JSON:\n${text}`); }
+        try { out = JSON.parse(text); }
+        catch { throw new Error(`POST ${path} returned non-JSON:\n\n${text}`); }
+
         const url = out.url || out.checkoutUrl || out.sessionUrl;
-        if (!url) throw new Error(`Endpoint ${path} did not return a checkout URL.\nResponse: ${text}`);
+        if (!url) throw new Error(`POST ${path} did not include a checkout URL.\n\nResponse:\n${text}`);
+
         return url;
       }
 
       try {
         let lastErr = null;
+
         for (const ep of endpoints) {
           try {
-            const url = await tryEndpoint(ep);
+            const url = await postJson(ep);
             window.location.href = url;
             return;
           } catch (e) {
             lastErr = e;
           }
         }
+
         throw lastErr || new Error('Unknown checkout failure.');
       } catch (e) {
         showError(
-          `Stripe checkout failed.\n\n` +
-          `Most common cause: BACKEND_URL is not set correctly.\n\n` +
-          `Details:\n${e && e.message ? e.message : String(e)}`
+          "Stripe checkout could not start.\n\n" +
+          "Most common cause: BACKEND_URL is wrong or the backend endpoint path is different.\n\n" +
+          "BACKEND_URL currently set to:\n" + BACKEND_URL + "\n\n" +
+          "Error details:\n" + (e && e.message ? e.message : String(e))
         );
 
-        // Safe fallback after showing error
+        // Fallback after showing the error (so you can read/copy it)
         setTimeout(() => {
-          const back = (parsed.data || parsed.type === 'registration') ? 'register.html' : 'cart.html';
+          const back = isRegistration ? 'register.html' : 'cart.html';
           window.location.replace(back + '?v=' + Date.now());
-        }, 2500);
+        }, 6000);
       }
     })();
   </script>
