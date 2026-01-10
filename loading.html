@@ -4,18 +4,50 @@
   <meta charset="UTF-8" />
   <title>Loading...</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <style>
+    :root { --ink:#fff; --black:#000; }
+    * { box-sizing: border-box; }
     body{
       margin:0;
       background:#000;
       color:#fff;
       font-family: Arial, Helvetica, sans-serif;
+      min-height:100vh;
+    }
+
+    /* TOP BANNER (same style as your pages, no hamburger) */
+    .top-banner{
+      width:100%;
+      background:#000;
+      aspect-ratio: 8 / 1;
       display:flex;
       align-items:center;
       justify-content:center;
-      min-height:100vh;
+      min-height:56px;
+      position:relative;
     }
-    .wrap{ text-align:center; padding:2rem; max-width:520px; }
+    .top-banner img{
+      height:82%;
+      width:auto;
+      max-width:90vw;
+      object-fit:contain;
+      display:block;
+    }
+
+    /* LOADING CENTER */
+    .stage{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 3rem 1rem;
+    }
+    .wrap{
+      text-align:center;
+      padding:2rem;
+      max-width:560px;
+      width:100%;
+    }
     .spinner{
       width:56px; height:56px;
       border:6px solid #333;
@@ -27,39 +59,137 @@
     @keyframes spin { to { transform: rotate(360deg); } }
     .txt{ opacity:0.92; font-size:1rem; }
     .sub{ opacity:0.65; margin-top:0.35rem; font-size:0.9rem; line-height:1.35; }
-    .ver{ opacity:0.45; margin-top:0.9rem; font-size:0.8rem; }
+    .err{
+      display:none;
+      margin-top:1rem;
+      background:#111;
+      border:1px solid #333;
+      padding:0.75rem;
+      border-radius:10px;
+      color:#fff;
+      text-align:left;
+      font-size:0.9rem;
+      opacity:0.9;
+      white-space:pre-wrap;
+    }
   </style>
 </head>
+
 <body>
-  <div class="wrap">
-    <div class="spinner"></div>
-    <div class="txt">Preparing your checkout…</div>
-    <div class="sub">One moment. You’ll be redirected automatically.</div>
-    <div class="ver">LOADING VERSION: Jan10-FINAL</div>
+  <div class="top-banner">
+    <a href="index.html" style="display:flex; align-items:center; justify-content:center; height:100%; width:100%;">
+      <img src="White Logo.jpg" alt="League Logo">
+    </a>
+  </div>
+
+  <div class="stage">
+    <div class="wrap">
+      <div class="spinner"></div>
+      <div class="txt">Preparing your secure Stripe checkout…</div>
+      <div class="sub">One moment. You’ll be redirected automatically.</div>
+      <div class="err" id="errBox"></div>
+    </div>
   </div>
 
   <script>
-    (function () {
-      // Read from either storage (we now write to both in cart + register)
-      const raw =
-        sessionStorage.getItem('HFF_CHECKOUT_PAYLOAD') ||
-        localStorage.getItem('HFF_CHECKOUT_PAYLOAD');
+    (async function () {
+      // ✅ SET THIS to your Render backend URL
+      // Example: https://hff-stripe-backend.onrender.com
+      const BACKEND_URL = "https://YOUR-RENDER-BACKEND.onrender.com";
 
-      // Decide next step (never send to shop)
-      let next = 'register.html';
+      const errBox = document.getElementById('errBox');
 
-      if (raw) {
-        // If payload exists (cart OR registration), go to cart to review/checkout
-        next = 'cart.html';
+      function showError(msg) {
+        errBox.style.display = 'block';
+        errBox.textContent = msg;
       }
 
-      // Cache-bust the next page so you don't hit old JS/HTML
-      const sep = next.includes('?') ? '&' : '?';
-      next = next + sep + 'v=' + Date.now();
+      function getRawPayload() {
+        return (
+          sessionStorage.getItem('HFF_CHECKOUT_PAYLOAD') ||
+          localStorage.getItem('HFF_CHECKOUT_PAYLOAD')
+        );
+      }
 
-      setTimeout(() => {
-        window.location.replace(next);
-      }, 900);
+      function safeJson(raw) {
+        try { return JSON.parse(raw); } catch { return null; }
+      }
+
+      const raw = getRawPayload();
+      const parsed = raw ? safeJson(raw) : null;
+
+      // If nothing to checkout, go back safely (never shop)
+      if (!raw || !parsed) {
+        window.location.replace('register.html?v=' + Date.now());
+        return;
+      }
+
+      // Determine what kind of payload this is
+      // Registration: { type:'registration', data:{...} }
+      const isRegistration =
+        parsed.type === 'registration' ||
+        (!!parsed.data && !!parsed.data.parent && !!parsed.data.player);
+
+      // Shop/cart: { cart:[...], athleteName:'...' } (your cart page sets this)
+      const isShopCart =
+        Array.isArray(parsed.cart) && parsed.cart.length > 0;
+
+      const successUrl = window.location.origin + '/success.html';
+      const cancelUrl  = window.location.origin + (isRegistration ? '/register.html' : '/cart.html');
+
+      let body;
+
+      if (isRegistration) {
+        body = {
+          type: 'registration',
+          data: parsed.data || parsed,   // supports either shape
+          successUrl,
+          cancelUrl
+        };
+      } else if (isShopCart) {
+        body = {
+          cart: parsed.cart,
+          athleteName: parsed.athleteName || '',
+          successUrl,
+          cancelUrl
+        };
+      } else {
+        // Unknown payload shape
+        showError('Could not determine checkout type from payload. Redirecting back…');
+        setTimeout(() => window.location.replace('register.html?v=' + Date.now()), 900);
+        return;
+      }
+
+      try {
+        const res = await fetch(BACKEND_URL.replace(/\/$/, '') + '/create-checkout-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+
+        if (!res.ok) {
+          const txt = await res.text();
+          throw new Error(txt || 'Checkout request failed.');
+        }
+
+        const out = await res.json();
+        const url = out.url || out.checkoutUrl || out.sessionUrl;
+
+        if (!url) {
+          throw new Error('No Stripe checkout URL returned from the server.');
+        }
+
+        // ✅ Go to Stripe
+        window.location.href = url;
+
+      } catch (e) {
+        showError('Stripe checkout error:\n' + (e && e.message ? e.message : String(e)));
+
+        // Safe fallback (no shop)
+        setTimeout(() => {
+          window.location.replace((isRegistration ? 'register.html' : 'cart.html') + '?v=' + Date.now());
+        }, 1400);
+      }
     })();
   </script>
 </body>
