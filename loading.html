@@ -6,139 +6,124 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
-    :root {
-      --ink: #fff;
-      --black: #000;
-    }
+    :root { --ink:#fff; --black:#000; }
     * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      background: #000;
-      color: #fff;
+    body{
+      margin:0;
+      background:#000;
+      color:#fff;
       font-family: Arial, Helvetica, sans-serif;
-      min-height: 100vh;
+      min-height:100vh;
     }
 
-    /* =========================
-       TOP BANNER (LOGO ONLY)
-       ========================= */
-    .top-banner {
-      width: 100%;
-      background: #000;
+    /* TOP BANNER (LOGO ONLY) */
+    .top-banner{
+      width:100%;
+      background:#000;
       aspect-ratio: 8 / 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 56px;
-      position: relative;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:56px;
+      position:relative;
+    }
+    .top-banner img{
+      height:82%;
+      width:auto;
+      max-width:90vw;
+      object-fit:contain;
+      display:block;
     }
 
-    .top-banner img {
-      height: 82%;
-      width: auto;
-      max-width: 90vw;
-      object-fit: contain;
-      display: block;
-    }
-
-    /* =========================
-       LOADING CONTENT
-       ========================= */
-    .stage {
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    /* LOADING CONTENT */
+    .stage{
+      display:flex;
+      align-items:center;
+      justify-content:center;
       padding: 3rem 1rem;
     }
-
-    .wrap {
-      text-align: center;
-      padding: 2rem;
-      max-width: 760px;
-      width: 100%;
+    .wrap{
+      text-align:center;
+      padding:2rem;
+      max-width:820px;
+      width:100%;
     }
-
-    .spinner {
-      width: 56px;
-      height: 56px;
-      border: 6px solid #333;
-      border-top-color: #fff;
-      border-radius: 50%;
-      margin: 0 auto 1rem;
+    .spinner{
+      width:56px; height:56px;
+      border:6px solid #333;
+      border-top-color:#fff;
+      border-radius:50%;
+      margin:0 auto 1rem;
       animation: spin 0.9s linear infinite;
     }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+    .txt{ opacity:0.92; font-size:1rem; }
+    .sub{ opacity:0.65; margin-top:0.35rem; font-size:0.9rem; line-height:1.35; }
+
+    .badge{
+      display:inline-block;
+      margin-top:0.9rem;
+      padding:0.25rem 0.6rem;
+      border:1px solid #333;
+      border-radius:999px;
+      font-size:0.8rem;
+      opacity:0.75;
     }
 
-    .txt {
-      opacity: 0.92;
-      font-size: 1rem;
+    .debug{
+      margin-top:0.9rem;
+      background:#0e0e0e;
+      border:1px solid #333;
+      border-radius:12px;
+      padding:0.9rem;
+      text-align:left;
+      font-size:0.9rem;
+      white-space:pre-wrap;
+      opacity:0.95;
     }
 
-    .sub {
-      opacity: 0.65;
-      margin-top: 0.35rem;
-      font-size: 0.9rem;
-      line-height: 1.35;
-    }
-
-    .badge {
-      display: inline-block;
-      margin-top: 0.9rem;
-      padding: 0.25rem 0.6rem;
-      border: 1px solid #333;
-      border-radius: 999px;
-      font-size: 0.8rem;
-      opacity: 0.6;
-    }
-
-    .err {
-      display: none;
-      margin-top: 1.1rem;
-      background: #111;
-      border: 1px solid #333;
-      padding: 1rem;
-      border-radius: 12px;
-      color: #fff;
-      text-align: left;
-      font-size: 0.92rem;
-      opacity: 0.95;
-      white-space: pre-wrap;
+    .err{
+      display:none;
+      margin-top:1rem;
+      background:#111;
+      border:1px solid #333;
+      padding:1rem;
+      border-radius:12px;
+      color:#fff;
+      text-align:left;
+      font-size:0.92rem;
+      opacity:0.95;
+      white-space:pre-wrap;
     }
   </style>
 </head>
 
 <body>
-
-  <!-- LOGO BANNER -->
   <div class="top-banner">
     <a href="index.html" style="display:flex; align-items:center; justify-content:center; height:100%; width:100%;">
       <img src="White Logo.jpg" alt="League Logo">
     </a>
   </div>
 
-  <!-- LOADING CONTENT -->
   <div class="stage">
     <div class="wrap">
       <div class="spinner"></div>
       <div class="txt">Preparing your secure Stripe checkout…</div>
       <div class="sub">One moment. You’ll be redirected automatically.</div>
-      <div class="badge">LOADING VERSION: HFF-STRIPE-FINAL</div>
+      <div class="badge">LOADING VERSION: HFF-LOADING-URL-CHECK-001</div>
+
+      <div class="debug" id="debugBox">Debug loading…</div>
       <div class="err" id="errBox"></div>
     </div>
   </div>
 
   <script>
     (async function () {
-
-      /* =========================
-         CONFIG
-         ========================= */
+      // ✅ Your real backend URL
       const BACKEND_URL = "https://hff-server.onrender.com";
 
+      const debugBox = document.getElementById('debugBox');
       const errBox = document.getElementById('errBox');
 
       function showError(msg) {
@@ -161,14 +146,22 @@
       const raw = getRawPayload();
       const parsed = raw ? safeJson(raw) : null;
 
+      // Show what THIS deployed file is using:
+      debugBox.textContent =
+        "BACKEND_URL (from this loading.html):\n" + BACKEND_URL + "\n\n" +
+        "Has payload: " + (raw ? "YES" : "NO") + "\n" +
+        "Payload type guess: " + (
+          parsed && (parsed.type || (parsed.data ? "registration" : (parsed.cart ? "cart" : "unknown")))
+          ? (parsed.type || (parsed.data ? "registration" : (parsed.cart ? "cart" : "unknown")))
+          : "none"
+        );
+
       if (!raw || !parsed) {
-        window.location.replace('register.html?v=' + Date.now());
+        // If no payload, go back to register
+        setTimeout(() => window.location.replace('register.html?v=' + Date.now()), 800);
         return;
       }
 
-      /* =========================
-         DETECT FLOW TYPE
-         ========================= */
       const isRegistration =
         parsed.type === 'registration' ||
         (parsed.data && parsed.data.parent && parsed.data.player);
@@ -180,32 +173,15 @@
       const cancelUrl  = window.location.origin + (isRegistration ? '/register.html' : '/cart.html');
 
       let body;
-
       if (isRegistration) {
-        body = {
-          type: 'registration',
-          data: parsed.data || parsed,
-          successUrl,
-          cancelUrl
-        };
+        body = { type:'registration', data: parsed.data || parsed, successUrl, cancelUrl };
       } else if (isCart) {
-        body = {
-          cart: parsed.cart,
-          athleteName: parsed.athleteName || '',
-          successUrl,
-          cancelUrl
-        };
+        body = { cart: parsed.cart, athleteName: parsed.athleteName || '', successUrl, cancelUrl };
       } else {
-        showError(
-          "Checkout payload exists but does not match registration or cart format.\n\n" +
-          "Payload:\n" + raw
-        );
+        showError("Payload format not recognized.\n\nRaw payload:\n" + raw);
         return;
       }
 
-      /* =========================
-         CREATE STRIPE SESSION
-         ========================= */
       try {
         const res = await fetch(BACKEND_URL + '/create-checkout-session', {
           method: 'POST',
@@ -218,16 +194,13 @@
 
         const out = JSON.parse(text);
         const url = out.url || out.checkoutUrl || out.sessionUrl;
+        if (!url) throw new Error("No Stripe checkout URL returned.\n\n" + text);
 
-        if (!url) throw new Error('No Stripe checkout URL returned.');
-
-        // ✅ Redirect to Stripe
         window.location.href = url;
-
       } catch (e) {
         showError(
           "Stripe checkout failed.\n\n" +
-          "Backend: " + BACKEND_URL + "\n\n" +
+          "This file says BACKEND_URL is:\n" + BACKEND_URL + "\n\n" +
           (e && e.message ? e.message : String(e))
         );
 
@@ -236,9 +209,7 @@
           window.location.replace(back + '?v=' + Date.now());
         }, 6000);
       }
-
     })();
   </script>
-
 </body>
 </html>
