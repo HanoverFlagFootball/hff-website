@@ -141,6 +141,8 @@
     .cart-item-details {
       font-size: 0.8rem;
       color: #666;
+      line-height: 1.2;
+      margin-top: 0.15rem;
     }
 
     .cart-qty-input {
@@ -219,6 +221,7 @@
     @media (max-width: 780px) {
       .cart-header-row { display: none; }
       .cart-item-row { grid-template-columns: 40px 70px 1fr; }
+      .cart-price, .cart-line-total { display:none; }
     }
   </style>
 </head>
@@ -303,7 +306,7 @@
     }
 
     function money(v) {
-      return '$' + v.toFixed(2);
+      return '$' + Number(v || 0).toFixed(2);
     }
 
     function renderCart() {
@@ -321,9 +324,14 @@
       let subtotal = 0;
 
       cart.forEach((item, i) => {
-        const qty = item.quantity || 1;
-        const line = qty * item.price;
+        const qty = Number(item.quantity || 1);
+        const price = Number(item.price || 0);
+        const line = qty * price;
         subtotal += line;
+
+        const detailsLines = [];
+        if (item.team) detailsLines.push(`Team: ${item.team}`);
+        if (item.size) detailsLines.push(`Size: ${item.size}`);
 
         const row = document.createElement('div');
         row.className = 'cart-item-row';
@@ -331,11 +339,11 @@
           <button class="cart-remove-btn" type="button" data-i="${i}">&times;</button>
           <img class="cart-item-img" src="${item.image || ''}" alt="">
           <div>
-            <div class="cart-item-name">${item.name}</div>
-            <div class="cart-item-details">${item.team || ''} ${item.size || ''}</div>
+            <div class="cart-item-name">${item.name || 'Item'}</div>
+            <div class="cart-item-details">${detailsLines.join('<br>')}</div>
           </div>
           <input class="cart-qty-input" type="number" min="1" value="${qty}" data-i="${i}">
-          <div class="cart-price">${money(item.price)}</div>
+          <div class="cart-price">${money(price)}</div>
           <div class="cart-line-total">${money(line)}</div>
         `;
         list.appendChild(row);
@@ -387,10 +395,14 @@
       // save for convenience
       localStorage.setItem('athleteName', athlete);
 
+      // ✅ INCLUDE MORE FIELDS so Supabase has full detail per item
       const cartItems = loadCart().map(i => ({
         name: i.name,
-        price: i.price,
-        quantity: i.quantity || 1
+        team: i.team || null,
+        size: i.size || null,
+        image: i.image || null,
+        price: Number(i.price || 0),
+        quantity: Number(i.quantity || 1)
       }));
 
       if (!cartItems.length) {
@@ -398,7 +410,10 @@
         return;
       }
 
-      const checkoutPayload = JSON.stringify({ cart: cartItems, athleteName: athlete });
+      const checkoutPayload = JSON.stringify({
+        cart: cartItems,
+        athleteName: athlete
+      });
 
       // ✅ store in BOTH to make flow resilient
       sessionStorage.setItem('HFF_CHECKOUT_PAYLOAD', checkoutPayload);
