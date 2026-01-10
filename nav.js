@@ -1,7 +1,7 @@
 (function () {
   const NAV_ITEMS = [
     { label: "Scores & Schedules", href: "scores&schedules.html" },
-    { label: "Shop", href: "Shop.html" },
+    { label: "Shop", href: "shop.html" },
     { label: "Rules & Info", href: "rules.html" },
     { label: "About HFF", href: "aboutHFF.html" }
   ];
