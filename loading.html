@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Loading Order...</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Stripe.js -->
+  <script src="https://js.stripe.com/v3/"></script>
+
+  <style>
+    :root {
+      --ink: #fff;
+      --black: #000;
+      --accent: #0b5ed7;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #000;
+      color: var(--ink);
+    }
+
+    /* =========================
+       TOP BANNER (SAME AS CART)
+       ========================= */
+    .top-banner {
+      width: 100%;
+      background: #000;
+      aspect-ratio: 8 / 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 56px;
+      position: relative;
+    }
+    .top-banner img {
+      height: 82%;
+      width: auto;
+      max-width: 90vw;
+      object-fit: contain;
+      display: block;
+    }
+
+    /* =========================
+       LOADING CONTENT
+       ========================= */
+    .page {
+      background: #000;
+      min-height: calc(100vh - 56px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem 1rem 3rem;
+    }
+
+    .card {
+      width: min(560px, 94vw);
+      background: #fff;
+      color: #000;
+      border: 1px solid #333;
+      border-radius: 14px;
+      padding: 1.2rem 1.25rem 1.1rem;
+      text-align: center;
+      box-shadow: 0 0 18px rgba(255,255,255,0.06);
+    }
+
+    .title {
+      font-size: 1.2rem;
+      font-weight: 800;
+      margin: 0 0 0.35rem;
+    }
+
+    .sub {
+      font-size: 0.95rem;
+      color: #333;
+      margin: 0 0 0.9rem;
+      line-height: 1.35;
+    }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 5px solid #ddd;
+      border-top-color: #000;
+      border-radius: 50%;
+      margin: 0 auto 0.7rem;
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .small {
+      font-size: 0.85rem;
+      color: #666;
+      margin: 0.25rem 0 0;
+    }
+
+    .error {
+      display: none;
+      margin-top: 0.9rem;
+      padding: 0.75rem 0.85rem;
+      border-radius: 10px;
+      border: 1px solid #f2b8b5;
+      background: #fff5f5;
+      color: #8a1f17;
+      text-align: left;
+      font-size: 0.9rem;
+      line-height: 1.35;
+    }
+
+    .actions {
+      margin-top: 0.85rem;
+      display: none;
+      gap: 0.5rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 0.55rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid #333;
+      background: #fff;
+      color: #000;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+    .btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BANNER (NO HAMBURGER ON PURPOSE) -->
+  <div class="top-banner">
+    <a href="index.html" style="display:flex; align-items:center; justify-content:center; height:100%; width:100%;">
+      <img src="White Logo.jpg" alt="League Logo">
+    </a>
+  </div>
+
+  <main class="page">
+    <div class="card">
+      <div class="spinner" aria-hidden="true"></div>
+      <h1 class="title">Your order is loading…</h1>
+      <p class="sub">
+        Our payment server may be waking up (Render sleep mode).<br>
+        Please wait — this can take a little while.
+      </p>
+      <p class="small" id="statusText">Starting checkout…</p>
+
+      <div class="error" id="errorBox"></div>
+
+      <div class="actions" id="actions">
+        <button class="btn" id="backBtn" type="button">Back to Cart</button>
+        <button class="btn primary" id="retryBtn" type="button">Try Again</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const stripe = Stripe('pk_test_51QpvmRITKnXMLroip1KMIOTGK2aACIhEvZzgdClAvR61B8lvwbwZmuuuVj9rfwYgJkmzrBDXN0I1gN0nD9eaEvgp00MYbmtTve');
+
+    const statusText = document.getElementById('statusText');
+    const errorBox = document.getElementById('errorBox');
+    const actions = document.getElementById('actions');
+    const backBtn = document.getElementById('backBtn');
+    const retryBtn = document.getElementById('retryBtn');
+
+    backBtn.addEventListener('click', () => {
+      window.location.href = 'cart.html';
+    });
+
+    retryBtn.addEventListener('click', () => {
+      startCheckout();
+    });
+
+    function showError(msg) {
+      errorBox.style.display = 'block';
+      errorBox.textContent = msg;
+      actions.style.display = 'flex';
+      if (statusText) statusText.textContent = 'Something went wrong.';
+    }
+
+    async function startCheckout() {
+      errorBox.style.display = 'none';
+      actions.style.display = 'none';
+      if (statusText) statusText.textContent = 'Waking payment server…';
+
+      // Pull payload from sessionStorage (set by cart.html)
+      let payload;
+      try {
+        payload = JSON.parse(sessionStorage.getItem('HFF_CHECKOUT_PAYLOAD') || 'null');
+      } catch {
+        payload = null;
+      }
+
+      if (!payload || !payload.cart || !payload.cart.length || !payload.athleteName) {
+        showError('Missing checkout details. Please go back to the cart and try again.');
+        return;
+      }
+
+      try {
+        const res = await fetch('https://hff-server.onrender.com/create-checkout-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          let msg = 'Unable to start checkout.';
+          try {
+            const errData = await res.json();
+            msg = errData.error || msg;
+          } catch {}
+          throw new Error(msg);
+        }
+
+        if (statusText) statusText.textContent = 'Redirecting to secure payment…';
+
+        const data = await res.json();
+        if (!data.id) throw new Error('Checkout session created but no session id returned.');
+
+        const result = await stripe.redirectToCheckout({ sessionId: data.id });
+        if (result && result.error) throw new Error(result.error.message);
+
+      } catch (err) {
+        console.error(err);
+        showError('Checkout error: ' + err.message);
+      }
+    }
+
+    // Start automatically on page load
+    startCheckout();
+  </script>
+</body>
+</html>
