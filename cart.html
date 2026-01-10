@@ -173,7 +173,7 @@
       margin-top: 1.5rem;
       padding-top: 1rem;
       border-top: 1px solid #ddd;
-      max-width: 300px;
+      max-width: 360px;
       margin-left: auto;
       font-size: 0.95rem;
     }
@@ -211,6 +211,59 @@
       padding-top: 0.35rem;
     }
 
+    /* Athlete + discount fields */
+    .checkout-fields {
+      margin: 0.75rem 0 0.9rem;
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      background: #fafafa;
+    }
+    .field-label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin: 0 0 0.25rem;
+      color: #222;
+    }
+    .field-input {
+      width: 100%;
+      padding: 0.45rem 0.6rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 0.95rem;
+    }
+    .helper-text {
+      font-size: 0.8rem;
+      color: #555;
+      margin-top: 0.35rem;
+      line-height: 1.25;
+    }
+
+    .discount-area {
+      margin-top: 0.45rem;
+      padding-top: 0.45rem;
+      border-top: 1px dashed #ddd;
+    }
+    .discount-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 0.35rem;
+    }
+    .code-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.35rem;
+    }
+    .code-input {
+      width: 100%;
+      padding: 0.35rem 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 0.85rem;
+    }
+
     @media (max-width: 780px) {
       .cart-header-row {
         display: none; /* hide header on small screens */
@@ -231,6 +284,9 @@
       }
       .cart-qty-input {
         width: 70px;
+      }
+      .code-grid {
+        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -272,11 +328,18 @@
 
       <div class="cart-summary" id="cartSummary" style="display:none;">
 
+        <!-- Athlete name -->
+        <div class="checkout-fields">
+          <label class="field-label" for="athleteName">Athlete name (for pickup)</label>
+          <input class="field-input" id="athleteName" type="text" placeholder="e.g., Jordan Smith" />
+          <div class="helper-text">
+            Discount codes are validated at checkout. One code per item unit (qty=3 → 3 codes max).
+          </div>
+        </div>
+
         <!-- Checkout button to the left of the totals -->
         <div class="summary-actions">
-          <button class="checkout-btn" id="checkoutBtn">
-            Checkout
-          </button>
+          <button class="checkout-btn" id="checkoutBtn">Checkout</button>
         </div>
 
         <div class="summary-row">
@@ -299,32 +362,22 @@
     // =========================
     // STRIPE SETUP
     // =========================
-    // TODO: replace with your real Stripe publishable TEST key (starts with pk_test_)
+    // NOTE: publishable key is safe to expose in frontend
     const stripe = Stripe('pk_test_51QpvmRITKnXMLroip1KMIOTGK2aACIhEvZzgdClAvR61B8lvwbwZmuuuVj9rfwYgJkmzrBDXN0I1gN0nD9eaEvgp00MYbmtTve');
 
     // Helper: build display name: e.g. "Team Gloves - Buffalo Bills (Small)"
     function buildDisplayName(item) {
       let displayName = item.name || item.label || 'Item';
-      if (item.team) {
-        displayName += ' - ' + item.team;
-      }
-      if (item.size) {
-        displayName += ' (' + item.size + ')';
-      }
+      if (item.team) displayName += ' - ' + item.team;
+      if (item.size) displayName += ' (' + item.size + ')';
       return displayName;
     }
 
     // ===== CART LOGIC =====
     function loadCart() {
       try {
-        // Primary key used by our shop
         let raw = localStorage.getItem('cartItems');
-
-        // Fallback: if for some reason the shop is storing under "cart"
-        if (!raw) {
-          raw = localStorage.getItem('cart');
-        }
-
+        if (!raw) raw = localStorage.getItem('cart');
         if (!raw) return [];
         const parsed = JSON.parse(raw);
         return Array.isArray(parsed) ? parsed : [];
@@ -340,6 +393,23 @@
 
     function formatMoney(amount) {
       return '$' + amount.toFixed(2);
+    }
+
+    // Athlete name persistence
+    function loadAthleteName() {
+      return (localStorage.getItem('athleteName') || '').trim();
+    }
+    function saveAthleteName(name) {
+      localStorage.setItem('athleteName', (name || '').trim());
+    }
+
+    // Ensure discountCodes array exists and matches quantity length
+    function normalizeDiscountCodes(item) {
+      const qty = Number(item.quantity) || 1;
+      if (!Array.isArray(item.discountCodes)) item.discountCodes = [];
+
+      if (item.discountCodes.length > qty) item.discountCodes = item.discountCodes.slice(0, qty);
+      while (item.discountCodes.length < qty) item.discountCodes.push('');
     }
 
     function renderCart() {
@@ -366,6 +436,8 @@
         const lineTotal = qty * price;
         subtotal += lineTotal;
 
+        normalizeDiscountCodes(item);
+
         const row = document.createElement('div');
         row.className = 'cart-item-row';
 
@@ -380,6 +452,19 @@
           imgSrc = `${safeName} - ${safeTeam}.png`;
         }
 
+        // Build per-unit discount code inputs (one per unit)
+        const codeInputsHtml = item.discountCodes.map((code, i) => {
+          const safeVal = (code || '').replace(/"/g, '&quot;');
+          return `<input
+            class="code-input"
+            type="text"
+            placeholder="Discount code #${i + 1}"
+            value="${safeVal}"
+            data-index="${index}"
+            data-codepos="${i}"
+          />`;
+        }).join('');
+
         row.innerHTML = `
           <div>
             <button class="cart-remove-btn" aria-label="Remove item" data-index="${index}">&times;</button>
@@ -393,13 +478,20 @@
               ${item.team ? 'Team: ' + item.team + ' &bull; ' : ''}
               ${item.size ? 'Size: ' + item.size : ''}
             </div>
+
+            <div class="discount-area">
+              <div class="discount-title">Discount codes (1 per item)</div>
+              <div class="code-grid">
+                ${codeInputsHtml}
+              </div>
+            </div>
           </div>
           <div>
-            <input 
-              type="number" 
-              min="1" 
-              value="${qty}" 
-              class="cart-qty-input" 
+            <input
+              type="number"
+              min="1"
+              value="${qty}"
+              class="cart-qty-input"
               data-index="${index}"
             >
           </div>
@@ -410,6 +502,9 @@
         cartContainer.appendChild(row);
       });
 
+      // Save any normalization adjustments
+      saveCart(cart);
+
       const tax = subtotal * 0.13;
       const total = subtotal + tax;
 
@@ -419,6 +514,8 @@
       summaryBox.style.display = 'block';
 
       attachRowListeners();
+      attachDiscountListeners();
+      attachAthleteListener();
     }
 
     function attachRowListeners() {
@@ -446,10 +543,40 @@
           const index = Number(input.getAttribute('data-index'));
           if (!isNaN(index) && cart[index]) {
             cart[index].quantity = val;
+            normalizeDiscountCodes(cart[index]);
             saveCart(cart);
             renderCart();
           }
         });
+      });
+    }
+
+    function attachDiscountListeners() {
+      const cart = loadCart();
+
+      document.querySelectorAll('.code-input').forEach(inp => {
+        inp.addEventListener('change', () => {
+          const index = Number(inp.getAttribute('data-index'));
+          const pos = Number(inp.getAttribute('data-codepos'));
+          const val = (inp.value || '').trim();
+
+          if (!isNaN(index) && !isNaN(pos) && cart[index]) {
+            normalizeDiscountCodes(cart[index]);
+            cart[index].discountCodes[pos] = val;
+            saveCart(cart);
+          }
+        });
+      });
+    }
+
+    function attachAthleteListener() {
+      const athlete = document.getElementById('athleteName');
+      if (!athlete) return;
+
+      athlete.value = loadAthleteName();
+
+      athlete.addEventListener('change', () => {
+        saveAthleteName(athlete.value);
       });
     }
 
@@ -464,27 +591,35 @@
         return;
       }
 
-      // Build simplified cart payload for the backend
-      const payloadCart = cart.map(item => ({
-        name: buildDisplayName(item),
-        price: Number(item.price) || 0,      // per unit, BEFORE tax
-        quantity: Number(item.quantity) || 1
-      }));
+      const athleteName = (document.getElementById('athleteName')?.value || '').trim();
+      if (!athleteName) {
+        alert('Please enter the athlete name for pickup.');
+        return;
+      }
+      saveAthleteName(athleteName);
+
+      // Build cart payload for the backend INCLUDING discount codes
+      const payloadCart = cart.map(item => {
+        normalizeDiscountCodes(item);
+        return {
+          name: buildDisplayName(item),
+          price: Number(item.price) || 0,      // per unit, BEFORE tax
+          quantity: Number(item.quantity) || 1,
+          // send non-empty codes; backend limits to qty and validates/consumes
+          discountCodes: (item.discountCodes || []).map(c => (c || '').trim()).filter(Boolean)
+        };
+      });
 
       try {
         const response = await fetch('https://hff-server.onrender.com/create-checkout-session', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ cart: payloadCart })
+          body: JSON.stringify({ cart: payloadCart, athleteName })
         });
 
         const text = await response.text();
         let data;
-        try {
-          data = JSON.parse(text);
-        } catch {
-          data = {};
-        }
+        try { data = JSON.parse(text); } catch { data = {}; }
 
         if (!response.ok || !data.id) {
           console.error('Checkout session error. Status:', response.status);
@@ -494,9 +629,7 @@
           return;
         }
 
-        const result = await stripe.redirectToCheckout({
-          sessionId: data.id
-        });
+        const result = await stripe.redirectToCheckout({ sessionId: data.id });
 
         if (result.error) {
           alert(result.error.message);
@@ -522,4 +655,3 @@
 
 </body>
 </html>
-
