@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Flag Football League</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --ink: #fff;
+      --line: #333;
+      --black: #000;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #000;
+      color: var(--ink);
+    }
+
+    /* =========================
+       SCORES STRIP
+       ========================= */
+    .scores-strip {
+      width: 100%;
+      background: #000;
+      padding: 0.35rem 1rem;
+      overflow: hidden;
+    }
+    .score-row {
+      display: flex;
+      gap: 0.5rem;
+      align-items: stretch;
+      min-height: 70px;
+    }
+    .score-box {
+      background: #fff;
+      color: #000;
+      border: 1px solid #ccc;
+      border-radius: 0.5rem;
+      padding: 0.35rem 0.45rem;
+      flex: 0 0 calc((100% - 4.5rem) / 10); /* 10 across desktop */
+      min-height: 74px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .score-title {
+      font-size: 0.65rem;
+      text-align: center;
+      border-bottom: 1px solid #ddd;
+      margin-bottom: 0.15rem;
+      padding-bottom: 0.15rem;
+    }
+    .team-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.15rem;
+      line-height: 1.05;
+    }
+    .team-left {
+      display: flex;
+      align-items: center;
+      gap: 0.2rem;
+      min-width: 0;
+      flex: 1;
+    }
+    .team-logo {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+      background: #fff;
+      border-radius: 4px;
+      padding: 1px;
+    }
+    .team-name {
+      flex: 1;
+      font-size: 0.68rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .team-score {
+      width: 1.9rem;
+      text-align: right;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+    .score-status {
+      font-size: 0.58rem;
+      text-align: center;
+      margin-top: 0.2rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    /* MOBILE: show only 2 boxes */
+    @media (max-width: 700px) {
+      .scores-strip { overflow: hidden; }
+      .score-row { justify-content: center; }
+      .score-box { flex: 0 0 calc((100% - 0.6rem) / 2); }
+      .score-box:nth-child(n + 3) { display: none; }
+    }
+
+    /* =========================
+       TOP BANNER
+       ========================= */
+    .top-banner {
+      width: 100%;
+      background: #000;
+      aspect-ratio: 8 / 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 56px;
+      position: relative;
+    }
+    .top-banner img {
+      height: 82%;
+      width: auto;
+      max-width: 90vw;
+      object-fit: contain;
+      display: block;
+    }
+
+    /* =========================
+       3 COLUMNS
+       ========================= */
+    .three-cols {
+      display: grid;
+      grid-template-columns: 1.2fr 2.6fr 1.2fr;
+      gap: 2px;
+      padding: 1.2vw 2vw 2vw;
+      background: #000;
+    }
+    .col {
+      background: #fff;
+      color: #000;
+      border: 1px solid #333;
+      border-radius: 0;
+      padding: 1.2vw;
+      min-height: 50px;
+      box-shadow: none;
+    }
+
+    /* LEFT COLUMN */
+    .left-col .register-btn {
+      display: block;
+      width: 100%;
+      aspect-ratio: 712 / 151;
+      margin-bottom: 1.2vw;
+    }
+    .left-col .register-btn img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .left-col h3 {
+      margin: 0 0 0.6vw;
+      font-size: clamp(0.9rem, 1.8vw, 1.05rem);
+      text-align: left;
+    }
+
+    .left-col .shop-item {
+      display: flex;
+      align-items: center;
+      gap: 0.6vw;
+      text-decoration: none;
+      color: #000;
+      margin-bottom: 1.2vw;
+    }
+
+    .left-col .shop-item img {
+      width: 50px;
+      height: 50px;
+      object-fit: contain;
+      border-radius: 0.4vw;
+      display: block;
+    }
+
+    .left-col .shop-item span {
+      font-size: clamp(0.85rem, 1.6vw, 1rem);
+      font-weight: 600;
+    }
+
+    /* CENTER COLUMN */
+    .center-col h2 {
+      margin-top: 0;
+      font-size: clamp(1.1rem, 2.3vw, 1.4rem);
+      text-align: center;
+      color: #000;
+    }
+
+    .center-col h3 a {
+      color: inherit;
+      text-decoration: none;
+      font: inherit;
+    }
+    .center-col h3 a:hover {
+      text-decoration: none;
+      opacity: 0.85;
+    }
+
+    .news-thumb a,
+    .news-thumb img,
+    .news-item a.news-thumb {
+      display: block;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .news-item {
+      display: grid;
+      grid-template-columns: minmax(70px, 90px) 1fr;
+      gap: 1vw;
+      margin-bottom: 1.2vw;
+      align-items: start;
+    }
+    .news-thumb {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: #ddd;
+      border-radius: 0.5vw;
+      overflow: hidden;
+    }
+    .news-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .news-content h3 {
+      margin: 0;
+      font-size: clamp(0.9rem, 2vw, 1.1rem);
+      color: #000;
+    }
+    .news-content p {
+      margin: 0.3rem 0 0;
+      font-size: clamp(0.75rem, 1.6vw, 0.9rem);
+      line-height: 1.4;
+      color: #000;
+    }
+    .video-box {
+      margin-top: 1vw;
+      background: #000;
+      border-radius: 0.5vw;
+      overflow: hidden;
+      aspect-ratio: 16 / 9;
+    }
+    .video-box iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    /* RIGHT COLUMN */
+    .right-col h3 {
+      margin-top: 0;
+      font-size: clamp(0.9rem, 1.9vw, 1.1rem);
+      text-align: center;
+      color: #000;
+    }
+    .past-item {
+      display: grid;
+      grid-template-columns: minmax(50px, 60px) 1fr;
+      gap: 0.7vw;
+      margin-bottom: 1vw;
+      align-items: start;
+    }
+    .past-thumb {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: #eee;
+      border-radius: 0.4vw;
+      overflow: hidden;
+      cursor: pointer;
+    }
+    .past-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .past-content h4 {
+      margin: 0;
+      font-size: clamp(0.78rem, 1.5vw, 0.9rem);
+      color: #000;
+    }
+    .past-content p {
+      margin: 0.3rem 0 0;
+      font-size: clamp(0.7rem, 1.4vw, 0.8rem);
+      line-height: 1.35;
+      color: #000;
+    }
+
+    @media (max-width: 1050px) {
+      .three-cols { grid-template-columns: 1fr; }
+      .center-col { order: 1; }
+      .left-col   { order: 2; }
+      .right-col  { order: 3; }
+    }
+
+    /* =========================
+       SPONSORS
+       ========================= */
+    .sponsor-strip {
+      background: #000;
+      color: #fff;
+      padding: 1.5vw 2vw 3vw;
+      text-align: center;
+    }
+    .sponsor-strip h2 {
+      margin: 0 0 1vw;
+      font-size: clamp(1rem, 2.2vw, 1.2rem);
+      letter-spacing: 0.08em;
+    }
+    .sponsor-track-wrapper {
+      overflow: hidden;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+    .sponsor-track {
+      display: flex;
+      justify-content: space-around;
+      gap: 2.5vw;
+      width: 100%;
+      transition: transform 0.4s ease;
+    }
+    .sponsor-logo {
+      flex: 0 0 auto;
+      width: clamp(80px, 10vw, 130px);
+      aspect-ratio: 1 / 1;
+      border-radius: 1vw;
+      overflow: hidden;
+      background: #fff;
+      cursor: pointer; /* NEW: clickable */
+    }
+    .sponsor-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    @media (max-width: 600px) {
+      .sponsor-track { gap: 4vw; }
+      .sponsor-logo { width: 22vw; }
+    }
+
+    /* =========================
+       IMAGE MODAL (existing)
+       ========================= */
+    .image-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      padding: 1rem;
+    }
+    .image-modal-overlay.show { display: flex; }
+    .image-modal-content {
+      max-width: min(90vw, 700px);
+      max-height: 90vh;
+    }
+    .image-modal-content img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border: 3px solid #fff;
+      border-radius: 8px;
+    }
+    .image-modal-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: rgba(0,0,0,0.6);
+      color: #fff;
+      border: none;
+      font-size: 1.4rem;
+      cursor: pointer;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      line-height: 1.2;
+      text-align: center;
+    }
+
+    /* =========================
+       SPONSOR POPUP MODAL (NEW)
+       ========================= */
+    .sponsor-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2500; /* above image modal */
+      padding: 1rem;
+    }
+    .sponsor-modal-overlay.show { display: flex; }
+
+    .sponsor-modal-box {
+      width: min(92vw, 520px);
+      background: #fff;
+      color: #000;
+      border-radius: 12px;
+      border: 2px solid #000;
+      padding: 1.1rem 1.1rem 1rem;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      text-align: center;
+    }
+
+    .sponsor-modal-title {
+      font-weight: 900;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin: 0 0 0.6rem;
+      font-size: 1.05rem;
+    }
+    .sponsor-modal-text {
+      margin: 0;
+      font-size: 0.98rem;
+      line-height: 1.45;
+    }
+
+    .sponsor-modal-actions {
+      margin-top: 0.85rem;
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .sponsor-modal-btn {
+      border: none;
+      background: #000;
+      color: #fff;
+      padding: 0.55rem 0.95rem;
+      border-radius: 999px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .sponsor-modal-btn:hover { opacity: 0.9; }
+
+    .sponsor-modal-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(0,0,0,0.08);
+      cursor: pointer;
+      font-size: 1.25rem;
+      line-height: 1;
+    }
+    .sponsor-modal-close:hover { background: rgba(0,0,0,0.14); }
+  </style>
+</head>
+
+<body>
+
+  <!-- SCORE STRIP -->
+  <div class="scores-strip">
+    <div class="score-row" id="scoreRow"></div>
+  </div>
+
+  <!-- BANNER with SHARED NAV -->
+  <div class="top-banner">
+    <img src="White Logo.jpg" alt="League Logo">
+    <div id="site-nav"></div>
+  </div>
+
+  <!-- 3 COLUMNS -->
+  <section class="three-cols">
+    <!-- LEFT -->
+    <div class="col left-col">
+      <a class="register-btn" href="register.html">
+        <img src="register.png" alt="Register">
+      </a>
+
+      <h3>Shop NFL Flag Gear</h3>
+      <a href="shop.html" class="shop-item">
+        <img src="gloves.png" alt="Team Gloves">
+        <span>Team Gloves</span>
+      </a>
+      <a href="shop.html" class="shop-item">
+        <img src="headband.png" alt="Headband">
+        <span>Team Headband</span>
+      </a>
+      <a href="shop.html" class="shop-item">
+        <img src="sleeve.png" alt="Sleeve">
+        <span>Team Sleeve</span>
+      </a>
+      <a href="shop.html" class="shop-item">
+        <img src="shorts.png" alt="Shorts">
+        <span>Team Shorts</span>
+      </a>
+      <a href="shop.html" class="shop-item">
+        <img src="socks.png" alt="Socks">
+        <span>Team Socks</span>
+      </a>
+      <a href="shop.html" class="shop-item">
+        <img src="belt.png" alt="Belt">
+        <span>Team Belt</span>
+      </a>
+      <a href="shop.html" class="shop-item">
+        <img src="juniorfootball.png" alt="Junior Football">
+        <span>Junior Football</span>
+      </a>
+      <a href="shop.html" class="shop-item">
+        <img src="peeweefootball.png" alt="Peewee Football">
+        <span>Peewee Football</span>
+      </a>
+      <a href="shop.html" class="shop-item">
+        <img src="minifootball.png" alt="Mini Football">
+        <span>Mini Football</span>
+      </a>
+    </div>
+
+    <!-- CENTER -->
+    <div class="col center-col">
+      <h2>Announcements &amp; News</h2>
+      <div class="news-item">
+        <a href="#register" class="news-thumb">
+          <img src="registerannouncement2.png" alt="Registration is Open">
+        </a>
+        <div class="news-content">
+          <h3><a href="#register">REGISTRATION IS OPEN!</a></h3>
+          <p>From U6 to U18, the countdown to kickoff starts now! Big plays and even bigger fun are just around the corner.</p>
+        </div>
+      </div>
+      <div class="video-box">
+        <iframe src="https://rumble.com/embed/v6thm3z/?pub=4ma38h" title="Semi-Finals Bengals vs Ravens" allowfullscreen></iframe>
+      </div>
+      <div class="video-box">
+        <iframe src="https://rumble.com/embed/v6thq9r/?pub=4ma38h" title="Semi-Finals Steelers vs Vikings" allowfullscreen></iframe>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="col right-col">
+      <h3>Past Announcements</h3>
+      <div class="past-item">
+        <div class="past-thumb"><img src="thankyou.jpg" alt="Thank you!"></div>
+        <div class="past-content">
+          <h4>Thank you!</h4>
+          <p>Thank you players, coaches, refs & families for a great first season!</p>
+        </div>
+      </div>
+      <div class="past-item">
+        <div class="past-thumb"><img src="2025CongratsU16.jpg" alt="Congratulations U16!"></div>
+        <div class="past-content">
+          <h4>Congratulations!</h4>
+          <p>Congratulations to the U16 Bengals on taking home the title!</p>
+        </div>
+      </div>
+      <div class="past-item">
+        <div class="past-thumb"><img src="2025CongratsU12.jpg" alt="Congratulations U12!"></div>
+        <div class="past-content">
+          <h4>Congratulations!</h4>
+          <p>Congrats U12 Rams on a great season!</p>
+        </div>
+      </div>
+      <div class="past-item">
+        <div class="past-thumb"><img src="2025CongratsU9.jpg" alt="Congratulations U9!"></div>
+        <div class="past-content">
+          <h4>Congratulations!</h4>
+          <p>Congratulations Falcons, the U9 champions!</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+ <!-- SPONSORS -->
+<div class="sponsor-strip">
+  <h2>SPONSORED BY</h2>
+  <div class="sponsor-track-wrapper">
+    <div class="sponsor-track" id="sponsorTrack">
+
+      <!-- REAL SPONSOR (click = enlarge) -->
+      <div class="sponsor-logo" data-sponsor="true">
+        <img src="DC Cab.png" alt="DC Cab">
+      </div>
+
+      <!-- NOT A REAL SPONSOR (click = sponsorship popup) -->
+      <div class="sponsor-logo">
+        <img src="YourAdHere.png" alt="Sponsor slot">
+      </div>
+
+      <div class="sponsor-logo">
+        <img src="SponsorFun.png" alt="Sponsor slot">
+      </div>
+
+      <div class="sponsor-logo">
+        <img src="ThankYouSponsors.png" alt="Sponsor slot">
+      </div>
+
+      <div class="sponsor-logo">
+        <img src="YourAdHere.png" alt="Sponsor slot">
+      </div>
+
+      <div class="sponsor-logo">
+        <img src="SponsorFun.png" alt="Sponsor slot">
+      </div>
+
+      <div class="sponsor-logo">
+        <img src="ThankYouSponsors.png" alt="Sponsor slot">
+      </div>
+
+      <div class="sponsor-logo">
+        <img src="YourAdHere.png" alt="Sponsor slot">
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+  <!-- IMAGE MODAL (existing) -->
+  <div class="image-modal-overlay" id="imageModal">
+    <button class="image-modal-close" id="imageModalClose" aria-label="Close">&times;</button>
+    <div class="image-modal-content">
+      <img src="" alt="enlarged image" id="imageModalImg">
+    </div>
+  </div>
+
+  <!-- SPONSOR POPUP MODAL (NEW) -->
+  <div class="sponsor-modal-overlay" id="sponsorModal" aria-hidden="true">
+    <div class="sponsor-modal-box" role="dialog" aria-modal="true" aria-labelledby="sponsorModalTitle">
+      <button class="sponsor-modal-close" id="sponsorModalClose" aria-label="Close">×</button>
+      <div class="sponsor-modal-title" id="sponsorModalTitle">Sponsor Hanover Flag Football</div>
+      <p class="sponsor-modal-text">
+        To sponsor Hanover Flag Football, please reach out to Kyle or Emily at
+        <strong>info@hanoverflagfootball.ca</strong> or <strong>226 230 1477</strong>.<br>
+        Thank you!
+      </p>
+
+      <div class="sponsor-modal-actions">
+        <button class="sponsor-modal-btn" id="sponsorModalOk">Got it</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // sponsor rotation every 5s
+    const sponsorTrack = document.getElementById('sponsorTrack');
+    if (sponsorTrack) {
+      setInterval(() => {
+        const firstLogo = sponsorTrack.firstElementChild;
+        if (firstLogo) sponsorTrack.appendChild(firstLogo);
+      }, 5000);
+    }
+
+    // ===== IMAGE MODAL LOGIC (existing) =====
+    const modal = document.getElementById('imageModal');
+    const modalImg = document.getElementById('imageModalImg');
+    const modalClose = document.getElementById('imageModalClose');
+
+    document.querySelectorAll('.right-col .past-thumb img').forEach(img => {
+      img.addEventListener('click', () => {
+        modalImg.src = img.src;
+        modal.classList.add('show');
+      });
+    });
+
+    modalClose.addEventListener('click', () => {
+      modal.classList.remove('show');
+      modalImg.src = "";
+    });
+
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.classList.remove('show');
+        modalImg.src = "";
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modal.classList.contains('show')) {
+        modal.classList.remove('show');
+        modalImg.src = "";
+      }
+    });
+
+    // ===== SPONSOR POPUP MODAL (NEW) =====
+    const sponsorModal = document.getElementById('sponsorModal');
+    const sponsorModalClose = document.getElementById('sponsorModalClose');
+    const sponsorModalOk = document.getElementById('sponsorModalOk');
+
+    function openSponsorModal() {
+      if (!sponsorModal) return;
+      sponsorModal.classList.add('show');
+      sponsorModal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeSponsorModal() {
+      if (!sponsorModal) return;
+      sponsorModal.classList.remove('show');
+      sponsorModal.setAttribute('aria-hidden', 'true');
+    }
+
+    // Click sponsor logos:
+    // - data-sponsor="true" => enlarge logo (use existing image modal)
+    // - otherwise => open sponsorship popup modal
+    document.querySelectorAll('.sponsor-logo').forEach(logoDiv => {
+      logoDiv.addEventListener('click', (e) => {
+        e.preventDefault();
+
+        const img = logoDiv.querySelector('img');
+        if (!img) return;
+
+        const isRealSponsor = (logoDiv.getAttribute('data-sponsor') === 'true');
+
+        if (isRealSponsor) {
+          modalImg.src = img.src;
+          modal.classList.add('show');
+        } else {
+          openSponsorModal();
+        }
+      });
+    });
+
+    // Close buttons
+    if (sponsorModalClose) sponsorModalClose.addEventListener('click', closeSponsorModal);
+    if (sponsorModalOk) sponsorModalOk.addEventListener('click', closeSponsorModal);
+
+    // Click outside box closes
+    if (sponsorModal) {
+      sponsorModal.addEventListener('click', (e) => {
+        if (e.target === sponsorModal) closeSponsorModal();
+      });
+    }
+
+    // ESC closes sponsor modal too (without breaking image modal behavior)
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && sponsorModal && sponsorModal.classList.contains('show')) {
+        closeSponsorModal();
+      }
+    });
+  </script>
+
+  <!-- Shared hamburger nav -->
+  <script src="nav.js"></script>
+
+  <!-- Shared score-strip logic -->
+  <script src="scores-strip.js"></script>
+</body>
+</html>
