@@ -2,44 +2,152 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Order Received</title>
+  <title>Order Success</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    body { font-family: Arial, Helvetica, sans-serif; margin: 0; background:#000; color:#fff; }
-    .wrap { max-width: 900px; margin: 0 auto; padding: 2rem 1rem; }
-    .card { background:#111; border:1px solid #222; border-radius: 14px; padding: 1.5rem; }
-    h1 { margin: 0 0 0.5rem; }
-    .muted { color:#bbb; line-height:1.5; }
-    .order { margin-top: 1rem; padding: 0.75rem 1rem; background:#0b5ed7; border-radius: 10px; display:inline-block; font-weight:700; }
-    a { color:#9fd1ff; }
+    :root { --ink:#fff; --black:#000; --accent:#0b5ed7; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #000;
+      color: var(--ink);
+    }
+
+    /* TOP BANNER (STANDARD) */
+    .top-banner {
+      width: 100%;
+      background: #000;
+      aspect-ratio: 8 / 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 56px;
+      position: relative;
+    }
+    .top-banner img {
+      height: 82%;
+      width: auto;
+      max-width: 90vw;
+      object-fit: contain;
+      display: block;
+    }
+
+    /* PAGE */
+    .page {
+      background: #fff;
+      color: #000;
+      min-height: calc(100vh - 56px);
+      padding: 2rem 1rem 3rem;
+      display: flex;
+      justify-content: center;
+    }
+    .wrap {
+      width: 100%;
+      max-width: 900px;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 1.5rem 1.5rem 1.2rem;
+      background: #fff;
+    }
+    h1 { margin: 0 0 0.5rem; font-size: clamp(1.4rem, 2.6vw, 1.9rem); }
+    .sub { margin: 0 0 1.25rem; color:#333; }
+    .pill {
+      display:inline-block;
+      background:#f3f6ff;
+      border:1px solid #c9d8ff;
+      padding:0.45rem 0.7rem;
+      border-radius:999px;
+      font-weight:700;
+      margin: 0.5rem 0 1rem;
+    }
+    .box {
+      background:#fafafa;
+      border:1px solid #e5e5e5;
+      padding:0.9rem 1rem;
+      border-radius:12px;
+      margin-top: 0.75rem;
+    }
+    .row { display:flex; gap:0.75rem; flex-wrap:wrap; margin-top: 1.2rem; }
+    .btn {
+      display:inline-block;
+      text-decoration:none;
+      padding:0.6rem 1rem;
+      border-radius:999px;
+      border:1px solid #000;
+      color:#000;
+      font-weight:700;
+    }
+    .btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color:#fff;
+    }
+    .small {
+      margin-top: 0.8rem;
+      color:#555;
+      font-size:0.9rem;
+    }
+    .muted { color:#666; font-size:0.9rem; }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="card">
-      <h1>Thank you for your order!</h1>
-      <div class="muted">
-        Your order has been received and is being processed.<br/>
-        An order confirmation email will be sent shortly.
+
+  <!-- BANNER -->
+  <div class="top-banner">
+    <a href="index.html" style="display:flex; align-items:center; justify-content:center; height:100%; width:100%;">
+      <img src="White Logo.jpg" alt="League Logo">
+    </a>
+    <div id="site-nav"></div>
+  </div>
+
+  <div class="page">
+    <div class="wrap">
+      <h1>Order Complete ✅</h1>
+      <p class="sub">Thank you! Your order has been received.</p>
+
+      <div class="pill" id="orderPill" style="display:none;"></div>
+
+      <div class="box">
+        <div><strong>Pickup:</strong> We’ll prepare your items for pickup. If you need to update anything, contact us and include your order number.</div>
+        <div class="muted" id="sessionLine" style="margin-top:0.5rem; display:none;"></div>
       </div>
 
-      <div id="orderBox" class="order" style="display:none;"></div>
+      <div class="row">
+        <a class="btn primary" href="shop.html">Back to Shop</a>
+        <a class="btn" href="index.html">Home</a>
+        <a class="btn" href="cart.html">View Cart</a>
+      </div>
 
-      <div class="muted" style="margin-top:1rem;">
-        <a href="index.html">Back to homepage</a>
+      <div class="small">
+        If you don’t see an order number above, refresh once. (Sometimes Stripe redirects before parameters finish loading.)
       </div>
     </div>
   </div>
 
   <script>
-    // If we pass an order number in the URL, show it:
-    const params = new URLSearchParams(window.location.search);
-    const orderNumber = params.get('order');
-    if (orderNumber) {
-      const box = document.getElementById('orderBox');
-      box.textContent = 'Order #: ' + orderNumber;
-      box.style.display = 'inline-block';
-    }
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+      const order = params.get('order');
+      const sessionId = params.get('session_id');
+
+      const pill = document.getElementById('orderPill');
+      if (order && pill) {
+        pill.style.display = 'inline-block';
+        pill.textContent = 'Order Number: ' + order;
+      }
+
+      const sessionLine = document.getElementById('sessionLine');
+      if (sessionId && sessionLine) {
+        sessionLine.style.display = 'block';
+        sessionLine.textContent = 'Stripe session: ' + sessionId;
+      }
+
+      // Optional: clear cart after success
+      // localStorage.removeItem('cartItems');
+    })();
   </script>
+
+  <script src="nav.js"></script>
 </body>
 </html>
