@@ -60,10 +60,7 @@
       <span class="reg-number" id="regNumber"></span>
     </p>
 
-    <p>
-      Please save this number for your records. You may be asked to provide it
-      if we need to look up your registration.
-    </p>
+    <p id="statusMsg">Finalizing your registration…</p>
 
     <p style="margin-top: 1rem;">
       <a href="index.html">Return to League Home Page</a>
@@ -71,16 +68,68 @@
   </div>
 
   <script>
-    // Read ?reg=... from the URL and display it
+    // ✅ Point this to your Render backend
+    const BACKEND_URL = "https://hff-server.onrender.com";
+
     const params = new URLSearchParams(window.location.search);
-    const reg = params.get('reg');
+    const sessionId = params.get('session_id');
+
     const regWrapper = document.getElementById('regWrapper');
     const regNumberSpan = document.getElementById('regNumber');
+    const statusMsg = document.getElementById('statusMsg');
 
-    if (reg) {
-      regWrapper.style.display = 'block';
-      regNumberSpan.textContent = reg;
+    async function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
     }
+
+    async function fetchOrderNoWithRetry(sessionId, attempts = 12, delayMs = 1500) {
+      for (let i = 0; i < attempts; i++) {
+        const url = `${BACKEND_URL}/order-by-session?session_id=${encodeURIComponent(sessionId)}`;
+        try {
+          const res = await fetch(url);
+          if (res.ok) {
+            return await res.json(); // { order_no, order_type, created_at }
+          }
+
+          // 404 means webhook may not have written yet — retry
+          if (res.status === 404) {
+            await sleep(delayMs);
+            continue;
+          }
+
+          // other errors
+          let errJson = null;
+          try { errJson = await res.json(); } catch {}
+          throw new Error(errJson?.error || `Request failed (${res.status})`);
+        } catch (e) {
+          // network hiccup or transient issue — retry
+          await sleep(delayMs);
+        }
+      }
+      throw new Error("Order number not available yet. Please refresh in a moment.");
+    }
+
+    (async () => {
+      // If someone lands here without session_id, show a helpful message
+      if (!sessionId) {
+        statusMsg.textContent = "Missing session_id in the URL. If you need help, contact us.";
+        return;
+      }
+
+      try {
+        const data = await fetchOrderNoWithRetry(sessionId);
+
+        if (data?.order_no) {
+          regWrapper.style.display = 'block';
+          regNumberSpan.textContent = data.order_no;
+          statusMsg.textContent = "Please save this number for your records.";
+        } else {
+          statusMsg.textContent = "Payment successful, but we couldn't retrieve the order number yet. Please refresh.";
+        }
+      } catch (err) {
+        statusMsg.textContent = err.message || "Payment successful, but the order number is not available yet. Please refresh.";
+      }
+    })();
   </script>
 </body>
 </html>
