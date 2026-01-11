@@ -110,7 +110,8 @@
 
       <div class="box">
         <div><strong>Pickup:</strong> We’ll prepare your items for pickup. If you need to update anything, contact us and include your order number.</div>
-        <div class="muted" id="sessionLine" style="margin-top:0.5rem; display:none;"></div>
+        <div class="muted" id="statusLine" style="margin-top:0.5rem;"></div>
+        <div class="muted" id="sessionLine" style="margin-top:0.25rem; display:none;"></div>
       </div>
 
       <div class="row">
@@ -119,29 +120,84 @@
         <a class="btn" href="cart.html">View Cart</a>
       </div>
 
-      <div class="small">
-        If you don’t see an order number above, refresh once. (Sometimes Stripe redirects before parameters finish loading.)
+      <div class="small" id="hintLine">
+        If you don’t see an order number above, wait a moment or refresh once.
       </div>
     </div>
   </div>
 
   <script>
     (function () {
+      const BACKEND_URL = "https://hff-server.onrender.com";
+
       const params = new URLSearchParams(window.location.search);
-      const order = params.get('order');
       const sessionId = params.get('session_id');
 
       const pill = document.getElementById('orderPill');
-      if (order && pill) {
-        pill.style.display = 'inline-block';
-        pill.textContent = 'Order Number: ' + order;
+      const statusLine = document.getElementById('statusLine');
+      const sessionLine = document.getElementById('sessionLine');
+      const hintLine = document.getElementById('hintLine');
+
+      function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
       }
 
-      const sessionLine = document.getElementById('sessionLine');
-      if (sessionId && sessionLine) {
+      async function fetchOrderWithRetry(sessionId, attempts = 12, delayMs = 1500) {
+        for (let i = 0; i < attempts; i++) {
+          try {
+            const url = `${BACKEND_URL}/order-by-session?session_id=${encodeURIComponent(sessionId)}`;
+            const res = await fetch(url);
+
+            if (res.ok) return await res.json(); // { order_no, order_type, created_at }
+
+            if (res.status === 404) {
+              await sleep(delayMs);
+              continue;
+            }
+
+            let errJson = null;
+            try { errJson = await res.json(); } catch {}
+            throw new Error(errJson?.error || `Request failed (${res.status})`);
+          } catch (e) {
+            await sleep(delayMs);
+          }
+        }
+        throw new Error("Order number not available yet. Please refresh in a moment.");
+      }
+
+      // If sessionId missing, we cannot look up order_no.
+      if (!sessionId) {
+        if (statusLine) {
+          statusLine.textContent = "Missing session_id in the URL. This means the Stripe success URL for the shop/cart flow needs to include ?session_id={CHECKOUT_SESSION_ID}.";
+        }
+        if (hintLine) {
+          hintLine.textContent = "Fix needed: update the shop checkout success URL to include session_id so we can show the order number here.";
+        }
+        return;
+      }
+
+      // show session id (helpful for support/debug)
+      if (sessionLine) {
         sessionLine.style.display = 'block';
         sessionLine.textContent = 'Stripe session: ' + sessionId;
       }
+
+      if (statusLine) statusLine.textContent = "Finalizing your order number…";
+
+      (async () => {
+        try {
+          const data = await fetchOrderWithRetry(sessionId);
+
+          if (data && data.order_no && pill) {
+            pill.style.display = 'inline-block';
+            pill.textContent = 'Order Number: ' + data.order_no;
+          }
+
+          if (statusLine) statusLine.textContent = "Please save this number for your records.";
+        } catch (err) {
+          if (statusLine) statusLine.textContent = err.message || "Payment successful, but order number not available yet. Please refresh.";
+        }
+      })();
 
       // Optional: clear cart after success
       // localStorage.removeItem('cartItems');
