@@ -2,210 +2,223 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Order Success</title>
+  <title>Loading...</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <style>
-    :root { --ink:#fff; --black:#000; --accent:#0b5ed7; }
+    :root { --ink:#fff; --black:#000; }
     * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: #000;
-      color: var(--ink);
-    }
-
-    /* TOP BANNER (STANDARD) */
-    .top-banner {
-      width: 100%;
-      background: #000;
-      aspect-ratio: 8 / 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 56px;
-      position: relative;
-    }
-    .top-banner img {
-      height: 82%;
-      width: auto;
-      max-width: 90vw;
-      object-fit: contain;
-      display: block;
-    }
-
-    /* PAGE */
-    .page {
-      background: #fff;
-      color: #000;
-      min-height: calc(100vh - 56px);
-      padding: 2rem 1rem 3rem;
-      display: flex;
-      justify-content: center;
-    }
-    .wrap {
-      width: 100%;
-      max-width: 900px;
-      border: 1px solid #ddd;
-      border-radius: 12px;
-      padding: 1.5rem 1.5rem 1.2rem;
-      background: #fff;
-    }
-    h1 { margin: 0 0 0.5rem; font-size: clamp(1.4rem, 2.6vw, 1.9rem); }
-    .sub { margin: 0 0 1.25rem; color:#333; }
-    .pill {
-      display:inline-block;
-      background:#f3f6ff;
-      border:1px solid #c9d8ff;
-      padding:0.45rem 0.7rem;
-      border-radius:999px;
-      font-weight:700;
-      margin: 0.5rem 0 1rem;
-    }
-    .box {
-      background:#fafafa;
-      border:1px solid #e5e5e5;
-      padding:0.9rem 1rem;
-      border-radius:12px;
-      margin-top: 0.75rem;
-    }
-    .row { display:flex; gap:0.75rem; flex-wrap:wrap; margin-top: 1.2rem; }
-    .btn {
-      display:inline-block;
-      text-decoration:none;
-      padding:0.6rem 1rem;
-      border-radius:999px;
-      border:1px solid #000;
-      color:#000;
-      font-weight:700;
-    }
-    .btn.primary {
-      background: var(--accent);
-      border-color: var(--accent);
+    body{
+      margin:0;
+      background:#000;
       color:#fff;
+      font-family: Arial, Helvetica, sans-serif;
+      min-height:100vh;
     }
-    .small {
-      margin-top: 0.8rem;
-      color:#555;
-      font-size:0.9rem;
+
+    /* TOP BANNER (LOGO ONLY) */
+    .top-banner{
+      width:100%;
+      background:#000;
+      aspect-ratio: 8 / 1;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:56px;
+      position:relative;
     }
-    .muted { color:#666; font-size:0.9rem; }
+    .top-banner img{
+      height:82%;
+      width:auto;
+      max-width:90vw;
+      object-fit:contain;
+      display:block;
+    }
+
+    /* LOADING */
+    .stage{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 3rem 1rem;
+    }
+    .wrap{
+      text-align:center;
+      padding:2rem;
+      max-width:760px;
+      width:100%;
+    }
+    .spinner{
+      width:56px; height:56px;
+      border:6px solid #333;
+      border-top-color:#fff;
+      border-radius:50%;
+      margin:0 auto 1rem;
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .txt{ opacity:0.92; font-size:1rem; }
+    .sub{ opacity:0.65; margin-top:0.35rem; font-size:0.9rem; line-height:1.35; }
+    .badge{
+      display:inline-block;
+      margin-top:0.9rem;
+      padding:0.25rem 0.6rem;
+      border:1px solid #333;
+      border-radius:999px;
+      font-size:0.8rem;
+      opacity:0.7;
+    }
+    .err{
+      display:none;
+      margin-top:1.1rem;
+      background:#111;
+      border:1px solid #333;
+      padding:1rem;
+      border-radius:12px;
+      color:#fff;
+      text-align:left;
+      font-size:0.92rem;
+      opacity:0.95;
+      white-space:pre-wrap;
+    }
   </style>
 </head>
-<body>
 
-  <!-- BANNER -->
+<body>
   <div class="top-banner">
     <a href="index.html" style="display:flex; align-items:center; justify-content:center; height:100%; width:100%;">
       <img src="White Logo.jpg" alt="League Logo">
     </a>
-    <div id="site-nav"></div>
   </div>
 
-  <div class="page">
+  <div class="stage">
     <div class="wrap">
-      <h1>Order Complete ✅</h1>
-      <p class="sub">Thank you! Your order has been received.</p>
-
-      <div class="pill" id="orderPill" style="display:none;"></div>
-
-      <div class="box">
-        <div><strong>Pickup:</strong> We’ll prepare your items for pickup. If you need to update anything, contact us and include your order number.</div>
-        <div class="muted" id="statusLine" style="margin-top:0.5rem;"></div>
-        <div class="muted" id="sessionLine" style="margin-top:0.25rem; display:none;"></div>
-      </div>
-
-      <div class="row">
-        <a class="btn primary" href="shop.html">Back to Shop</a>
-        <a class="btn" href="index.html">Home</a>
-      </div>
-
-      <div class="small" id="hintLine">
-        If you don’t see an order number above, wait a moment or refresh once.
-      </div>
+      <div class="spinner"></div>
+      <div class="txt" id="mainTxt">Preparing your secure Stripe checkout…</div>
+      <div class="sub" id="subTxt">One moment. You’ll be redirected automatically.</div>
+      <div class="badge">LOADING VERSION: SPLIT-SUCCESS-002</div>
+      <div class="err" id="errBox"></div>
     </div>
   </div>
 
   <script>
-    (function () {
+    (async function () {
       const BACKEND_URL = "https://hff-server.onrender.com";
 
-      const params = new URLSearchParams(window.location.search);
-      const sessionId = params.get('session_id');
+      const errBox = document.getElementById('errBox');
+      const mainTxt = document.getElementById('mainTxt');
 
-      const pill = document.getElementById('orderPill');
-      const statusLine = document.getElementById('statusLine');
-      const sessionLine = document.getElementById('sessionLine');
-      const hintLine = document.getElementById('hintLine');
-
-      function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-      async function fetchOrderWithRetry(sessionId, attempts = 12, delayMs = 1500) {
-        for (let i = 0; i < attempts; i++) {
-          try {
-            const url = `${BACKEND_URL}/order-by-session?session_id=${encodeURIComponent(sessionId)}`;
-            const res = await fetch(url);
-
-            if (res.ok) return await res.json(); // { order_no, ... }
-
-            if (res.status === 404) {
-              await sleep(delayMs);
-              continue;
-            }
-
-            let errJson = null;
-            try { errJson = await res.json(); } catch {}
-            throw new Error(errJson?.error || `Request failed (${res.status})`);
-          } catch (e) {
-            await sleep(delayMs);
-          }
-        }
-        throw new Error("Payment successful, but order number isn’t ready yet. Refresh in a moment.");
+      function showError(msg) {
+        errBox.style.display = 'block';
+        errBox.textContent = msg;
       }
 
-      // ✅ Clear cart + payload now that payment succeeded
-      try {
-        localStorage.removeItem('cartItems');
-        sessionStorage.removeItem('HFF_CHECKOUT_PAYLOAD');
-        localStorage.removeItem('HFF_CHECKOUT_PAYLOAD');
-      } catch {}
+      function getRawPayload() {
+        return (
+          sessionStorage.getItem('HFF_CHECKOUT_PAYLOAD') ||
+          localStorage.getItem('HFF_CHECKOUT_PAYLOAD')
+        );
+      }
 
-      if (!sessionId) {
-        if (statusLine) {
-          statusLine.textContent =
-            "Payment succeeded, but this page didn’t receive a session_id. Fix: successUrl must include ?session_id={CHECKOUT_SESSION_ID}.";
-        }
-        if (hintLine) {
-          hintLine.textContent =
-            "If you just paid and landed here without an order number, please contact us and we’ll confirm your order.";
-        }
+      function safeJson(raw) {
+        try { return JSON.parse(raw); } catch { return null; }
+      }
+
+      const raw = getRawPayload();
+      const parsed = raw ? safeJson(raw) : null;
+
+      if (!raw || !parsed) {
+        // If payload missing, send to a safe place (cart)
+        window.location.replace('cart.html?v=' + Date.now());
         return;
       }
 
-      if (sessionLine) {
-        sessionLine.style.display = 'block';
-        sessionLine.textContent = 'Stripe session: ' + sessionId;
+      // Determine flow type:
+      // - registration.html stores: { type:'registration', data: ... }
+      // - cart.html stores: { cart:[...], athleteName:"..." }
+      const isRegistration =
+        parsed.type === 'registration' ||
+        (parsed.data && parsed.data.parent && parsed.data.player) ||
+        (parsed.parent && parsed.player);
+
+      if (mainTxt) {
+        mainTxt.textContent = isRegistration
+          ? 'Preparing your registration payment…'
+          : 'Preparing your shop checkout…';
       }
 
-      if (statusLine) statusLine.textContent = "Finalizing your order number…";
+      // ✅ Split success pages (THIS is the key change)
+      // - Registration: success.html (your "Thank you for registering" page)
+      // - Shop/cart: cart_success.html (your shop order success page)
+      const successPath = isRegistration ? '/success.html' : '/cart_success.html';
+      const successUrl = window.location.origin + successPath + '?session_id={CHECKOUT_SESSION_ID}';
 
-      (async () => {
-        try {
-          const data = await fetchOrderWithRetry(sessionId);
+      const cancelUrl = window.location.origin + (isRegistration ? '/register.html' : '/cart.html');
 
-          if (data && data.order_no && pill) {
-            pill.style.display = 'inline-block';
-            pill.textContent = 'Order Number: ' + data.order_no;
-          }
+      // Build backend request body
+      let body;
 
-          if (statusLine) statusLine.textContent = "Please save this number for your records.";
-          if (hintLine) hintLine.textContent = "You’re all set — see you at pickup!";
-        } catch (err) {
-          if (statusLine) statusLine.textContent = err.message || "Payment successful, but order number not available yet. Please refresh.";
-        }
-      })();
+      if (isRegistration) {
+        const reg = parsed.data || parsed;
+
+        // Match your current registration pricing logic
+        const ageGroup = reg.ageGroup; // "U6" or "7plus"
+        const fee = (ageGroup === 'U6') ? 80 : 185;
+
+        const playerName =
+          (reg.player && (reg.player.firstName || reg.player.lastName))
+            ? ((reg.player.firstName || '') + ' ' + (reg.player.lastName || '')).trim()
+            : '';
+
+        const cart = [{
+          name: (ageGroup === 'U6') ? 'Player Registration (U6)' : 'Player Registration (Age 6+)',
+          price: fee,
+          quantity: 1
+        }];
+
+        body = {
+          cart,
+          athleteName: playerName || (reg.parent && reg.parent.name) || 'Registration',
+          registration: reg,
+          successUrl,
+          cancelUrl
+        };
+      } else {
+        body = {
+          cart: parsed.cart,
+          athleteName: parsed.athleteName || '',
+          successUrl,
+          cancelUrl
+        };
+      }
+
+      try {
+        const res = await fetch(BACKEND_URL + '/create-checkout-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+
+        const text = await res.text();
+        if (!res.ok) throw new Error(`POST /create-checkout-session failed (${res.status}).\n${text}`);
+
+        const out = JSON.parse(text);
+        const url = out.url || out.checkoutUrl || out.sessionUrl;
+        if (!url) throw new Error('No Stripe checkout URL returned.\n\n' + text);
+
+        window.location.href = url;
+      } catch (e) {
+        showError(
+          "Stripe checkout failed.\n\nBackend:\n" + BACKEND_URL + "\n\n" +
+          (e && e.message ? e.message : String(e))
+        );
+
+        setTimeout(() => {
+          const back = isRegistration ? 'register.html' : 'cart.html';
+          window.location.replace(back + '?v=' + Date.now());
+        }, 6000);
+      }
     })();
   </script>
-
-  <script src="nav.js"></script>
 </body>
 </html>
