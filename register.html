@@ -232,8 +232,9 @@
             </div>
 
             <div class="form-row">
-              <label for="shirtSize">Shirt Size</label>
-              <select id="shirtSize" name="shirtSize">
+              <!-- ✅ UPDATED: Shirt Size is REQUIRED -->
+              <label for="shirtSize">Shirt Size<span class="required">*</span></label>
+              <select id="shirtSize" name="shirtSize" required>
                 <option value="">Select size...</option>
                 <option value="YS">Youth Small</option>
                 <option value="YM">Youth Medium</option>
@@ -427,6 +428,14 @@
         const riskAck = document.getElementById('riskAck');
         const photoPermission = document.querySelector('input[name="photoPermission"]:checked');
         const ageGroupRadio = document.querySelector('input[name="ageGroup"]:checked');
+
+        // ✅ NEW: Shirt Size must be selected
+        const shirtSizeEl = document.getElementById('shirtSize');
+        if (!shirtSizeEl || !shirtSizeEl.value) {
+          shirtSizeEl && shirtSizeEl.focus();
+          alert('Please select a shirt size.');
+          return;
+        }
 
         if (!ageGroupRadio) {
           alert('Please select whether this registration is for U6 or Age 6+.');
