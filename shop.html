@@ -214,6 +214,15 @@
       opacity: 0.9;
     }
 
+    /* Text-only options line (for footballs) */
+    .product-options-text {
+      width: 100%;
+      text-align: center;
+      margin: 0.55rem 0 0.55rem;
+      font-size: 0.9rem;
+      opacity: 0.85;
+    }
+
     /* =========================
        CART TOAST (Added to Cart popup)
        ========================= */
@@ -243,7 +252,6 @@
 
   <!-- BANNER -->
   <div class="top-banner">
-    <!-- ✅ FIXED: index link had a broken newline -->
     <a href="index.html" style="display:flex; align-items:center; justify-content:center; height:100%; width:100%;">
       <img src="White Logo.jpg" alt="League Logo" style="height:82%; width:auto; max-width:90vw; object-fit:contain; display:block; cursor:pointer;">
     </a>
@@ -598,7 +606,7 @@
         </div>
       </div>
 
-      <!-- PRODUCT 7 -->
+      <!-- PRODUCT 7 (NO DROPDOWNS) -->
       <div class="product-card">
         <div class="product-image-wrap">
           <img src="Mini Football (U6) - Mini.png" alt="Mini Football">
@@ -607,25 +615,21 @@
           <div class="product-title">Mini Football (U6)</div>
           <div class="product-price">$25</div>
 
-          <div class="product-options">
-            <select class="product-select option-team">
-              <option value="" disabled selected>Team</option>
-              <option value="Not team specific">Not team specific</option>
-            </select>
+          <div class="product-options-text">Not team specific • Size: Mini</div>
 
-            <select class="product-select option-size">
-              <option value="" disabled selected>Size</option>
-              <option value="Mini">Mini</option>
-            </select>
-          </div>
-
-          <button class="product-button" data-product="Mini Football (U6)" data-price="25" onclick="addToCart(this)">
+          <button
+            class="product-button"
+            data-product="Mini Football (U6)"
+            data-price="25"
+            data-team="Not team specific"
+            data-size="Mini"
+            onclick="addToCart(this)">
             Add to Cart
           </button>
         </div>
       </div>
 
-      <!-- PRODUCT 8 -->
+      <!-- PRODUCT 8 (NO DROPDOWNS) -->
       <div class="product-card">
         <div class="product-image-wrap">
           <img src="Peewee Football (U10) - Peewee.png" alt="Peewee Football (U10)">
@@ -634,25 +638,21 @@
           <div class="product-title">Peewee Football (U10)</div>
           <div class="product-price">$25</div>
 
-          <div class="product-options">
-            <select class="product-select option-team">
-              <option value="" disabled selected>Team</option>
-              <option value="Not team specific">Not team specific</option>
-            </select>
+          <div class="product-options-text">Not team specific • Size: Peewee</div>
 
-            <select class="product-select option-size">
-              <option value="" disabled selected>Size</option>
-              <option value="Peewee">Peewee</option>
-            </select>
-          </div>
-
-          <button class="product-button" data-product="Peewee Football (U10)" data-price="25" onclick="addToCart(this)">
+          <button
+            class="product-button"
+            data-product="Peewee Football (U10)"
+            data-price="25"
+            data-team="Not team specific"
+            data-size="Peewee"
+            onclick="addToCart(this)">
             Add to Cart
           </button>
         </div>
       </div>
 
-      <!-- PRODUCT 9 -->
+      <!-- PRODUCT 9 (NO DROPDOWNS) -->
       <div class="product-card">
         <div class="product-image-wrap">
           <img src="Junior Football (10+) - Junior.png" alt="Junior Football (10+)">
@@ -661,19 +661,15 @@
           <div class="product-title">Junior Football (10+)</div>
           <div class="product-price">$25</div>
 
-          <div class="product-options">
-            <select class="product-select option-team">
-              <option value="" disabled selected>Team</option>
-              <option value="Not team specific">Not team specific</option>
-            </select>
+          <div class="product-options-text">Not team specific • Size: Junior</div>
 
-            <select class="product-select option-size">
-              <option value="" disabled selected>Size</option>
-              <option value="Junior">Junior</option>
-            </select>
-          </div>
-
-          <button class="product-button" data-product="Junior Football (10+)" data-price="25" onclick="addToCart(this)">
+          <button
+            class="product-button"
+            data-product="Junior Football (10+)"
+            data-price="25"
+            data-team="Not team specific"
+            data-size="Junior"
+            onclick="addToCart(this)">
             Add to Cart
           </button>
         </div>
@@ -732,13 +728,17 @@
       const imgEl = card.querySelector('.product-image-wrap img');
       const imageSrc = imgEl ? imgEl.getAttribute('src') : '';
 
+      // ✅ NEW: allow "fixed" team/size (no dropdowns) using data attributes
+      const fixedTeam = btn.getAttribute('data-team');
+      const fixedSize = btn.getAttribute('data-size');
+
       const teamSelect = card.querySelector('.option-team');
       const sizeSelect = card.querySelector('.option-size');
 
-      const team = teamSelect ? teamSelect.value : '';
-      const size = sizeSelect ? sizeSelect.value : '';
+      const team = fixedTeam || (teamSelect ? teamSelect.value : '');
+      const size = fixedSize || (sizeSelect ? sizeSelect.value : '');
 
-      // Block if either dropdown is still on placeholder
+      // Block if either dropdown is still on placeholder (when dropdowns exist)
       if (!team || !size) {
         alert('Please select a Team and Size before adding to cart.');
         return;
@@ -777,7 +777,7 @@
       showCartToast('Added to Cart');
     }
 
-    // IMAGE SWAP ON TEAM CHANGE
+    // IMAGE SWAP ON TEAM CHANGE (for team-specific products only)
     function setupProductImageSwap() {
       const cards = document.querySelectorAll('.product-card');
 
@@ -789,6 +789,9 @@
         if (!titleEl || !teamSelect || !imgEl) return;
 
         const productName = titleEl.textContent.trim(); // e.g. "Gloves"
+
+        // ✅ Footballs are not team-specific; do not swap their images
+        if (productName.includes('Football')) return;
 
         teamSelect.addEventListener('change', () => {
           const team = teamSelect.value;

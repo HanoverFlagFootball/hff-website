@@ -202,8 +202,13 @@
         }
       })();
 
-      // Optional: clear cart after success
-      // localStorage.removeItem('cartItems');
+     // Clear cart + checkout payload after successful payment
+try {
+  localStorage.removeItem('cartItems');
+  sessionStorage.removeItem('HFF_CHECKOUT_PAYLOAD');
+  localStorage.removeItem('HFF_CHECKOUT_PAYLOAD');
+} catch {}
+
     })();
   </script>
 
