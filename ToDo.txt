@@ -1,7 +1,26 @@
-Cart checkout page has the registration success message - and this message says to keep a number but does not give one
+x Cart checkout page has the registration success message - and this message says to keep a number but does not give one
 
-Stripe did not add tax
+x Stripe did not add tax - skipping because we don't charge/pay tax yet
 
-Cart checkout needs an additional page where you can apply discount code, enter athlete name and parent/guardian name, and email are given
+x Cart checkout needs an additional page where you can apply discount code, enter athlete name and parent/guardian name, and email are given = not doing this year
 
-A loading message when checking out due to Render lag under free version
+x A loading message when checking out due to Render lag under free version
+
+x Change San Diego Chargers to Los Angeles Charges in shop page
+
+x Connect hanoverflagfootball.ca custom domain
+
+x Turn Stripe from test → live
+
+x Make new Stripe account
+
+x Add email receipts / confirmations (Billing in Stripe, once live)
+
+x Add admin order/registration exports - i think? this was AI recommendation (SUPABASE) 
+
+x No order number
+
+x Jersey size is not mandatory
+
+x Is the code saved somewhere, the folders, what if my cp is off, what if I delete, or it crashes? - saved in GitHub
+
