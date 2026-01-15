@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Create Girls Team Link</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root { --ink:#fff; --black:#000; --line:#333; --accent:#0b5ed7; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: Arial, Helvetica, sans-serif; background:#000; color:#fff; }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 18px; }
+    .card { border:1px solid var(--line); border-radius: 14px; padding: 16px; background:#050505; }
+    h1 { font-size: 22px; margin: 0 0 10px; }
+    .muted { opacity: .85; font-size: 13px; line-height: 1.4; }
+    label { display:block; font-size: 13px; opacity: .9; margin: 10px 0 6px; }
+    input, select, textarea { width:100%; padding: 10px; border-radius: 10px; border:1px solid var(--line); background:#0b0b0b; color:#fff; font-family:inherit; }
+    textarea { min-height: 90px; resize: vertical; }
+    .row { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .btn { border:0; border-radius: 12px; padding: 11px 14px; cursor:pointer; font-weight: 700; }
+    .btn.primary { background: var(--accent); color:#fff; }
+    .btn.ghost { background: transparent; border:1px solid var(--line); color: #fff; }
+    .linkrow { display:flex; gap: 10px; align-items:center; flex-wrap: wrap; margin-top: 10px; }
+    .ok { color:#7CFF8A; margin-top: 10px; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Create a Girls Team Registration Link</h1>
+      <div class="muted">This creates one shareable team link. Anyone with the link can register and will be connected to this team token.</div>
+
+      <div class="row" style="margin-top: 10px;">
+        <div>
+          <label>Team Name (for your reference)</label>
+          <input id="teamName" placeholder="e.g., Hanover Girls U14" />
+        </div>
+        <div>
+          <label>Division (for your reference)</label>
+          <select id="division">
+            <option value="">Select…</option>
+            <option>U8</option><option>U10</option><option>U12</option><option>U14</option><option>U16</option><option>U18</option>
+          </select>
+        </div>
+      </div>
+
+      <label style="margin-top: 10px;">Initial roster (optional)</label>
+      <textarea id="roster" placeholder="One per line: Player Name (optional email)"></textarea>
+
+      <div style="display:flex; gap:10px; margin-top: 12px; flex-wrap: wrap;">
+        <button class="btn primary" id="create">Create Team Link</button>
+        <button class="btn ghost" id="copyMsg" disabled>Copy Message</button>
+      </div>
+
+      <div id="out" style="display:none; margin-top: 14px;">
+        <div class="muted">Share this link:</div>
+        <div class="linkrow">
+          <input id="link" readonly />
+          <button class="btn primary" id="copyLink">Copy Link</button>
+        </div>
+        <div class="ok" id="ok" style="display:none;">Copied!</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function token() {
+      const bytes = new Uint8Array(16);
+      crypto.getRandomValues(bytes);
+      return Array.from(bytes).map(b => b.toString(16).padStart(2,'0')).join('');
+    }
+
+    const createBtn = document.getElementById('create');
+    const out = document.getElementById('out');
+    const linkInput = document.getElementById('link');
+    const ok = document.getElementById('ok');
+    const copyLinkBtn = document.getElementById('copyLink');
+    const copyMsgBtn = document.getElementById('copyMsg');
+
+    let lastMessage = '';
+
+    createBtn.addEventListener('click', () => {
+      const t = token();
+      const base = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, ''); // folder
+      const link = `${base}/girls_register.html?team=${encodeURIComponent(t)}`;
+      linkInput.value = link;
+      out.style.display = 'block';
+      copyMsgBtn.disabled = false;
+
+      const teamName = document.getElementById('teamName').value.trim();
+      const division = document.getElementById('division').value.trim();
+      const roster = document.getElementById('roster').value.trim();
+
+      lastMessage =
+`Girls team registration link:
+${link}
+
+Team: ${teamName || '(not specified)'} ${division ? '('+division+')' : ''}
+
+Roster (optional):
+${roster || '(none listed)'}`;
+
+    });
+
+    copyLinkBtn.addEventListener('click', async () => {
+      await navigator.clipboard.writeText(linkInput.value);
+      ok.style.display = 'block';
+      setTimeout(() => ok.style.display = 'none', 900);
+    });
+
+    copyMsgBtn.addEventListener('click', async () => {
+      await navigator.clipboard.writeText(lastMessage);
+      ok.style.display = 'block';
+      setTimeout(() => ok.style.display = 'none', 900);
+    });
+  </script>
+</body>
+</html>
