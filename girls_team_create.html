@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Create Girls Team Registration Link</title>
+  <title>Girls Registration Links</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
@@ -64,8 +64,6 @@
     .btn.primary { background:var(--accent); color:#fff; }
     .btn.ghost { background:transparent; border:1px solid var(--line); color:#fff; }
 
-    .player-grid { display:grid; gap:8px; margin-top:10px; }
-    .player-row { display:grid; grid-template-columns:1fr auto; gap:10px; }
     .mini { padding:8px 10px; font-size:12px; }
 
     .note {
@@ -82,6 +80,36 @@
     .linkrow { display:flex; gap:10px; flex-wrap:wrap; margin-top:8px; }
     .ok { color:#7CFF8A; font-size:13px; display:none; }
     .error { color:#ff6b6b; font-size:13px; display:none; }
+
+    /* PLAYER GRID (TEAM MODE) */
+    .player-grid { display:grid; gap:8px; margin-top:10px; }
+    .player-row { display:grid; grid-template-columns:1fr auto; gap:10px; }
+
+    /* TOGGLE */
+    .toggle-wrap { margin: 14px 0 16px; display:flex; gap:10px; flex-wrap:wrap; }
+    .toggle-btn{
+      flex: 1 1 180px;
+      text-align:center;
+      border-radius: 999px;
+      padding: 12px 14px;
+      border:1px solid var(--line);
+      background: transparent;
+      color:#fff;
+      font-weight:800;
+      cursor:pointer;
+      transition: transform 0.05s ease, opacity 0.15s ease, background 0.15s ease;
+      user-select:none;
+    }
+    .toggle-btn:hover { opacity:0.92; }
+    .toggle-btn:active { transform:scale(0.99); }
+    .toggle-btn.active{
+      background: var(--accent);
+      border-color: var(--accent);
+      color:#fff;
+    }
+
+    .mode { display:none; }
+    .mode.show { display:block; }
   </style>
 </head>
 
@@ -93,7 +121,100 @@
   </div>
 
   <div class="wrap">
-    <div class="card">
+    <!-- TOGGLE BUTTONS -->
+    <div class="toggle-wrap" aria-label="Choose registration type">
+      <button class="toggle-btn" id="soloBtn" type="button">Sign up Solo</button>
+      <button class="toggle-btn" id="teamBtn" type="button">Sign up a Team</button>
+    </div>
+
+    <!-- SOLO MODE -->
+    <div class="card mode" id="soloMode">
+      <h1>Girls Solo Registration Link</h1>
+
+      <div class="muted">
+        This registration link is for <strong>Girls U18 (ages ~14–17)</strong>.
+      </div>
+
+      <div class="muted" style="margin-top:6px;">
+        This creates a link with the team set to <strong>Solo</strong>.
+      </div>
+
+      <h2>Solo Team Details</h2>
+      <label for="soloTeamName">Team Name</label>
+      <input id="soloTeamName" type="text" value="Solo" readonly />
+
+      <label for="soloNflTeam" style="margin-top:14px;">Preferred NFL Team (optional)</label>
+      <select id="soloNflTeam">
+        <option value="">Select…</option>
+        <option>Arizona Cardinals</option>
+        <option>Atlanta Falcons</option>
+        <option>Baltimore Ravens</option>
+        <option>Buffalo Bills</option>
+        <option>Carolina Panthers</option>
+        <option>Chicago Bears</option>
+        <option>Cincinnati Bengals</option>
+        <option>Cleveland Browns</option>
+        <option>Dallas Cowboys</option>
+        <option>Denver Broncos</option>
+        <option>Detroit Lions</option>
+        <option>Green Bay Packers</option>
+        <option>Houston Texans</option>
+        <option>Indianapolis Colts</option>
+        <option>Jacksonville Jaguars</option>
+        <option>Kansas City Chiefs</option>
+        <option>Las Vegas Raiders</option>
+        <option>Los Angeles Chargers</option>
+        <option>Los Angeles Rams</option>
+        <option>Miami Dolphins</option>
+        <option>Minnesota Vikings</option>
+        <option>New England Patriots</option>
+        <option>New Orleans Saints</option>
+        <option>New York Giants</option>
+        <option>New York Jets</option>
+        <option>Philadelphia Eagles</option>
+        <option>Pittsburgh Steelers</option>
+        <option>San Francisco 49ers</option>
+        <option>Seattle Seahawks</option>
+        <option>Tampa Bay Buccaneers</option>
+        <option>Tennessee Titans</option>
+        <option>Washington Commanders</option>
+      </select>
+
+      <div class="note">
+        We’ll try to accommodate preferred NFL teams where possible, but team assignments are not guaranteed.
+      </div>
+
+      <div style="display:flex; gap:10px; margin-top:12px; flex-wrap:wrap;">
+        <button class="btn primary" type="button" id="createSoloLink">Create Solo Link</button>
+      </div>
+
+      <div class="error" id="soloErr"></div>
+
+      <!-- SOLO SHARE SECTION -->
+      <div class="sharebox" id="soloSharebox">
+        <h2>Your Solo Registration Link</h2>
+
+        <div class="muted">
+          Please <strong>save this link</strong>. It will not be shown again.
+        </div>
+
+        <div class="linkrow">
+          <input id="soloLink" readonly />
+          <button class="btn primary mini" type="button" id="copySoloLink">Copy Link</button>
+        </div>
+
+        <div style="margin-top:14px;">
+          <button class="btn primary" type="button" id="continueSoloBtn">
+            Continue to Registration
+          </button>
+        </div>
+
+        <div class="ok" id="soloOk">Copied!</div>
+      </div>
+    </div>
+
+    <!-- TEAM MODE (YOUR ORIGINAL PAGE CONTENT) -->
+    <div class="card mode" id="teamMode">
       <h1>Create a Girls Team Registration Link</h1>
 
       <div class="muted">
@@ -163,15 +284,13 @@
 
       <div class="error" id="err"></div>
 
-      <!-- SHARE SECTION -->
+      <!-- TEAM SHARE SECTION -->
       <div class="sharebox" id="sharebox">
         <h2>Your Team Registration Link</h2>
 
         <div class="muted">
-  Please <strong>save this link</strong>. It will not be shown again and must be shared with all team members to complete registration.
-</div>
-
-
+          Please <strong>save this link</strong>. It will not be shown again and must be shared with all team members to complete registration.
+        </div>
 
         <div class="linkrow">
           <input id="teamLink" readonly />
@@ -190,13 +309,40 @@
   </div>
 
   <script>
-    const grid = document.getElementById('playerGrid');
-    const err = document.getElementById('err');
-    const sharebox = document.getElementById('sharebox');
-    const teamLink = document.getElementById('teamLink');
-    const ok = document.getElementById('ok');
-    const continueBtn = document.getElementById('continueBtn');
+    /* =========================
+       TOGGLE LOGIC
+       ========================= */
+    const soloBtn = document.getElementById('soloBtn');
+    const teamBtn = document.getElementById('teamBtn');
+    const soloMode = document.getElementById('soloMode');
+    const teamMode = document.getElementById('teamMode');
 
+    function setMode(mode) {
+      // reset active styles
+      soloBtn.classList.remove('active');
+      teamBtn.classList.remove('active');
+      soloMode.classList.remove('show');
+      teamMode.classList.remove('show');
+
+      if (mode === 'solo') {
+        soloBtn.classList.add('active');
+        soloMode.classList.add('show');
+      } else if (mode === 'team') {
+        teamBtn.classList.add('active');
+        teamMode.classList.add('show');
+      }
+    }
+
+    soloBtn.addEventListener('click', () => setMode('solo'));
+    teamBtn.addEventListener('click', () => setMode('team'));
+
+    // Default-open to "Sign up a Team"
+setMode('team');
+
+
+    /* =========================
+       SHARED HELPERS
+       ========================= */
     function slugify(text) {
       return text
         .toLowerCase()
@@ -204,6 +350,49 @@
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/(^-|-$)/g, '');
     }
+
+    function basePath() {
+      return window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '');
+    }
+
+    /* =========================
+       SOLO LINK CREATION
+       ========================= */
+    const soloErr = document.getElementById('soloErr');
+    const soloSharebox = document.getElementById('soloSharebox');
+    const soloLink = document.getElementById('soloLink');
+    const soloOk = document.getElementById('soloOk');
+    const continueSoloBtn = document.getElementById('continueSoloBtn');
+
+    document.getElementById('createSoloLink').addEventListener('click', () => {
+      soloErr.style.display = 'none';
+      soloSharebox.style.display = 'none';
+
+      const soloName = 'Solo';
+      const slug = slugify(soloName);
+      const url = `${basePath()}/girls_register.html?team=${encodeURIComponent(slug)}`;
+
+      soloLink.value = url;
+      continueSoloBtn.onclick = () => window.location.href = url;
+
+      soloSharebox.style.display = 'block';
+    });
+
+    document.getElementById('copySoloLink').addEventListener('click', async () => {
+      await navigator.clipboard.writeText(soloLink.value);
+      soloOk.style.display = 'block';
+      setTimeout(() => soloOk.style.display = 'none', 900);
+    });
+
+    /* =========================
+       TEAM LINK CREATION (YOUR ORIGINAL)
+       ========================= */
+    const grid = document.getElementById('playerGrid');
+    const err = document.getElementById('err');
+    const sharebox = document.getElementById('sharebox');
+    const teamLink = document.getElementById('teamLink');
+    const ok = document.getElementById('ok');
+    const continueBtn = document.getElementById('continueBtn');
 
     function addPlayerLine(value = '') {
       const row = document.createElement('div');
@@ -241,8 +430,7 @@
       }
 
       const slug = slugify(name);
-      const base = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '');
-      const url = `${base}/girls_register.html?team=${encodeURIComponent(slug)}`;
+      const url = `${basePath()}/girls_register.html?team=${encodeURIComponent(slug)}`;
 
       teamLink.value = url;
       continueBtn.onclick = () => window.location.href = url;
