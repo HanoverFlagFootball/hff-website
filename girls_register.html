@@ -240,8 +240,6 @@
               <input type="date" id="playerDob" name="playerDob" required />
             </div>
 
-            <!-- Removed ageGroup radio UI entirely -->
-
             <div class="form-row">
               <label for="shirtSize">Shirt Size<span class="required">*</span></label>
               <select id="shirtSize" name="shirtSize" required>
@@ -269,16 +267,11 @@
         </div>
 
         <div class="form-section">
-          <h2>Health & Buddy Request</h2>
+          <h2>Health</h2>
           <div class="form-row">
             <label for="healthConcerns">Health Concerns / Allergies / Accessibility Needs</label>
             <textarea id="healthConcerns" name="healthConcerns"
               placeholder="Please list any medical, allergy, or accessibility information coaches should be aware of."></textarea>
-          </div>
-          <div class="form-row">
-            <label for="buddyRequest">Buddy Request (optional)</label>
-            <input type="text" id="buddyRequest" name="buddyRequest"
-              placeholder="Player name your child would like to play with (if possible)" />
           </div>
         </div>
 
@@ -402,7 +395,6 @@
 
       if (!team) {
         alert('This girls team registration page must be opened using the team link.');
-        // Disable submit to avoid “orphan” registrations
         const btn = document.querySelector('.submit-btn');
         if (btn) btn.disabled = true;
         if (btn) btn.style.opacity = '0.5';
@@ -446,7 +438,7 @@
       });
     })();
 
-    // ✅ Submit handler (same pattern as your existing register.html)
+    // ✅ Submit handler
     document.addEventListener('DOMContentLoaded', () => {
       const form = document.getElementById('registrationForm');
       if (!form) return;
@@ -491,13 +483,12 @@
           }
         }
 
-        // Forced age group (matches your backend pricing logic)
         const forcedAgeGroup = document.getElementById('forcedAgeGroup').value; // "7plus"
         const teamToken = document.getElementById('teamToken').value;
 
         const payload = {
-          flow: 'girls_team',           // ✅ add a clear marker for backend/admin (safe even if ignored)
-          teamToken: teamToken,         // ✅ team linkage
+          flow: 'girls_team',
+          teamToken: teamToken,
           parent: {
             name: document.getElementById('parentName').value.trim(),
             email: document.getElementById('parentEmail').value.trim(),
@@ -511,10 +502,9 @@
             shirtSize: document.getElementById('shirtSize').value,
             experience: document.getElementById('experience').value
           },
-          ageGroup: forcedAgeGroup,     // ✅ always "7plus"
+          ageGroup: forcedAgeGroup,
           coachInterest: document.getElementById('coachInterest').value || null,
           health: { concerns: document.getElementById('healthConcerns').value.trim() },
-          buddyRequest: document.getElementById('buddyRequest').value.trim(),
           waivers: {
             liabilityWaiver: liabilityWaiver.checked,
             riskAcknowledgement: riskAck.checked,
