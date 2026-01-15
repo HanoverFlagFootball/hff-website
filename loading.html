@@ -96,7 +96,7 @@
       <div class="spinner"></div>
       <div class="txt" id="mainTxt">Preparing your secure Stripe checkout…</div>
       <div class="sub" id="subTxt">One moment. You’ll be redirected automatically.</div>
-      <div class="badge">LOADING VERSION: SPLIT-SUCCESS-002</div>
+      <div class="badge" id="badge">LOADING VERSION: SPLIT-SUCCESS-003 + TEAMTOKEN</div>
       <div class="err" id="errBox"></div>
     </div>
   </div>
@@ -107,6 +107,7 @@
 
       const errBox = document.getElementById('errBox');
       const mainTxt = document.getElementById('mainTxt');
+      const subTxt = document.getElementById('subTxt');
 
       function showError(msg) {
         errBox.style.display = 'block';
@@ -128,14 +129,11 @@
       const parsed = raw ? safeJson(raw) : null;
 
       if (!raw || !parsed) {
-        // If payload missing, send to a safe place (cart)
         window.location.replace('cart.html?v=' + Date.now());
         return;
       }
 
-      // Determine flow type:
-      // - registration.html stores: { type:'registration', data: ... }
-      // - cart.html stores: { cart:[...], athleteName:"..." }
+      // Determine flow type
       const isRegistration =
         parsed.type === 'registration' ||
         (parsed.data && parsed.data.parent && parsed.data.player) ||
@@ -147,21 +145,23 @@
           : 'Preparing your shop checkout…';
       }
 
-      // ✅ Split success pages (THIS is the key change)
-      // - Registration: success.html (your "Thank you for registering" page)
-      // - Shop/cart: cart_success.html (your shop order success page)
       const successPath = isRegistration ? '/success.html' : '/cart_success.html';
       const successUrl = window.location.origin + successPath + '?session_id={CHECKOUT_SESSION_ID}';
-
       const cancelUrl = window.location.origin + (isRegistration ? '/register.html' : '/cart.html');
 
-      // Build backend request body
       let body;
 
       if (isRegistration) {
         const reg = parsed.data || parsed;
 
-        // Match your current registration pricing logic
+        // ✅ TEAM TOKEN (optional; used for girls team link registrations)
+        const teamToken = (reg && reg.teamToken) ? String(reg.teamToken).trim() : '';
+
+        if (teamToken && subTxt) {
+          subTxt.textContent = 'Team link detected. Connecting your registration to the team…';
+        }
+
+        // Pricing logic (unchanged)
         const ageGroup = reg.ageGroup; // "U6" or "7plus"
         const fee = (ageGroup === 'U6') ? 80 : 185;
 
@@ -180,6 +180,7 @@
           cart,
           athleteName: playerName || (reg.parent && reg.parent.name) || 'Registration',
           registration: reg,
+          teamToken: teamToken || null,  // ✅ NEW: explicit field for backend
           successUrl,
           cancelUrl
         };

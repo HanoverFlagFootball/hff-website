@@ -2,116 +2,264 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Create Girls Team Link</title>
+  <title>Create Girls Team Registration Link</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <style>
     :root { --ink:#fff; --black:#000; --line:#333; --accent:#0b5ed7; }
     * { box-sizing: border-box; }
     body { margin:0; font-family: Arial, Helvetica, sans-serif; background:#000; color:#fff; }
+
+    /* TOP BANNER */
+    .top-banner{
+      width:100%;
+      background:#000;
+      aspect-ratio: 8 / 1;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:56px;
+    }
+    .top-banner img{
+      height:82%;
+      width:auto;
+      max-width:90vw;
+      object-fit:contain;
+    }
+
     .wrap { max-width: 980px; margin: 0 auto; padding: 18px; }
     .card { border:1px solid var(--line); border-radius: 14px; padding: 16px; background:#050505; }
-    h1 { font-size: 22px; margin: 0 0 10px; }
-    .muted { opacity: .85; font-size: 13px; line-height: 1.4; }
-    label { display:block; font-size: 13px; opacity: .9; margin: 10px 0 6px; }
-    input, select, textarea { width:100%; padding: 10px; border-radius: 10px; border:1px solid var(--line); background:#0b0b0b; color:#fff; font-family:inherit; }
-    textarea { min-height: 90px; resize: vertical; }
-    .row { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .btn { border:0; border-radius: 12px; padding: 11px 14px; cursor:pointer; font-weight: 700; }
-    .btn.primary { background: var(--accent); color:#fff; }
-    .btn.ghost { background: transparent; border:1px solid var(--line); color: #fff; }
-    .linkrow { display:flex; gap: 10px; align-items:center; flex-wrap: wrap; margin-top: 10px; }
-    .ok { color:#7CFF8A; margin-top: 10px; font-size: 13px; }
+
+    h1 { font-size: 22px; margin: 0 0 6px; }
+    h2 { font-size: 16px; margin: 18px 0 10px; }
+    .muted { opacity:.85; font-size:13px; line-height:1.4; }
+
+    label { display:block; font-size:13px; margin:10px 0 6px; }
+    input, select {
+      width:100%;
+      padding:10px;
+      border-radius:10px;
+      border:1px solid var(--line);
+      background:#0b0b0b;
+      color:#fff;
+      font-family:inherit;
+    }
+
+    .btn {
+      border:0;
+      border-radius:12px;
+      padding:11px 14px;
+      cursor:pointer;
+      font-weight:700;
+    }
+    .btn.primary { background:var(--accent); color:#fff; }
+    .btn.ghost { background:transparent; border:1px solid var(--line); color:#fff; }
+
+    .player-grid { display:grid; gap:8px; margin-top:10px; }
+    .player-row { display:grid; grid-template-columns:1fr auto; gap:10px; }
+    .mini { padding:8px 10px; font-size:12px; }
+
+    .note {
+      margin-top:8px;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid #333;
+      background:#0b0b0b;
+      font-size:13px;
+      opacity:.9;
+    }
+
+    .sharebox { display:none; margin-top:16px; }
+    .linkrow { display:flex; gap:10px; flex-wrap:wrap; margin-top:8px; }
+    .ok { color:#7CFF8A; font-size:13px; display:none; }
+    .error { color:#ff6b6b; font-size:13px; display:none; }
   </style>
 </head>
+
 <body>
+  <div class="top-banner">
+    <a href="index.html">
+      <img src="White Logo.jpg" alt="League Logo">
+    </a>
+  </div>
+
   <div class="wrap">
     <div class="card">
       <h1>Create a Girls Team Registration Link</h1>
-      <div class="muted">This creates one shareable team link. Anyone with the link can register and will be connected to this team token.</div>
 
-      <div class="row" style="margin-top: 10px;">
-        <div>
-          <label>Team Name (for your reference)</label>
-          <input id="teamName" placeholder="e.g., Hanover Girls U14" />
-        </div>
-        <div>
-          <label>Division (for your reference)</label>
-          <select id="division">
-            <option value="">Select…</option>
-            <option>U8</option><option>U10</option><option>U12</option><option>U14</option><option>U16</option><option>U18</option>
-          </select>
-        </div>
+      <div class="muted">
+        This registration link is for <strong>Girls U18 (ages 14–17)</strong>.
       </div>
 
-      <label style="margin-top: 10px;">Initial roster (optional)</label>
-      <textarea id="roster" placeholder="One per line: Player Name (optional email)"></textarea>
-
-      <div style="display:flex; gap:10px; margin-top: 12px; flex-wrap: wrap;">
-        <button class="btn primary" id="create">Create Team Link</button>
-        <button class="btn ghost" id="copyMsg" disabled>Copy Message</button>
+      <div class="muted" style="margin-top:6px;">
+        One shareable link will be created. Anyone with the link can register and will be automatically connected to this team.
       </div>
 
-      <div id="out" style="display:none; margin-top: 14px;">
-        <div class="muted">Share this link:</div>
+      <h2>Team Details</h2>
+      <label for="teamName">Team Name<span style="color:#ff6b6b;">*</span></label>
+      <input id="teamName" type="text" placeholder="e.g., Hanover Girls U18" />
+
+      <label for="nflTeam" style="margin-top:14px;">Preferred NFL Team (optional)</label>
+      <select id="nflTeam">
+        <option value="">Select…</option>
+        <option>Arizona Cardinals</option>
+        <option>Atlanta Falcons</option>
+        <option>Baltimore Ravens</option>
+        <option>Buffalo Bills</option>
+        <option>Carolina Panthers</option>
+        <option>Chicago Bears</option>
+        <option>Cincinnati Bengals</option>
+        <option>Cleveland Browns</option>
+        <option>Dallas Cowboys</option>
+        <option>Denver Broncos</option>
+        <option>Detroit Lions</option>
+        <option>Green Bay Packers</option>
+        <option>Houston Texans</option>
+        <option>Indianapolis Colts</option>
+        <option>Jacksonville Jaguars</option>
+        <option>Kansas City Chiefs</option>
+        <option>Las Vegas Raiders</option>
+        <option>Los Angeles Chargers</option>
+        <option>Los Angeles Rams</option>
+        <option>Miami Dolphins</option>
+        <option>Minnesota Vikings</option>
+        <option>New England Patriots</option>
+        <option>New Orleans Saints</option>
+        <option>New York Giants</option>
+        <option>New York Jets</option>
+        <option>Philadelphia Eagles</option>
+        <option>Pittsburgh Steelers</option>
+        <option>San Francisco 49ers</option>
+        <option>Seattle Seahawks</option>
+        <option>Tampa Bay Buccaneers</option>
+        <option>Tennessee Titans</option>
+        <option>Washington Commanders</option>
+      </select>
+
+      <div class="note">
+        We’ll try to accommodate preferred NFL teams where possible, but team assignments are not guaranteed.
+      </div>
+
+      <h2>Players (names only)</h2>
+      <div class="muted">
+        Add player names if you like. This is optional and does not limit who can register using the link.
+      </div>
+
+      <div class="player-grid" id="playerGrid"></div>
+
+      <div style="display:flex; gap:10px; margin-top:12px;">
+        <button class="btn ghost" type="button" id="addPlayer">+ Add Player Line</button>
+        <button class="btn primary" type="button" id="createLink">Create Team Link</button>
+      </div>
+
+      <div class="error" id="err"></div>
+
+      <div class="sharebox" id="sharebox">
+        <h2>Your Team Registration Link</h2>
+
         <div class="linkrow">
-          <input id="link" readonly />
-          <button class="btn primary" id="copyLink">Copy Link</button>
+          <input id="teamLink" readonly />
+          <button class="btn primary mini" type="button" id="copyLink">Copy</button>
         </div>
-        <div class="ok" id="ok" style="display:none;">Copied!</div>
+
+        <div style="margin-top:10px;">
+          <label>Optional message to send players:</label>
+          <div class="linkrow">
+            <input id="teamMsg" readonly />
+            <button class="btn ghost mini" type="button" id="copyMsg">Copy Message</button>
+          </div>
+        </div>
+
+        <div class="ok" id="ok">Copied!</div>
       </div>
     </div>
   </div>
 
   <script>
-    function token() {
-      const bytes = new Uint8Array(16);
-      crypto.getRandomValues(bytes);
-      return Array.from(bytes).map(b => b.toString(16).padStart(2,'0')).join('');
+    const grid = document.getElementById('playerGrid');
+    const err = document.getElementById('err');
+    const sharebox = document.getElementById('sharebox');
+    const teamLink = document.getElementById('teamLink');
+    const teamMsg = document.getElementById('teamMsg');
+    const ok = document.getElementById('ok');
+
+    function slugify(text) {
+      return text
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
     }
 
-    const createBtn = document.getElementById('create');
-    const out = document.getElementById('out');
-    const linkInput = document.getElementById('link');
-    const ok = document.getElementById('ok');
-    const copyLinkBtn = document.getElementById('copyLink');
-    const copyMsgBtn = document.getElementById('copyMsg');
+    function addPlayerLine(value = '') {
+      const row = document.createElement('div');
+      row.className = 'player-row';
 
-    let lastMessage = '';
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.placeholder = 'Player full name';
+      input.value = value;
 
-    createBtn.addEventListener('click', () => {
-      const t = token();
-      const base = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, ''); // folder
-      const link = `${base}/girls_register.html?team=${encodeURIComponent(t)}`;
-      linkInput.value = link;
-      out.style.display = 'block';
-      copyMsgBtn.disabled = false;
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'btn ghost mini';
+      remove.textContent = 'Remove';
+      remove.onclick = () => row.remove();
 
-      const teamName = document.getElementById('teamName').value.trim();
-      const division = document.getElementById('division').value.trim();
-      const roster = document.getElementById('roster').value.trim();
+      row.appendChild(input);
+      row.appendChild(remove);
+      grid.appendChild(row);
+    }
 
-      lastMessage =
-`Girls team registration link:
-${link}
+    for (let i = 0; i < 10; i++) addPlayerLine();
 
-Team: ${teamName || '(not specified)'} ${division ? '('+division+')' : ''}
+    document.getElementById('addPlayer').onclick = () => addPlayerLine();
 
-Roster (optional):
-${roster || '(none listed)'}`;
+    document.getElementById('createLink').onclick = () => {
+      err.style.display = 'none';
+      sharebox.style.display = 'none';
 
-    });
+      const name = document.getElementById('teamName').value.trim();
+      if (!name) {
+        err.textContent = 'Team Name is required.';
+        err.style.display = 'block';
+        return;
+      }
 
-    copyLinkBtn.addEventListener('click', async () => {
-      await navigator.clipboard.writeText(linkInput.value);
+      const nfl = document.getElementById('nflTeam').value.trim();
+      const players = Array.from(grid.querySelectorAll('input'))
+        .map(i => i.value.trim())
+        .filter(Boolean);
+
+      const slug = slugify(name);
+      const base = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '');
+      const url = `${base}/girls_register.html?team=${slug}`;
+
+      teamLink.value = url;
+
+      teamMsg.value =
+`Girls U18 (ages 14–17) team registration:
+
+${url}
+
+Team: ${name}
+Preferred NFL team: ${nfl || 'None specified'} (not guaranteed)
+${players.length ? 'Players: ' + players.join(', ') : ''}`;
+
+      sharebox.style.display = 'block';
+    };
+
+    document.getElementById('copyLink').onclick = async () => {
+      await navigator.clipboard.writeText(teamLink.value);
       ok.style.display = 'block';
       setTimeout(() => ok.style.display = 'none', 900);
-    });
+    };
 
-    copyMsgBtn.addEventListener('click', async () => {
-      await navigator.clipboard.writeText(lastMessage);
+    document.getElementById('copyMsg').onclick = async () => {
+      await navigator.clipboard.writeText(teamMsg.value);
       ok.style.display = 'block';
       setTimeout(() => ok.style.display = 'none', 900);
-    });
+    };
   </script>
 </body>
 </html>
