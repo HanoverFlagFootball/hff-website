@@ -10,9 +10,7 @@
     * { box-sizing: border-box; }
     body { margin:0; font-family: Arial, Helvetica, sans-serif; background:#000; color:#fff; }
 
-    /* =========================
-       TOP BANNER (MATCHES REGISTER/LOADING)
-       ========================= */
+    /* TOP BANNER (MATCHES SITE) */
     .top-banner {
       width: 100%;
       background: #000;
@@ -30,7 +28,6 @@
       height:100%;
       width:100%;
     }
-    /* ✅ Smaller than other pages */
     .top-banner img {
       height: 58%;
       width: auto;
@@ -38,7 +35,6 @@
       object-fit: contain;
       display: block;
     }
-    /* ========================= */
 
     .wrap { max-width: 980px; margin: 0 auto; padding: 18px; }
     .card { border:1px solid var(--line); border-radius: 14px; padding: 16px; background:#050505; }
@@ -108,7 +104,6 @@
         One shareable link will be created. Anyone with the link can register and will be automatically connected to this team.
       </div>
 
-      
       <h2>Team Details</h2>
       <label for="teamName">Team Name<span style="color:#ff6b6b;">*</span></label>
       <input id="teamName" type="text" placeholder="e.g., Hanover Girls U18" />
@@ -168,20 +163,23 @@
 
       <div class="error" id="err"></div>
 
+      <!-- SHARE SECTION -->
       <div class="sharebox" id="sharebox">
         <h2>Your Team Registration Link</h2>
 
-        <div class="linkrow">
-          <input id="teamLink" readonly />
-          <button class="btn primary mini" type="button" id="copyLink">Copy</button>
+        <div class="muted">
+          Please share this link with all members of the team to complete registration.
         </div>
 
-        <div style="margin-top:10px;">
-          <label>Optional message to send players:</label>
-          <div class="linkrow">
-            <input id="teamMsg" readonly />
-            <button class="btn ghost mini" type="button" id="copyMsg">Copy Message</button>
-          </div>
+        <div class="linkrow">
+          <input id="teamLink" readonly />
+          <button class="btn primary mini" type="button" id="copyLink">Copy Link</button>
+        </div>
+
+        <div style="margin-top:14px;">
+          <button class="btn primary" type="button" id="continueBtn">
+            Continue to Registration for My Child
+          </button>
         </div>
 
         <div class="ok" id="ok">Copied!</div>
@@ -194,8 +192,8 @@
     const err = document.getElementById('err');
     const sharebox = document.getElementById('sharebox');
     const teamLink = document.getElementById('teamLink');
-    const teamMsg = document.getElementById('teamMsg');
     const ok = document.getElementById('ok');
+    const continueBtn = document.getElementById('continueBtn');
 
     function slugify(text) {
       return text
@@ -240,38 +238,18 @@
         return;
       }
 
-      const nfl = document.getElementById('nflTeam').value.trim();
-      const players = Array.from(grid.querySelectorAll('input'))
-        .map(i => i.value.trim())
-        .filter(Boolean);
-
       const slug = slugify(name);
-
       const base = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '');
       const url = `${base}/girls_register.html?team=${encodeURIComponent(slug)}`;
 
       teamLink.value = url;
-
-      teamMsg.value =
-`Girls U18 (ages ~14–17) team registration:
-
-${url}
-
-Team: ${name}
-Preferred NFL team: ${nfl || 'None specified'} (not guaranteed)
-${players.length ? 'Players: ' + players.join(', ') : ''}`;
+      continueBtn.onclick = () => window.location.href = url;
 
       sharebox.style.display = 'block';
     };
 
     document.getElementById('copyLink').onclick = async () => {
       await navigator.clipboard.writeText(teamLink.value);
-      ok.style.display = 'block';
-      setTimeout(() => ok.style.display = 'none', 900);
-    };
-
-    document.getElementById('copyMsg').onclick = async () => {
-      await navigator.clipboard.writeText(teamMsg.value);
       ok.style.display = 'block';
       setTimeout(() => ok.style.display = 'none', 900);
     };
