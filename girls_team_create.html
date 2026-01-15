@@ -10,23 +10,35 @@
     * { box-sizing: border-box; }
     body { margin:0; font-family: Arial, Helvetica, sans-serif; background:#000; color:#fff; }
 
-    /* TOP BANNER */
-    .top-banner{
-      width:100%;
-      background:#000;
+    /* =========================
+       TOP BANNER (MATCHES REGISTER/LOADING)
+       ========================= */
+    .top-banner {
+      width: 100%;
+      background: #000;
       aspect-ratio: 8 / 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 56px;
+      position: relative;
+    }
+    .top-banner a {
       display:flex;
       align-items:center;
       justify-content:center;
-      min-height:56px;
+      height:100%;
+      width:100%;
     }
-    /* ✅ smaller logo */
-    .top-banner img{
-      height:68%;
-      width:auto;
-      max-width:80vw;
-      object-fit:contain;
+    /* ✅ Smaller than other pages */
+    .top-banner img {
+      height: 58%;
+      width: auto;
+      max-width: 90vw;
+      object-fit: contain;
+      display: block;
     }
+    /* ========================= */
 
     .wrap { max-width: 980px; margin: 0 auto; padding: 18px; }
     .card { border:1px solid var(--line); border-radius: 14px; padding: 16px; background:#050505; }
@@ -34,6 +46,16 @@
     h1 { font-size: 22px; margin: 0 0 6px; }
     h2 { font-size: 16px; margin: 18px 0 10px; }
     .muted { opacity:.85; font-size:13px; line-height:1.4; }
+
+    .badge {
+      display:inline-block;
+      margin-top:10px;
+      padding:6px 10px;
+      border:1px solid #333;
+      border-radius:999px;
+      font-size:12px;
+      opacity:.75;
+    }
 
     label { display:block; font-size:13px; margin:10px 0 6px; }
     input, select {
@@ -96,6 +118,8 @@
         One shareable link will be created. Anyone with the link can register and will be automatically connected to this team.
       </div>
 
+      <div class="badge">GIRLS TEAM CREATE VERSION: BANNER-LOCK-001</div>
+
       <h2>Team Details</h2>
       <label for="teamName">Team Name<span style="color:#ff6b6b;">*</span></label>
       <input id="teamName" type="text" placeholder="e.g., Hanover Girls U18" />
@@ -148,7 +172,7 @@
 
       <div class="player-grid" id="playerGrid"></div>
 
-      <div style="display:flex; gap:10px; margin-top:12px;">
+      <div style="display:flex; gap:10px; margin-top:12px; flex-wrap:wrap;">
         <button class="btn ghost" type="button" id="addPlayer">+ Add Player Line</button>
         <button class="btn primary" type="button" id="createLink">Create Team Link</button>
       </div>
@@ -212,7 +236,6 @@
       grid.appendChild(row);
     }
 
-    // start with 10 rows
     for (let i = 0; i < 10; i++) addPlayerLine();
 
     document.getElementById('addPlayer').onclick = () => addPlayerLine();
@@ -235,7 +258,6 @@
 
       const slug = slugify(name);
 
-      // base folder (works on custom domain + github pages)
       const base = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '');
       const url = `${base}/girls_register.html?team=${encodeURIComponent(slug)}`;
 
