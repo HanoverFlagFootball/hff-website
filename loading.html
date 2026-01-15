@@ -96,7 +96,7 @@
       <div class="spinner"></div>
       <div class="txt" id="mainTxt">Preparing your secure Stripe checkout…</div>
       <div class="sub" id="subTxt">One moment. You’ll be redirected automatically.</div>
-      <div class="badge" id="badge">LOADING VERSION: SPLIT-SUCCESS-003 + TEAMTOKEN</div>
+      <div class="badge" id="badge">LOADING VERSION: SPLIT-SUCCESS-004 + GIRLS-U18-LABEL</div>
       <div class="err" id="errBox"></div>
     </div>
   </div>
@@ -157,6 +157,11 @@
         // ✅ TEAM TOKEN (optional; used for girls team link registrations)
         const teamToken = (reg && reg.teamToken) ? String(reg.teamToken).trim() : '';
 
+        // ✅ Detect girls team flow (set by girls_register.html)
+        const isGirlsTeam =
+          (reg && reg.flow === 'girls_team') ||
+          !!teamToken;
+
         if (teamToken && subTxt) {
           subTxt.textContent = 'Team link detected. Connecting your registration to the team…';
         }
@@ -170,8 +175,15 @@
             ? ((reg.player.firstName || '') + ' ' + (reg.player.lastName || '')).trim()
             : '';
 
+        // ✅ Stripe line item name fix
+        const lineItemName = isGirlsTeam
+          ? 'Girls U18 Team Registration'
+          : (ageGroup === 'U6')
+            ? 'Player Registration (U6)'
+            : 'Player Registration (Age 6+)';
+
         const cart = [{
-          name: (ageGroup === 'U6') ? 'Player Registration (U6)' : 'Player Registration (Age 6+)',
+          name: lineItemName,
           price: fee,
           quantity: 1
         }];
@@ -180,7 +192,7 @@
           cart,
           athleteName: playerName || (reg.parent && reg.parent.name) || 'Registration',
           registration: reg,
-          teamToken: teamToken || null,  // ✅ NEW: explicit field for backend
+          teamToken: teamToken || null,  // still fine to send; backend can ignore
           successUrl,
           cancelUrl
         };
