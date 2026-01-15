@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Girls Team Registration - Flag Football League</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root { --ink:#fff; --line:#333; --black:#000; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #000;
+      color: var(--ink);
+    }
+
+    /* SCORES STRIP */
+    .scores-strip { width:100%; background:#000; padding:0.35rem 1rem; overflow:hidden; }
+    .score-row { display:flex; gap:0.5rem; align-items:stretch; min-height:70px; }
+    .score-box { background:#fff; color:#000; border:1px solid #ccc; border-radius:0.5rem; padding:0.35rem 0.45rem; flex:0 0 calc((100% - 4.5rem)/10); min-height:74px; display:flex; flex-direction:column; justify-content:center; }
+    .score-title { font-size:0.65rem; text-align:center; border-bottom:1px solid #ddd; margin-bottom:0.15rem; padding-bottom:0.15rem; }
+    .team-row { display:flex; justify-content:space-between; align-items:center; gap:0.15rem; line-height:1.05; }
+    .team-left { display:flex; align-items:center; gap:0.2rem; min-width:0; flex:1; }
+    .team-logo { width:20px; height:20px; object-fit:contain; background:#fff; border-radius:4px; padding:1px; }
+    .team-name { flex:1; font-size:0.68rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .team-score { width:1.9rem; text-align:right; font-size:0.7rem; font-weight:600; }
+    .score-status { font-size:0.58rem; text-align:center; margin-top:0.2rem; text-transform:uppercase; letter-spacing:0.04em; }
+    @media (max-width:700px) {
+      .scores-strip { overflow:hidden; }
+      .score-row { justify-content:center; }
+      .score-box { flex:0 0 calc((100% - 0.6rem)/2); }
+      .score-box:nth-child(n + 3) { display:none; }
+    }
+
+    /* TOP BANNER */
+    .top-banner {
+      width: 100%;
+      background: #000;
+      aspect-ratio: 8 / 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 56px;
+      position: relative;
+    }
+    .top-banner img {
+      height: 82%;
+      width: auto;
+      max-width: 90vw;
+      object-fit: contain;
+      display: block;
+    }
+
+    /* HAMBURGER */
+    .mobile-nav { position:absolute; bottom:6px; left:10px; display:flex; align-items:center; }
+    .mobile-nav-btn { width:34px; height:28px; border:1px solid #fff; background:rgba(0,0,0,0.3); display:inline-flex; flex-direction:column; justify-content:center; gap:4px; cursor:pointer; }
+    .mobile-nav-btn span { display:block; height:2px; background:#fff; }
+    .mobile-nav-menu { position:absolute; top:calc(100% + 4px); left:10px; background:#111; border:1px solid #333; border-radius:0.5rem; display:none; flex-direction:column; z-index:999; min-width:180px; }
+    .mobile-nav-menu a { color:#fff; text-decoration:none; padding:0.6rem 0.8rem; border-bottom:1px solid #222; font-size:0.9rem; }
+    .mobile-nav-menu a:last-child { border-bottom:none; }
+    .mobile-nav-menu.show { display:flex; }
+    @media (min-width:701px) {
+      .mobile-nav { bottom:38px; left:44px; }
+      .mobile-nav-btn { width:65px; height:50px; gap:5px; border-width:2px; }
+      .mobile-nav-btn span { height:3px; }
+    }
+
+    /* REGISTRATION FORM */
+    .register-page { background:#000; padding:1.5rem 1rem 3rem; display:flex; justify-content:center; }
+    .register-wrapper { width:100%; max-width:900px; background:#fff; color:#000; border:1px solid #333; border-radius:0; padding:1.5rem 1.5rem 2rem; }
+    .register-wrapper h1 { margin:0 0 0.5rem; font-size:clamp(1.4rem, 2.4vw, 1.8rem); text-align:center; }
+    .register-intro { font-size:0.9rem; color:#333; margin-bottom:0.4rem; text-align:center; }
+    .register-details { font-size:0.9rem; color:#333; text-align:center; margin-bottom:1.2rem; }
+    .team-banner {
+      background:#fff7e6;
+      border:1px solid #f0ad4e;
+      color:#000;
+      padding:0.55rem 0.75rem;
+      border-radius:0.4rem;
+      font-size:0.9rem;
+      margin-bottom:1.2rem;
+      display:none;
+    }
+    .credit-banner { background:#f0f6ff; border:1px solid #0b5ed7; color:#000; padding:0.55rem 0.75rem; border-radius:0.4rem; font-size:0.9rem; margin-bottom:1.2rem; display:none; }
+    .form-section { margin-bottom:1.4rem; border-top:1px solid #ddd; padding-top:1rem; }
+    .form-section:first-of-type { border-top:none; padding-top:0; }
+    .form-section h2 { margin:0 0 0.6rem; font-size:1rem; }
+    .info-note { font-size:0.8rem; color:#555; margin-bottom:0.6rem; }
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.75rem 1rem; }
+    .form-row { margin-bottom:0.75rem; }
+    label { display:block; font-size:0.85rem; margin-bottom:0.25rem; color:#333; }
+    input[type="text"], input[type="email"], input[type="tel"], input[type="date"], select, textarea {
+      width:100%; padding:0.4rem 0.5rem; font-size:0.9rem; border-radius:4px; border:1px solid #ccc; font-family:inherit;
+    }
+    textarea { min-height:80px; resize:vertical; }
+    .checkbox-row, .radio-row { margin-bottom:0.6rem; font-size:0.85rem; color:#333; }
+    .checkbox-row input, .radio-row input { margin-right:0.35rem; }
+    .radio-group { display:flex; gap:1.5rem; align-items:center; flex-wrap:wrap; }
+    .required { color:#c00; margin-left:0.1rem; }
+    .signature-note { font-size:0.8rem; color:#555; margin-bottom:0.5rem; }
+    .submit-row { text-align:center; margin-top:1.5rem; }
+    .submit-btn { padding:0.6rem 1.6rem; border-radius:999px; border:none; background:#0b5ed7; color:#fff; font-size:0.95rem; font-weight:600; cursor:pointer; }
+    .submit-btn:hover { opacity:0.9; }
+    .small-note { font-size:0.8rem; color:#555; margin-top:0.4rem; text-align:center; }
+    @media (max-width:800px) {
+      .register-wrapper { padding:1.1rem 1rem 1.6rem; }
+      .form-grid { grid-template-columns:1fr; }
+    }
+
+    /* COACHING BUTTONS */
+    .coach-choice { display:flex; gap:0.6rem; flex-wrap:wrap; margin-top:0.5rem; }
+    .coach-btn {
+      border:1px solid #333; background:#fff; color:#000;
+      padding:0.55rem 0.8rem; font-size:0.9rem; cursor:pointer;
+      border-radius:999px;
+      transition: transform 0.05s ease, opacity 0.15s ease, background 0.15s ease;
+      user-select:none;
+    }
+    .coach-btn:hover { opacity:0.9; }
+    .coach-btn:active { transform:scale(0.98); }
+    .coach-btn.selected { background:#0b5ed7; color:#fff; border-color:#0b5ed7; }
+
+    /* SPONSORS */
+    .sponsor-strip { background:#000; color:#fff; padding:1.5vw 2vw 3vw; text-align:center; }
+    .sponsor-strip h2 { margin:0 0 1vw; font-size:clamp(1rem, 2.2vw, 1.2rem); letter-spacing:0.08em; }
+    .sponsor-track-wrapper { overflow:hidden; width:100%; display:flex; justify-content:center; }
+    .sponsor-track { display:flex; justify-content:space-around; gap:2.5vw; width:100%; transition:transform 0.4s ease; }
+    .sponsor-logo { flex:0 0 auto; width:clamp(80px, 10vw, 130px); aspect-ratio:1/1; border-radius:1vw; overflow:hidden; background:#fff; }
+    .sponsor-logo img { width:100%; height:100%; object-fit:cover; display:block; }
+    @media (max-width:600px) {
+      .sponsor-track { gap:4vw; }
+      .sponsor-logo { width:22vw; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="scores-strip">
+    <div class="score-row" id="scoreRow"></div>
+  </div>
+
+  <div class="top-banner">
+    <a href="index.html" style="display:flex; align-items:center; justify-content:center; height:100%; width:100%;">
+      <img src="White Logo.jpg" alt="League Logo">
+    </a>
+
+    <div class="mobile-nav">
+      <button id="mobileMenuBtn" class="mobile-nav-btn" aria-label="Open menu" type="button">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="mobile-nav-menu" id="mobileMenu">
+        <a href="scores&schedules.html">Scores &amp; Schedules</a>
+        <a href="shop.html">Shop</a>
+        <a href="index.html">Home</a>
+        <a href="AboutUs.html">About Us</a>
+      </div>
+    </div>
+  </div>
+
+  <section class="register-page" id="register">
+    <div class="register-wrapper">
+      <h1>Girls Team Registration</h1>
+      <p class="register-intro">
+        Use the team link you received to register for your girls team. Your registration will automatically be connected to that team.
+      </p>
+      <p class="register-details">
+        Registration fee: <strong>Age 6+ (U8–U18) – $185</strong>.
+      </p>
+
+      <div class="team-banner" id="teamBanner">
+        <strong>Team Link Confirmed:</strong>
+        <span id="teamTokenText"></span>
+      </div>
+
+      <div class="credit-banner" id="creditBanner">
+        <strong>Store Credit Applied:</strong>
+        <span id="creditCodeText"></span>
+      </div>
+
+      <form id="registrationForm" novalidate>
+        <input type="hidden" id="storeCreditCode" name="storeCreditCode" />
+        <input type="hidden" id="teamToken" name="teamToken" />
+        <!-- Force pricing logic to match your backend’s existing “6+” category -->
+        <input type="hidden" id="forcedAgeGroup" name="forcedAgeGroup" value="7plus" />
+
+        <div class="form-section">
+          <h2>Parent / Guardian Information</h2>
+          <div class="form-grid">
+            <div class="form-row">
+              <label for="parentName">Parent / Guardian Full Name<span class="required">*</span></label>
+              <input type="text" id="parentName" name="parentName" required />
+            </div>
+            <div class="form-row">
+              <label for="parentEmail">Email<span class="required">*</span></label>
+              <input type="email" id="parentEmail" name="parentEmail" required />
+            </div>
+            <div class="form-row">
+              <label for="parentPhone">Phone Number<span class="required">*</span></label>
+              <input type="tel" id="parentPhone" name="parentPhone" required />
+            </div>
+            <div class="form-row">
+              <label for="homeTown">Town / Community</label>
+              <input type="text" id="homeTown" name="homeTown" />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h2>Coaching Interest (Optional)</h2>
+          <p class="info-note">We’re always looking for great coaches. Choose one option below (or leave blank).</p>
+          <input type="hidden" id="coachInterest" name="coachInterest" value="" />
+
+          <div class="coach-choice">
+            <button type="button" class="coach-btn" data-value="want">I would like to coach my child's team</button>
+            <button type="button" class="coach-btn" data-value="open">I am open to coaching my child's team</button>
+          </div>
+
+          <div class="small-note" style="text-align:left; margin-top:0.5rem;">
+            Tip: click the selected option again to clear it.
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h2>Player Information</h2>
+          <p class="info-note">
+            This registration is for girls team players in the Age 6+ category (U8–U18). No U6 option is available on this form.
+          </p>
+
+          <div class="form-grid">
+            <div class="form-row">
+              <label for="playerFirstName">Player First Name<span class="required">*</span></label>
+              <input type="text" id="playerFirstName" name="playerFirstName" required />
+            </div>
+            <div class="form-row">
+              <label for="playerLastName">Player Last Name<span class="required">*</span></label>
+              <input type="text" id="playerLastName" name="playerLastName" required />
+            </div>
+            <div class="form-row">
+              <label for="playerDob">Date of Birth<span class="required">*</span></label>
+              <input type="date" id="playerDob" name="playerDob" required />
+            </div>
+
+            <!-- Removed ageGroup radio UI entirely -->
+
+            <div class="form-row">
+              <label for="shirtSize">Shirt Size<span class="required">*</span></label>
+              <select id="shirtSize" name="shirtSize" required>
+                <option value="">Select size...</option>
+                <option value="YS">Youth Small</option>
+                <option value="YM">Youth Medium</option>
+                <option value="YL">Youth Large</option>
+                <option value="AS">Adult Small</option>
+                <option value="AM">Adult Medium</option>
+                <option value="AL">Adult Large</option>
+                <option value="AXL">Adult XL</option>
+              </select>
+            </div>
+
+            <div class="form-row">
+              <label for="experience">Football Experience</label>
+              <select id="experience" name="experience">
+                <option value="">Select...</option>
+                <option value="first-time">First time playing</option>
+                <option value="some">Some experience</option>
+                <option value="experienced">Experienced player</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h2>Health & Buddy Request</h2>
+          <div class="form-row">
+            <label for="healthConcerns">Health Concerns / Allergies / Accessibility Needs</label>
+            <textarea id="healthConcerns" name="healthConcerns"
+              placeholder="Please list any medical, allergy, or accessibility information coaches should be aware of."></textarea>
+          </div>
+          <div class="form-row">
+            <label for="buddyRequest">Buddy Request (optional)</label>
+            <input type="text" id="buddyRequest" name="buddyRequest"
+              placeholder="Player name your child would like to play with (if possible)" />
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h2>Waivers & Permissions</h2>
+
+          <div class="checkbox-row">
+            <label>
+              <input type="checkbox" id="liabilityWaiver" name="liabilityWaiver" />
+              I am the parent/guardian of the player and I understand and accept that participation in flag football
+              involves inherent risks of injury. I have read and agree to the terms of the
+              <a href="Waiver and Release of Liability.pdf" target="_blank" rel="noopener noreferrer">
+                Waiver and Release of Liability
+              </a>,
+              and I release the league, organizers, and coaches from liability to the fullest extent permitted by law.
+              <span class="required">*</span>
+            </label>
+          </div>
+
+          <div class="checkbox-row">
+            <label>
+              <input type="checkbox" id="riskAck" name="riskAck" />
+              I acknowledge that I have reviewed the league rules and risk information, and I agree to support safe play
+              and sportsmanship.<span class="required">*</span>
+            </label>
+          </div>
+
+          <div class="radio-row">
+            <div>Photo / Video Permission<span class="required">*</span></div>
+            <div class="radio-group">
+              <label><input type="radio" name="photoPermission" value="yes" /> Yes, I give permission for my child to appear in league photos and videos.</label>
+              <label><input type="radio" name="photoPermission" value="no" /> No, please do not include my child in photos or videos.</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h2>Parent / Guardian Signature</h2>
+          <p class="signature-note">
+            By typing my full name below, I confirm that I am the legal parent/guardian of the player and that all
+            information provided is accurate. I agree to the waivers and permissions above.
+          </p>
+
+          <div class="form-grid">
+            <div class="form-row">
+              <label for="signatureName">Full Name (acts as signature)<span class="required">*</span></label>
+              <input type="text" id="signatureName" name="signatureName" required />
+            </div>
+            <div class="form-row">
+              <label for="signatureDate">Date<span class="required">*</span></label>
+              <input type="date" id="signatureDate" name="signatureDate" required />
+            </div>
+          </div>
+        </div>
+
+        <div class="submit-row">
+          <button type="submit" class="submit-btn">Submit &amp; Continue to Payment</button>
+          <div class="small-note">You’ll review your details and complete secure payment on the next step.</div>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <div class="sponsor-strip">
+    <h2>SPONSORED BY</h2>
+    <div class="sponsor-track-wrapper">
+      <div class="sponsor-track" id="sponsorTrack">
+        <div class="sponsor-logo"><img src="DC Cab.png" alt="Sponsor 1"></div>
+        <div class="sponsor-logo"><img src="YourAdHere.png" alt="Sponsor 2"></div>
+        <div class="sponsor-logo"><img src="SponsorFun.png" alt="Sponsor 3"></div>
+        <div class="sponsor-logo"><img src="ThankYouSponsors.png" alt="Sponsor 4"></div>
+        <div class="sponsor-logo"><img src="YourAdHere.png" alt="Sponsor 5"></div>
+        <div class="sponsor-logo"><img src="SponsorFun.png" alt="Sponsor 6"></div>
+        <div class="sponsor-logo"><img src="ThankYouSponsors.png" alt="Sponsor 7"></div>
+        <div class="sponsor-logo"><img src="YourAdHere.png" alt="Sponsor 8"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // sponsor rotation
+    const sponsorTrack = document.getElementById('sponsorTrack');
+    if (sponsorTrack) {
+      setInterval(() => {
+        const firstLogo = sponsorTrack.firstElementChild;
+        if (firstLogo) sponsorTrack.appendChild(firstLogo);
+      }, 5000);
+    }
+
+    // hamburger toggle
+    const mobileBtn = document.getElementById('mobileMenuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    if (mobileBtn && mobileMenu) {
+      mobileBtn.addEventListener('click', () => {
+        mobileMenu.classList.toggle('show');
+      });
+    }
+
+    // store credit from URL (?code=ABC123)
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get('code');
+      const banner = document.getElementById('creditBanner');
+      const codeText = document.getElementById('creditCodeText');
+      const hiddenField = document.getElementById('storeCreditCode');
+
+      if (code && banner && codeText && hiddenField) {
+        banner.style.display = 'block';
+        codeText.textContent = code;
+        hiddenField.value = code;
+      }
+    })();
+
+    // team token from URL (?team=XXXX)
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+      const team = params.get('team');
+      const teamField = document.getElementById('teamToken');
+      const teamBanner = document.getElementById('teamBanner');
+      const teamTokenText = document.getElementById('teamTokenText');
+
+      if (!team) {
+        alert('This girls team registration page must be opened using the team link.');
+        // Disable submit to avoid “orphan” registrations
+        const btn = document.querySelector('.submit-btn');
+        if (btn) btn.disabled = true;
+        if (btn) btn.style.opacity = '0.5';
+        return;
+      }
+
+      teamField.value = team;
+      teamBanner.style.display = 'block';
+      teamTokenText.textContent = team;
+    })();
+
+    // pre-fill signature date with today
+    (function () {
+      const dateInput = document.getElementById('signatureDate');
+      if (!dateInput) return;
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      dateInput.value = `${yyyy}-${mm}-${dd}`;
+    })();
+
+    // coaching buttons (toggle + single select)
+    (function () {
+      const hidden = document.getElementById('coachInterest');
+      const buttons = document.querySelectorAll('.coach-btn');
+      if (!hidden || !buttons.length) return;
+
+      buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const val = btn.getAttribute('data-value');
+          if (btn.classList.contains('selected')) {
+            btn.classList.remove('selected');
+            hidden.value = '';
+            return;
+          }
+          buttons.forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+          hidden.value = val;
+        });
+      });
+    })();
+
+    // ✅ Submit handler (same pattern as your existing register.html)
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('registrationForm');
+      if (!form) return;
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+
+        const liabilityWaiver = document.getElementById('liabilityWaiver');
+        const riskAck = document.getElementById('riskAck');
+        const photoPermission = document.querySelector('input[name="photoPermission"]:checked');
+
+        const shirtSizeEl = document.getElementById('shirtSize');
+        if (!shirtSizeEl || !shirtSizeEl.value) {
+          shirtSizeEl && shirtSizeEl.focus();
+          alert('Please select a shirt size.');
+          return;
+        }
+
+        if (!liabilityWaiver.checked || !riskAck.checked) {
+          alert('Please agree to the liability waiver and risk acknowledgement to continue.');
+          return;
+        }
+
+        if (!photoPermission) {
+          alert('Please select a photo/video permission option.');
+          return;
+        }
+
+        const requiredIds = [
+          'parentName', 'parentEmail', 'parentPhone',
+          'playerFirstName', 'playerLastName', 'playerDob',
+          'signatureName', 'signatureDate'
+        ];
+        for (const id of requiredIds) {
+          const el = document.getElementById(id);
+          if (!el || !el.value.trim()) {
+            el && el.focus();
+            alert('Please complete all required fields.');
+            return;
+          }
+        }
+
+        // Forced age group (matches your backend pricing logic)
+        const forcedAgeGroup = document.getElementById('forcedAgeGroup').value; // "7plus"
+        const teamToken = document.getElementById('teamToken').value;
+
+        const payload = {
+          flow: 'girls_team',           // ✅ add a clear marker for backend/admin (safe even if ignored)
+          teamToken: teamToken,         // ✅ team linkage
+          parent: {
+            name: document.getElementById('parentName').value.trim(),
+            email: document.getElementById('parentEmail').value.trim(),
+            phone: document.getElementById('parentPhone').value.trim(),
+            homeTown: document.getElementById('homeTown').value.trim()
+          },
+          player: {
+            firstName: document.getElementById('playerFirstName').value.trim(),
+            lastName: document.getElementById('playerLastName').value.trim(),
+            dob: document.getElementById('playerDob').value,
+            shirtSize: document.getElementById('shirtSize').value,
+            experience: document.getElementById('experience').value
+          },
+          ageGroup: forcedAgeGroup,     // ✅ always "7plus"
+          coachInterest: document.getElementById('coachInterest').value || null,
+          health: { concerns: document.getElementById('healthConcerns').value.trim() },
+          buddyRequest: document.getElementById('buddyRequest').value.trim(),
+          waivers: {
+            liabilityWaiver: liabilityWaiver.checked,
+            riskAcknowledgement: riskAck.checked,
+            photoPermission: photoPermission.value
+          },
+          signature: {
+            name: document.getElementById('signatureName').value.trim(),
+            date: document.getElementById('signatureDate').value
+          },
+          storeCreditCode: document.getElementById('storeCreditCode').value || null
+        };
+
+        const checkoutPayload = JSON.stringify({ type: 'registration', data: payload });
+
+        sessionStorage.setItem('HFF_CHECKOUT_PAYLOAD', checkoutPayload);
+        localStorage.setItem('HFF_CHECKOUT_PAYLOAD', checkoutPayload);
+
+        window.location.replace('loading.html?v=' + Date.now());
+      }, true);
+    });
+  </script>
+
+  <script src="scores-strip.js"></script>
+</body>
+</html>
