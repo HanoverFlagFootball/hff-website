@@ -20,10 +20,11 @@
       justify-content:center;
       min-height:56px;
     }
+    /* ✅ smaller logo */
     .top-banner img{
-      height:82%;
+      height:68%;
       width:auto;
-      max-width:90vw;
+      max-width:80vw;
       object-fit:contain;
     }
 
@@ -88,7 +89,7 @@
       <h1>Create a Girls Team Registration Link</h1>
 
       <div class="muted">
-        This registration link is for <strong>Girls U18 (ages 14–17)</strong>.
+        This registration link is for <strong>Girls U18 (ages ~14–17)</strong>.
       </div>
 
       <div class="muted" style="margin-top:6px;">
@@ -211,6 +212,7 @@
       grid.appendChild(row);
     }
 
+    // start with 10 rows
     for (let i = 0; i < 10; i++) addPlayerLine();
 
     document.getElementById('addPlayer').onclick = () => addPlayerLine();
@@ -232,13 +234,15 @@
         .filter(Boolean);
 
       const slug = slugify(name);
+
+      // base folder (works on custom domain + github pages)
       const base = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '');
-      const url = `${base}/girls_register.html?team=${slug}`;
+      const url = `${base}/girls_register.html?team=${encodeURIComponent(slug)}`;
 
       teamLink.value = url;
 
       teamMsg.value =
-`Girls U18 (ages 14–17) team registration:
+`Girls U18 (ages ~14–17) team registration:
 
 ${url}
 
