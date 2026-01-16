@@ -277,24 +277,33 @@
     document.getElementById('addPlayer').onclick = addPlayer;
 
     document.getElementById('createLink').onclick = () => {
-      err.style.display = 'none';
-      sharebox.style.display = 'none';
+  err.style.display = 'none';
+  sharebox.style.display = 'none';
 
-      const name = document.getElementById('teamName').value.trim();
-      if(!name){
-        err.textContent = 'Team Name is required.';
-        err.style.display = 'block';
-        return;
-      }
+  const nameRaw = document.getElementById('teamName').value.trim();
+  if (!nameRaw) {
+    err.textContent = 'Team Name is required.';
+    err.style.display = 'block';
+    return;
+  }
 
-      const slug = slugify(name);
-      const base = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '');
-      const url = `${base}/girls_register.html?team=${encodeURIComponent(slug)}`;
+  const nflRaw = document.getElementById('nflTeam').value.trim();
 
-      teamLink.value = url;
-      continueBtn.onclick = () => window.location.href = url;
-      sharebox.style.display = 'block';
-    };
+  // Display name (human-friendly)
+  const displayName = nflRaw ? `${nameRaw} (${nflRaw})` : nameRaw;
+
+  // Token (URL-friendly) that will be saved via ?team=
+  const teamToken = slugify(displayName);
+
+  const base = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '');
+  const url = `${base}/girls_register.html?team=${encodeURIComponent(teamToken)}`;
+
+  teamLink.value = url;
+  continueBtn.onclick = () => window.location.href = url;
+
+  sharebox.style.display = 'block';
+};
+
 
     document.getElementById('copyLink').onclick = async () => {
       await navigator.clipboard.writeText(teamLink.value);
