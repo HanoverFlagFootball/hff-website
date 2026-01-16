@@ -10,21 +10,32 @@
     * { box-sizing: border-box; }
     body { margin:0; font-family: Arial, Helvetica, sans-serif; background:#000; color:#fff; }
 
-    /* TOP BANNER */
-    .top-banner {
-      width: 100%;
-      background: #000;
-      aspect-ratio: 8 / 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 56px;
+    /* TOP BANNER (FIXED HEIGHT + PROPER WRAP) */
+    .top-banner{
+      width:100%;
+      background:#000;
+      height:72px;                 /* stable banner height */
+      display:flex;
+      align-items:center;
+      justify-content:center;
     }
-    .top-banner img {
-      height: 58%;
-      width: auto;
-      max-width: 90vw;
-      object-fit: contain;
+    .logo-wrap{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      height:100%;
+      width:100%;
+    }
+    .logo-wrap img{
+      max-height:44px;             /* hard cap so it never gets huge */
+      width:auto;
+      max-width:90vw;
+      object-fit:contain;
+      display:block;
+    }
+    @media (min-width: 800px){
+      .top-banner{ height:88px; }
+      .logo-wrap img{ max-height:54px; }
     }
 
     .wrap { max-width: 980px; margin: 0 auto; padding: 18px; }
@@ -112,7 +123,7 @@
 <body>
 
   <div class="top-banner">
-    <a href="index.html">
+    <a href="index.html" class="logo-wrap">
       <img src="White Logo.jpg" alt="League Logo">
     </a>
   </div>
@@ -121,8 +132,8 @@
 
     <!-- TOGGLE BUTTONS -->
     <div class="toggle-wrap">
-      <button id="teamBtn" class="toggle-btn">Sign up a Team</button>
-      <button id="soloBtn" class="toggle-btn">Sign up Solo</button>
+      <button id="teamBtn" class="toggle-btn" type="button">Sign up a Team</button>
+      <button id="soloBtn" class="toggle-btn" type="button">Sign up Solo</button>
     </div>
 
     <!-- SOLO MODE -->
@@ -212,9 +223,9 @@
         <h2>Your Team Registration Link</h2>
         <div class="linkrow">
           <input id="teamLink" readonly />
-          <button class="btn primary" id="copyLink">Copy</button>
+          <button class="btn primary" type="button" id="copyLink">Copy</button>
         </div>
-        <button class="btn primary" style="margin-top:12px;" id="continueBtn">
+        <button class="btn primary" style="margin-top:12px;" type="button" id="continueBtn">
           Continue to Registration
         </button>
         <div class="ok" id="ok">Copied!</div>
@@ -250,7 +261,7 @@
     /* DEFAULT OPEN */
     setMode('team');
 
-    /* TEAM LINK LOGIC (unchanged) */
+    /* TEAM LINK LOGIC */
     const grid = document.getElementById('playerGrid');
     const err = document.getElementById('err');
     const sharebox = document.getElementById('sharebox');
@@ -277,33 +288,32 @@
     document.getElementById('addPlayer').onclick = addPlayer;
 
     document.getElementById('createLink').onclick = () => {
-  err.style.display = 'none';
-  sharebox.style.display = 'none';
+      err.style.display = 'none';
+      sharebox.style.display = 'none';
 
-  const nameRaw = document.getElementById('teamName').value.trim();
-  if (!nameRaw) {
-    err.textContent = 'Team Name is required.';
-    err.style.display = 'block';
-    return;
-  }
+      const nameRaw = document.getElementById('teamName').value.trim();
+      if (!nameRaw) {
+        err.textContent = 'Team Name is required.';
+        err.style.display = 'block';
+        return;
+      }
 
-  const nflRaw = document.getElementById('nflTeam').value.trim();
+      const nflRaw = document.getElementById('nflTeam').value.trim();
 
-  // Display name (human-friendly)
-  const displayName = nflRaw ? `${nameRaw} (${nflRaw})` : nameRaw;
+      // Display name (human-friendly)
+      const displayName = nflRaw ? `${nameRaw} (${nflRaw})` : nameRaw;
 
-  // Token (URL-friendly) that will be saved via ?team=
-  const teamToken = slugify(displayName);
+      // Token (URL-friendly) that will be saved via ?team=
+      const teamToken = slugify(displayName);
 
-  const base = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '');
-  const url = `${base}/girls_register.html?team=${encodeURIComponent(teamToken)}`;
+      const base = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '');
+      const url = `${base}/girls_register.html?team=${encodeURIComponent(teamToken)}`;
 
-  teamLink.value = url;
-  continueBtn.onclick = () => window.location.href = url;
+      teamLink.value = url;
+      continueBtn.onclick = () => window.location.href = url;
 
-  sharebox.style.display = 'block';
-};
-
+      sharebox.style.display = 'block';
+    };
 
     document.getElementById('copyLink').onclick = async () => {
       await navigator.clipboard.writeText(teamLink.value);
