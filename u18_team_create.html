@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Girls Registration</title>
+  <title>U18 Registration</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
@@ -14,7 +14,7 @@
     .top-banner{
       width:100%;
       background:#000;
-      height:72px;                 /* stable banner height */
+      height:72px;
       display:flex;
       align-items:center;
       justify-content:center;
@@ -27,7 +27,7 @@
       width:100%;
     }
     .logo-wrap img{
-      max-height:44px;             /* hard cap so it never gets huge */
+      max-height:44px;
       width:auto;
       max-width:90vw;
       object-fit:contain;
@@ -138,7 +138,7 @@
 
     <!-- SOLO MODE -->
     <div class="card mode" id="soloMode">
-      <h1>Girls Solo Registration</h1>
+      <h1>U18 Solo Registration</h1>
       <div class="muted">
         Register individually. Your registration will be saved as part of the <strong>Solo</strong> pool.
       </div>
@@ -146,7 +146,7 @@
       <div style="margin-top:14px;">
         <iframe
           src="girls_register.html?team=solo"
-          title="Girls Solo Registration"
+          title="U18 Solo Registration"
           loading="lazy">
         </iframe>
       </div>
@@ -154,10 +154,10 @@
 
     <!-- TEAM MODE -->
     <div class="card mode" id="teamMode">
-      <h1>Create a Girls Team Registration Link</h1>
+      <h1>Create a U18 Team Registration Link</h1>
 
       <div class="muted">
-        This registration link is for <strong>Girls U18 (ages ~14–17)</strong>.
+        This registration link is for <strong>U18 players</strong>.
       </div>
 
       <div class="muted" style="margin-top:6px;">
@@ -166,7 +166,7 @@
 
       <h2>Team Details</h2>
       <label for="teamName">Team Name<span style="color:#ff6b6b;">*</span></label>
-      <input id="teamName" type="text" placeholder="e.g., Hanover Girls U18" />
+      <input id="teamName" type="text" placeholder="e.g., Hanover U18" />
 
       <label for="nflTeam" style="margin-top:14px;">Preferred NFL Team (optional)</label>
       <select id="nflTeam">

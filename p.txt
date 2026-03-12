@@ -3,7 +3,7 @@ Password: HanoverFlagFootball2025!
 Database password: FtWktIXKc2vqsB0x
 
 Stripe:
-HanFF2025!
+HanFF2025!2
 
 GitHub:
 Username: HanoverFlagFootball
