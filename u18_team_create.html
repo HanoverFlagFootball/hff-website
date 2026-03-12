@@ -145,7 +145,7 @@
 
       <div style="margin-top:14px;">
         <iframe
-          src="girls_register.html?team=solo"
+          src="u18_register.html?team=solo"
           title="U18 Solo Registration"
           loading="lazy">
         </iframe>
@@ -307,7 +307,7 @@
       const teamToken = slugify(displayName);
 
       const base = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '');
-      const url = `${base}/girls_register.html?team=${encodeURIComponent(teamToken)}`;
+      const url = `${base}/u18_register.html?team=${encodeURIComponent(teamToken)}`;
 
       teamLink.value = url;
       continueBtn.onclick = () => window.location.href = url;
