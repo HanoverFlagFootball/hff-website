@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Girls Team Registration - Flag Football League</title>
+  <title>U18 Team Registration - Flag Football League</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root { --ink:#fff; --line:#333; --black:#000; }
@@ -159,12 +159,12 @@
 
   <section class="register-page" id="register">
     <div class="register-wrapper">
-      <h1>Girls Team Registration</h1>
+      <h1>U18 Team Registration</h1>
       <p class="register-intro">
-        Use the team link you received to register for your girls team. Your registration will automatically be connected to that team.
+        Use the team link you received to register for your U18 team. Your registration will automatically be connected to that team.
       </p>
       <p class="register-details">
-        Registration fee: <strong>Girls U18 (~14-17) – $185</strong>.
+        Registration fee: <strong>U18 – $185</strong>.
       </p>
 
       <div class="team-banner" id="teamBanner">
@@ -180,7 +180,6 @@
       <form id="registrationForm" novalidate>
         <input type="hidden" id="storeCreditCode" name="storeCreditCode" />
         <input type="hidden" id="teamToken" name="teamToken" />
-        <!-- Force pricing logic to match your backend’s existing “6+” category -->
         <input type="hidden" id="forcedAgeGroup" name="forcedAgeGroup" value="7plus" />
 
         <div class="form-section">
@@ -223,7 +222,7 @@
         <div class="form-section">
           <h2>Player Information</h2>
           <p class="info-note">
-            This registration is for girls team players in the Age 6+ category (U8–U18). No U6 option is available on this form.
+            This registration is for U18 BYOT (bring your own team).
           </p>
 
           <div class="form-grid">
@@ -394,7 +393,7 @@
       const teamTokenText = document.getElementById('teamTokenText');
 
       if (!team) {
-        alert('This girls team registration page must be opened using the team link.');
+        alert('This U18 team registration page must be opened using the team link.');
         const btn = document.querySelector('.submit-btn');
         if (btn) btn.disabled = true;
         if (btn) btn.style.opacity = '0.5';
@@ -483,11 +482,11 @@
           }
         }
 
-        const forcedAgeGroup = document.getElementById('forcedAgeGroup').value; // "7plus"
+        const forcedAgeGroup = document.getElementById('forcedAgeGroup').value;
         const teamToken = document.getElementById('teamToken').value;
 
         const payload = {
-          flow: 'girls_team',
+          flow: 'u18_team',
           teamToken: teamToken,
           parent: {
             name: document.getElementById('parentName').value.trim(),
