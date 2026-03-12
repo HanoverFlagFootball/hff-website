@@ -110,6 +110,25 @@
     .ok { color:#7CFF8A; font-size:13px; display:none; }
     .error { color:#ff6b6b; font-size:13px; display:none; }
 
+    .section-box {
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:16px;
+      background:#080808;
+      margin-top:18px;
+    }
+
+    .join-row {
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:12px;
+    }
+
+    .join-row input {
+      flex:1 1 280px;
+    }
+
     iframe {
       width:100%;
       height:1650px;
@@ -154,81 +173,100 @@
 
     <!-- TEAM MODE -->
     <div class="card mode" id="teamMode">
-      <h1>Create a U18 Team Registration Link</h1>
 
-      <div class="muted">
-        This registration link is for <strong>U18 players</strong>.
-      </div>
-
-      <div class="muted" style="margin-top:6px;">
-        One shareable link will be created. Anyone with the link can register and will be automatically connected to this team.
-      </div>
-
-      <h2>Team Details</h2>
-      <label for="teamName">Team Name<span style="color:#ff6b6b;">*</span></label>
-      <input id="teamName" type="text" placeholder="e.g., Hanover U18" />
-
-      <label for="nflTeam" style="margin-top:14px;">Preferred NFL Team (optional)</label>
-      <select id="nflTeam">
-        <option value="">Select…</option>
-        <option>Arizona Cardinals</option>
-        <option>Atlanta Falcons</option>
-        <option>Baltimore Ravens</option>
-        <option>Buffalo Bills</option>
-        <option>Carolina Panthers</option>
-        <option>Chicago Bears</option>
-        <option>Cincinnati Bengals</option>
-        <option>Cleveland Browns</option>
-        <option>Dallas Cowboys</option>
-        <option>Denver Broncos</option>
-        <option>Detroit Lions</option>
-        <option>Green Bay Packers</option>
-        <option>Houston Texans</option>
-        <option>Indianapolis Colts</option>
-        <option>Jacksonville Jaguars</option>
-        <option>Kansas City Chiefs</option>
-        <option>Las Vegas Raiders</option>
-        <option>Los Angeles Chargers</option>
-        <option>Los Angeles Rams</option>
-        <option>Miami Dolphins</option>
-        <option>Minnesota Vikings</option>
-        <option>New England Patriots</option>
-        <option>New Orleans Saints</option>
-        <option>New York Giants</option>
-        <option>New York Jets</option>
-        <option>Philadelphia Eagles</option>
-        <option>Pittsburgh Steelers</option>
-        <option>San Francisco 49ers</option>
-        <option>Seattle Seahawks</option>
-        <option>Tampa Bay Buccaneers</option>
-        <option>Tennessee Titans</option>
-        <option>Washington Commanders</option>
-      </select>
-
-      <div class="note">
-        We’ll try to accommodate preferred NFL teams where possible.
-      </div>
-
-      <h2>Players (optional)</h2>
-      <div class="player-grid" id="playerGrid"></div>
-
-      <div style="display:flex; gap:10px; margin-top:12px;">
-        <button class="btn ghost" type="button" id="addPlayer">+ Add Player</button>
-        <button class="btn primary" type="button" id="createLink">Create Team Link</button>
-      </div>
-
-      <div class="error" id="err"></div>
-
-      <div class="sharebox" id="sharebox">
-        <h2>Your Team Registration Link</h2>
-        <div class="linkrow">
-          <input id="teamLink" readonly />
-          <button class="btn primary" type="button" id="copyLink">Copy</button>
+      <!-- NEW JOIN TEAM BOX -->
+      <div class="section-box" style="margin-top:0;">
+        <h1>Join a Team</h1>
+        <div class="muted">
+          Join a team using the team name shared with you.
         </div>
-        <button class="btn primary" style="margin-top:12px;" type="button" id="continueBtn">
-          Continue to Registration
-        </button>
-        <div class="ok" id="ok">Copied!</div>
+
+        <label for="joinTeamName">Team Name</label>
+        <div class="join-row">
+          <input id="joinTeamName" type="text" placeholder="Enter team name" />
+          <button class="btn primary" type="button" id="joinTeamBtn">Submit</button>
+        </div>
+        <div class="error" id="joinErr"></div>
+      </div>
+
+      <!-- EXISTING CREATE TEAM BOX -->
+      <div class="section-box">
+        <h1>Create a U18 Team Registration Link</h1>
+
+        <div class="muted">
+          This registration link is for <strong>U18 players</strong>.
+        </div>
+
+        <div class="muted" style="margin-top:6px;">
+          One shareable link will be created. Anyone with the link can register and will be automatically connected to this team.
+        </div>
+
+        <h2>Team Details</h2>
+        <label for="teamName">Team Name<span style="color:#ff6b6b;">*</span></label>
+        <input id="teamName" type="text" placeholder="e.g., Hanover U18" />
+
+        <label for="nflTeam" style="margin-top:14px;">Preferred NFL Team (optional)</label>
+        <select id="nflTeam">
+          <option value="">Select…</option>
+          <option>Arizona Cardinals</option>
+          <option>Atlanta Falcons</option>
+          <option>Baltimore Ravens</option>
+          <option>Buffalo Bills</option>
+          <option>Carolina Panthers</option>
+          <option>Chicago Bears</option>
+          <option>Cincinnati Bengals</option>
+          <option>Cleveland Browns</option>
+          <option>Dallas Cowboys</option>
+          <option>Denver Broncos</option>
+          <option>Detroit Lions</option>
+          <option>Green Bay Packers</option>
+          <option>Houston Texans</option>
+          <option>Indianapolis Colts</option>
+          <option>Jacksonville Jaguars</option>
+          <option>Kansas City Chiefs</option>
+          <option>Las Vegas Raiders</option>
+          <option>Los Angeles Chargers</option>
+          <option>Los Angeles Rams</option>
+          <option>Miami Dolphins</option>
+          <option>Minnesota Vikings</option>
+          <option>New England Patriots</option>
+          <option>New Orleans Saints</option>
+          <option>New York Giants</option>
+          <option>New York Jets</option>
+          <option>Philadelphia Eagles</option>
+          <option>Pittsburgh Steelers</option>
+          <option>San Francisco 49ers</option>
+          <option>Seattle Seahawks</option>
+          <option>Tampa Bay Buccaneers</option>
+          <option>Tennessee Titans</option>
+          <option>Washington Commanders</option>
+        </select>
+
+        <div class="note">
+          We’ll try to accommodate preferred NFL teams where possible.
+        </div>
+
+        <h2>Players (optional)</h2>
+        <div class="player-grid" id="playerGrid"></div>
+
+        <div style="display:flex; gap:10px; margin-top:12px; flex-wrap:wrap;">
+          <button class="btn ghost" type="button" id="addPlayer">+ Add Player</button>
+          <button class="btn primary" type="button" id="createLink">Create Team Link</button>
+        </div>
+
+        <div class="error" id="err"></div>
+
+        <div class="sharebox" id="sharebox">
+          <h2>Your Team Registration Link</h2>
+          <div class="linkrow">
+            <input id="teamLink" readonly />
+            <button class="btn primary" type="button" id="copyLink">Copy</button>
+          </div>
+          <button class="btn primary" style="margin-top:12px;" type="button" id="continueBtn">
+            Continue to Registration
+          </button>
+          <div class="ok" id="ok">Copied!</div>
+        </div>
       </div>
     </div>
   </div>
@@ -320,6 +358,34 @@
       ok.style.display = 'block';
       setTimeout(() => ok.style.display = 'none', 900);
     };
+
+    /* JOIN TEAM LOGIC */
+    const joinTeamBtn = document.getElementById('joinTeamBtn');
+    const joinTeamName = document.getElementById('joinTeamName');
+    const joinErr = document.getElementById('joinErr');
+
+    function goToJoinTeam() {
+      joinErr.style.display = 'none';
+
+      const raw = joinTeamName.value.trim();
+      if (!raw) {
+        joinErr.textContent = 'Please enter a team name.';
+        joinErr.style.display = 'block';
+        return;
+      }
+
+      const url = `https://hanoverflagfootball.ca/u18_register.html?team=${encodeURIComponent(raw)}`;
+      window.location.href = url;
+    }
+
+    joinTeamBtn.onclick = goToJoinTeam;
+
+    joinTeamName.addEventListener('keydown', function(e){
+      if(e.key === 'Enter'){
+        e.preventDefault();
+        goToJoinTeam();
+      }
+    });
   </script>
 
 </body>
