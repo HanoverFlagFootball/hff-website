@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Access</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --ink: #fff;
+      --line: #333;
+      --black: #000;
+      --accent: #0b5ed7;
+      --panel: #111;
+      --panel-2: #181818;
+      --muted: #c8c8c8;
+      --danger: #e10600;
+      --danger-hover: #ff2a23;
+      --good: #1f8f47;
+      --warn: #c88a00;
+      --info: #0b5ed7;
+      --shadow: 0 10px 28px rgba(0,0,0,.28);
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #000;
+      color: var(--ink);
+    }
+
+    .top-banner {
+      width: 100%;
+      background: #000;
+      aspect-ratio: 8 / 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 56px;
+      position: relative;
+    }
+
+    .top-banner img {
+      height: 82%;
+      width: auto;
+      max-width: 90vw;
+      object-fit: contain;
+      display: block;
+    }
+
+    .page {
+      width: min(1500px, 96%);
+      margin: 24px auto 40px;
+    }
+
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .title-wrap h1 {
+      margin: 0 0 6px;
+      font-size: clamp(1.6rem, 2.6vw, 2.3rem);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .title-wrap p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .logout-btn {
+      border: 1px solid #383838;
+      background: #161616;
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 999px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .logout-btn:hover {
+      border-color: #666;
+    }
+
+    .status-banner {
+      display: none;
+      margin-bottom: 18px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-weight: 700;
+      border: 1px solid transparent;
+    }
+
+    .status-banner.show {
+      display: block;
+    }
+
+    .status-success {
+      background: rgba(31, 143, 71, 0.14);
+      color: #73e09d;
+      border-color: rgba(31, 143, 71, 0.42);
+    }
+
+    .status-error {
+      background: rgba(225, 6, 0, 0.12);
+      color: #ff9a96;
+      border-color: rgba(225, 6, 0, 0.4);
+    }
+
+    .status-info {
+      background: rgba(11, 94, 215, 0.14);
+      color: #8dbbff;
+      border-color: rgba(11, 94, 215, 0.42);
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .summary-card {
+      background: linear-gradient(180deg, var(--panel-2), var(--panel));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .summary-card .label {
+      color: var(--muted);
+      font-size: 0.92rem;
+      margin-bottom: 8px;
+    }
+
+    .summary-card .value {
+      font-size: 1.9rem;
+      font-weight: 800;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 12px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 14px;
+      box-shadow: var(--shadow);
+      margin-bottom: 18px;
+    }
+
+    .toolbar-left,
+    .toolbar-right {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    select {
+      background: #0a0a0a;
+      border: 1px solid #333;
+      color: #fff;
+      border-radius: 12px;
+      padding: 11px 12px;
+      font-size: 0.95rem;
+    }
+
+    .search {
+      min-width: 260px;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 12px;
+      padding: 11px 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-red {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    .btn-red:hover {
+      background: var(--danger-hover);
+    }
+
+    .btn-dark {
+      background: #181818;
+      color: #fff;
+      border: 1px solid #383838;
+    }
+
+    .btn-dark:hover {
+      border-color: #666;
+    }
+
+    .btn:disabled,
+    .logout-btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .table-wrap {
+      background: linear-gradient(180deg, var(--panel-2), var(--panel));
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .table-scroll {
+      overflow: auto;
+      width: 100%;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1200px;
+    }
+
+    thead {
+      background: #0d0d0d;
+    }
+
+    th, td {
+      padding: 12px 10px;
+      border-bottom: 1px solid #232323;
+      text-align: left;
+      vertical-align: middle;
+      font-size: 0.95rem;
+    }
+
+    th {
+      color: #fff;
+      font-size: 0.9rem;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    tbody tr:hover {
+      background: rgba(255,255,255,.03);
+    }
+
+    .sort-btn {
+      background: none;
+      border: none;
+      color: #fff;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .status-cell {
+      text-align: center;
+    }
+
+    .small-check {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+
+    .login-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.88);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 1000;
+    }
+
+    .login-box {
+      width: min(460px, 100%);
+      background: linear-gradient(180deg, #171717, #101010);
+      border: 1px solid #313131;
+      border-radius: 22px;
+      padding: 26px;
+      box-shadow: 0 20px 55px rgba(0,0,0,.45);
+    }
+
+    .login-box h2 {
+      margin: 0 0 10px;
+      font-size: 1.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .login-box p {
+      margin: 0 0 18px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .login-box input {
+      width: 100%;
+      margin-bottom: 12px;
+      padding: 14px;
+      border-radius: 14px;
+      border: 1px solid #333;
+      background: #080808;
+      color: #fff;
+      font-size: 1rem;
+    }
+
+    .login-box button {
+      width: 100%;
+      border: none;
+      background: var(--danger);
+      color: #fff;
+      font-weight: 800;
+      border-radius: 14px;
+      padding: 14px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    .login-box button:hover {
+      background: var(--danger-hover);
+    }
+
+    .login-error {
+      color: #ff8b8b;
+      min-height: 20px;
+      margin-bottom: 10px;
+      font-size: 0.92rem;
+    }
+
+    .helper {
+      color: #8f8f8f;
+      font-size: 0.83rem;
+      margin-top: 12px;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 900px) {
+      .summary-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .search {
+        min-width: unset;
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="top-banner">
+    <a href="index.html" style="display:flex; align-items:center; justify-content:center; height:100%; width:100%;">
+      <img src="White Logo.jpg" alt="League Logo" style="height:82%; width:auto; max-width:90vw; object-fit:contain; display:block; cursor:pointer;">
+    </a>
+    <div id="site-nav"></div>
+  </div>
+
+  <div class="login-overlay" id="loginOverlay">
+    <div class="login-box">
+      <h2>Admin Access</h2>
+      <p>Sign in with your admin email and password.</p>
+      <div class="login-error" id="loginError"></div>
+      <input type="email" id="emailInput" placeholder="Email address" autocomplete="username" />
+      <input type="password" id="passwordInput" placeholder="Password" autocomplete="current-password" />
+      <button id="loginBtn">Sign In</button>
+      <div class="helper">
+        This page only saves changes when you are signed in.
+      </div>
+    </div>
+  </div>
+
+  <main class="page">
+    <div id="statusBanner" class="status-banner"></div>
+
+    <div class="header-row">
+      <div class="title-wrap">
+        <h1>Order Tracking</h1>
+        <p>Track ordered, processed, stocked, and fulfilled shop items.</p>
+      </div>
+      <button class="logout-btn" id="logoutBtn">Log Out</button>
+    </div>
+
+    <section class="summary-grid">
+      <div class="summary-card">
+        <div class="label">Still to Process</div>
+        <div class="value" id="processCount">0</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">Still to Stock</div>
+        <div class="value" id="stockCount">0</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">Still to Fulfill</div>
+        <div class="value" id="fulfillCount">0</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">Total Rows</div>
+        <div class="value" id="totalCount">0</div>
+      </div>
+    </section>
+
+    <section class="toolbar">
+      <div class="toolbar-left">
+        <input class="search" id="searchInput" type="text" placeholder="Search order, customer, item..." />
+        <select id="statusFilter">
+          <option value="all">All Rows</option>
+          <option value="needs-processing">Needs Processing</option>
+          <option value="needs-stocking">Needs Stocking</option>
+          <option value="needs-fulfillment">Needs Fulfillment</option>
+          <option value="complete">Complete</option>
+        </select>
+      </div>
+
+      <div class="toolbar-right">
+        <select id="bulkAction">
+          <option value="">Bulk Action</option>
+          <option value="processed-yes">Mark Processed</option>
+          <option value="processed-no">Clear Processed</option>
+          <option value="stocked-yes">Mark Stocked</option>
+          <option value="stocked-no">Clear Stocked</option>
+          <option value="fulfilled-yes">Mark Fulfilled</option>
+          <option value="fulfilled-no">Clear Fulfilled</option>
+        </select>
+
+        <button class="btn btn-dark" id="applyBulkBtn">Apply</button>
+        <button class="btn btn-red" id="refreshBtn">Refresh</button>
+      </div>
+    </section>
+
+    <section class="table-wrap">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Select</th>
+              <th><button class="sort-btn" onclick="setSort('order_no')">Order #</button></th>
+              <th><button class="sort-btn" onclick="setSort('created_at')">Date</button></th>
+              <th><button class="sort-btn" onclick="setSort('customer_name')">Customer</button></th>
+              <th><button class="sort-btn" onclick="setSort('product_name')">Item</button></th>
+              <th><button class="sort-btn" onclick="setSort('quantity')">Qty</button></th>
+              <th class="status-cell"><button class="sort-btn" onclick="setSort('ordered')">Ordered</button></th>
+              <th class="status-cell"><button class="sort-btn" onclick="setSort('processed')">Processed</button></th>
+              <th class="status-cell"><button class="sort-btn" onclick="setSort('stocked')">Stocked</button></th>
+              <th class="status-cell"><button class="sort-btn" onclick="setSort('fulfilled')">Fulfilled</button></th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+    const SUPABASE_URL = "https://wnhzgxnwlmohfldnhhyt.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_x5Xkl7tfpUwhz_ENftiaqQ_am915vqY";
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+    const loginOverlay = document.getElementById("loginOverlay");
+    const emailInput = document.getElementById("emailInput");
+    const passwordInput = document.getElementById("passwordInput");
+    const loginBtn = document.getElementById("loginBtn");
+    const loginError = document.getElementById("loginError");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    const searchInput = document.getElementById("searchInput");
+    const statusFilter = document.getElementById("statusFilter");
+    const bulkAction = document.getElementById("bulkAction");
+    const applyBulkBtn = document.getElementById("applyBulkBtn");
+    const refreshBtn = document.getElementById("refreshBtn");
+
+    const processCount = document.getElementById("processCount");
+    const stockCount = document.getElementById("stockCount");
+    const fulfillCount = document.getElementById("fulfillCount");
+    const totalCount = document.getElementById("totalCount");
+    const tableBody = document.getElementById("tableBody");
+    const statusBanner = document.getElementById("statusBanner");
+
+    let sortKey = "created_at";
+    let sortAsc = false;
+    let rows = [];
+    let isAuthenticated = false;
+
+    function showStatus(message, type = "info") {
+      statusBanner.textContent = message;
+      statusBanner.className = "status-banner show";
+
+      if (type === "success") statusBanner.classList.add("status-success");
+      else if (type === "error") statusBanner.classList.add("status-error");
+      else statusBanner.classList.add("status-info");
+    }
+
+    function clearStatus() {
+      statusBanner.textContent = "";
+      statusBanner.className = "status-banner";
+    }
+
+    function setControlsEnabled(enabled) {
+      searchInput.disabled = !enabled;
+      statusFilter.disabled = !enabled;
+      bulkAction.disabled = !enabled;
+      applyBulkBtn.disabled = !enabled;
+      refreshBtn.disabled = !enabled;
+      logoutBtn.disabled = !enabled;
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return "";
+      const d = new Date(dateStr);
+      if (Number.isNaN(d.getTime())) return dateStr;
+      return d.toLocaleDateString("en-CA");
+    }
+
+    function getCustomerName(item) {
+      return (
+        item.athlete_name ||
+        item.player_name ||
+        item.stripe_customer_email ||
+        "Unknown"
+      );
+    }
+
+    async function ensureTrackingRows(shopItems) {
+      const lineKeys = [...new Set(
+        shopItems
+          .map(item => item.line_key)
+          .filter(Boolean)
+      )];
+
+      if (!lineKeys.length) return;
+
+      const payload = lineKeys.map(line_key => ({ line_key }));
+
+      const { error } = await supabase
+        .from("order_item_tracking")
+        .upsert(payload, { onConflict: "line_key" });
+
+      if (error) {
+        throw error;
+      }
+    }
+
+    async function loadRows() {
+      clearStatus();
+
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        isAuthenticated = false;
+        loginOverlay.style.display = "flex";
+        setControlsEnabled(false);
+        rows = [];
+        renderTable();
+        showStatus("You must sign in to load or save tracking changes.", "error");
+        return;
+      }
+
+      isAuthenticated = true;
+      loginOverlay.style.display = "none";
+      setControlsEnabled(true);
+
+      showStatus("Loading shop items...", "info");
+
+      const { data: shopItems, error: itemsError } = await supabase
+        .from("order_items")
+        .select(`
+          line_key,
+          order_no,
+          created_at,
+          order_type,
+          athlete_name,
+          player_name,
+          stripe_customer_email,
+          product_name,
+          quantity
+        `)
+        .eq("order_type", "shop")
+        .order("created_at", { ascending: false });
+
+      if (itemsError) {
+        showStatus("Could not load shop items: " + itemsError.message, "error");
+        rows = [];
+        renderTable();
+        return;
+      }
+
+      try {
+        await ensureTrackingRows(shopItems || []);
+      } catch (error) {
+        showStatus("Could not prepare tracking rows: " + error.message, "error");
+        rows = [];
+        renderTable();
+        return;
+      }
+
+      const lineKeys = [...new Set((shopItems || []).map(item => item.line_key).filter(Boolean))];
+
+      let trackingMap = new Map();
+
+      if (lineKeys.length) {
+        const { data: trackingRows, error: trackingError } = await supabase
+          .from("order_item_tracking")
+          .select("line_key, ordered, processed, stocked, fulfilled")
+          .in("line_key", lineKeys);
+
+        if (trackingError) {
+          showStatus("Could not load tracking data: " + trackingError.message, "error");
+          rows = [];
+          renderTable();
+          return;
+        }
+
+        trackingMap = new Map((trackingRows || []).map(row => [row.line_key, row]));
+      }
+
+      rows = (shopItems || []).map(item => {
+        const tracking = trackingMap.get(item.line_key) || {};
+        return {
+          line_key: item.line_key,
+          order_no: item.order_no || "",
+          created_at: item.created_at || "",
+          customer_name: getCustomerName(item),
+          product_name: item.product_name || "",
+          quantity: Number(item.quantity || 0),
+          ordered: tracking.ordered ?? true,
+          processed: tracking.processed ?? false,
+          stocked: tracking.stocked ?? false,
+          fulfilled: tracking.fulfilled ?? false
+        };
+      });
+
+      renderTable();
+      showStatus("Shop items loaded.", "success");
+    }
+
+    async function handleLogin() {
+      loginError.textContent = "";
+      clearStatus();
+
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+
+      if (!email || !password) {
+        loginError.textContent = "Enter your email and password.";
+        return;
+      }
+
+      loginBtn.disabled = true;
+      loginBtn.textContent = "Signing In...";
+
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      loginBtn.disabled = false;
+      loginBtn.textContent = "Sign In";
+
+      if (error) {
+        loginError.textContent = error.message;
+        showStatus("Sign-in failed. Nothing can be saved until you log in.", "error");
+        return;
+      }
+
+      emailInput.value = "";
+      passwordInput.value = "";
+      loginOverlay.style.display = "none";
+      showStatus("Signed in successfully.", "success");
+      await loadRows();
+    }
+
+    async function handleLogout() {
+      const { error } = await supabase.auth.signOut();
+
+      if (error) {
+        showStatus("Could not log out: " + error.message, "error");
+        return;
+      }
+
+      isAuthenticated = false;
+      rows = [];
+      renderTable();
+      setControlsEnabled(false);
+      loginOverlay.style.display = "flex";
+      showStatus("Logged out. Changes cannot be saved until you sign in again.", "info");
+    }
+
+    function setSort(key) {
+      if (sortKey === key) sortAsc = !sortAsc;
+      else {
+        sortKey = key;
+        sortAsc = true;
+      }
+      renderTable();
+    }
+
+    function getFilteredRows() {
+      const search = searchInput.value.trim().toLowerCase();
+      const filter = statusFilter.value;
+
+      let filtered = rows.filter(row => {
+        const matchesSearch =
+          String(row.order_no).toLowerCase().includes(search) ||
+          row.customer_name.toLowerCase().includes(search) ||
+          row.product_name.toLowerCase().includes(search);
+
+        let matchesFilter = true;
+
+        if (filter === "needs-processing") matchesFilter = row.ordered && !row.processed;
+        if (filter === "needs-stocking") matchesFilter = row.processed && !row.stocked;
+        if (filter === "needs-fulfillment") matchesFilter = row.stocked && !row.fulfilled;
+        if (filter === "complete") matchesFilter = row.ordered && row.processed && row.stocked && row.fulfilled;
+
+        return matchesSearch && matchesFilter;
+      });
+
+      filtered.sort((a, b) => {
+        let av = a[sortKey];
+        let bv = b[sortKey];
+
+        if (typeof av === "string") av = av.toLowerCase();
+        if (typeof bv === "string") bv = bv.toLowerCase();
+
+        if (av < bv) return sortAsc ? -1 : 1;
+        if (av > bv) return sortAsc ? 1 : -1;
+        return 0;
+      });
+
+      return filtered;
+    }
+
+    function updateSummary(filteredRows) {
+      processCount.textContent = filteredRows.filter(r => r.ordered && !r.processed).length;
+      stockCount.textContent = filteredRows.filter(r => r.processed && !r.stocked).length;
+      fulfillCount.textContent = filteredRows.filter(r => r.stocked && !r.fulfilled).length;
+      totalCount.textContent = filteredRows.length;
+    }
+
+    function renderTable() {
+      const filteredRows = getFilteredRows();
+      updateSummary(filteredRows);
+
+      if (!filteredRows.length) {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="10" class="muted">No rows found.</td>
+          </tr>
+        `;
+        return;
+      }
+
+      tableBody.innerHTML = filteredRows.map(row => `
+        <tr>
+          <td><input type="checkbox" class="row-select" data-line-key="${row.line_key}" ${!isAuthenticated ? "disabled" : ""} /></td>
+          <td>${row.order_no}</td>
+          <td>${formatDate(row.created_at)}</td>
+          <td>${row.customer_name}</td>
+          <td>${row.product_name}</td>
+          <td>${row.quantity}</td>
+          <td class="status-cell">
+            <input class="small-check" type="checkbox" ${row.ordered ? "checked" : ""} ${!isAuthenticated ? "disabled" : ""} onchange="window.toggleField('${row.line_key}', 'ordered', this.checked)" />
+          </td>
+          <td class="status-cell">
+            <input class="small-check" type="checkbox" ${row.processed ? "checked" : ""} ${!isAuthenticated ? "disabled" : ""} onchange="window.toggleField('${row.line_key}', 'processed', this.checked)" />
+          </td>
+          <td class="status-cell">
+            <input class="small-check" type="checkbox" ${row.stocked ? "checked" : ""} ${!isAuthenticated ? "disabled" : ""} onchange="window.toggleField('${row.line_key}', 'stocked', this.checked)" />
+          </td>
+          <td class="status-cell">
+            <input class="small-check" type="checkbox" ${row.fulfilled ? "checked" : ""} ${!isAuthenticated ? "disabled" : ""} onchange="window.toggleField('${row.line_key}', 'fulfilled', this.checked)" />
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    function applyFieldRules(row, field, value) {
+      row[field] = value;
+
+      if (!value) {
+        if (field === "processed") {
+          row.stocked = false;
+          row.fulfilled = false;
+        }
+        if (field === "stocked") {
+          row.fulfilled = false;
+        }
+      }
+
+      if (field === "fulfilled" && value) {
+        row.stocked = true;
+        row.processed = true;
+        row.ordered = true;
+      }
+
+      if (field === "stocked" && value) {
+        row.processed = true;
+        row.ordered = true;
+      }
+
+      if (field === "processed" && value) {
+        row.ordered = true;
+      }
+    }
+
+    async function saveTrackingRow(row) {
+      if (!isAuthenticated) {
+        throw new Error("You must be signed in to save changes.");
+      }
+
+      const payload = {
+        line_key: row.line_key,
+        ordered: row.ordered,
+        processed: row.processed,
+        stocked: row.stocked,
+        fulfilled: row.fulfilled
+      };
+
+      const { error } = await supabase
+        .from("order_item_tracking")
+        .upsert(payload, { onConflict: "line_key" });
+
+      if (error) throw error;
+    }
+
+    window.toggleField = async function(lineKey, field, value) {
+      const row = rows.find(r => r.line_key === lineKey);
+      if (!row) return;
+
+      if (!isAuthenticated) {
+        showStatus("You must log in to save changes.", "error");
+        await loadRows();
+        return;
+      }
+
+      const original = {
+        ordered: row.ordered,
+        processed: row.processed,
+        stocked: row.stocked,
+        fulfilled: row.fulfilled
+      };
+
+      try {
+        applyFieldRules(row, field, value);
+        renderTable();
+        showStatus("Saving change...", "info");
+        await saveTrackingRow(row);
+        showStatus("Change saved.", "success");
+      } catch (error) {
+        row.ordered = original.ordered;
+        row.processed = original.processed;
+        row.stocked = original.stocked;
+        row.fulfilled = original.fulfilled;
+        renderTable();
+        showStatus("Change was not saved: " + error.message, "error");
+      }
+    };
+
+    async function applyBulkAction() {
+      if (!isAuthenticated) {
+        showStatus("You must log in to save changes.", "error");
+        return;
+      }
+
+      const action = bulkAction.value;
+      if (!action) {
+        showStatus("Choose a bulk action first.", "error");
+        return;
+      }
+
+      const selectedKeys = [...document.querySelectorAll(".row-select:checked")]
+        .map(cb => cb.dataset.lineKey);
+
+      if (!selectedKeys.length) {
+        showStatus("Select at least one row first.", "error");
+        return;
+      }
+
+      const originalRows = rows.map(row => ({ ...row }));
+
+      try {
+        selectedKeys.forEach(lineKey => {
+          const row = rows.find(r => r.line_key === lineKey);
+          if (!row) return;
+
+          if (action === "processed-yes") {
+            row.ordered = true;
+            row.processed = true;
+          }
+          if (action === "processed-no") {
+            row.processed = false;
+            row.stocked = false;
+            row.fulfilled = false;
+          }
+          if (action === "stocked-yes") {
+            row.ordered = true;
+            row.processed = true;
+            row.stocked = true;
+          }
+          if (action === "stocked-no") {
+            row.stocked = false;
+            row.fulfilled = false;
+          }
+          if (action === "fulfilled-yes") {
+            row.ordered = true;
+            row.processed = true;
+            row.stocked = true;
+            row.fulfilled = true;
+          }
+          if (action === "fulfilled-no") {
+            row.fulfilled = false;
+          }
+        });
+
+        renderTable();
+        showStatus("Saving bulk changes...", "info");
+
+        const updates = selectedKeys.map(lineKey => {
+          const row = rows.find(r => r.line_key === lineKey);
+          return saveTrackingRow(row);
+        });
+
+        await Promise.all(updates);
+        showStatus(`${selectedKeys.length} row(s) updated.`, "success");
+      } catch (error) {
+        rows = originalRows;
+        renderTable();
+        showStatus("Bulk update failed: " + error.message, "error");
+      }
+    }
+
+    loginBtn.addEventListener("click", handleLogin);
+    passwordInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") handleLogin();
+    });
+    emailInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") handleLogin();
+    });
+
+    logoutBtn.addEventListener("click", handleLogout);
+    searchInput.addEventListener("input", renderTable);
+    statusFilter.addEventListener("change", renderTable);
+    applyBulkBtn.addEventListener("click", applyBulkAction);
+    refreshBtn.addEventListener("click", loadRows);
+
+    supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session) {
+        isAuthenticated = true;
+        loginOverlay.style.display = "none";
+        setControlsEnabled(true);
+      } else {
+        isAuthenticated = false;
+        loginOverlay.style.display = "flex";
+        setControlsEnabled(false);
+      }
+    });
+
+    async function init() {
+      setControlsEnabled(false);
+
+      const { data } = await supabase.auth.getSession();
+
+      if (data.session) {
+        isAuthenticated = true;
+        loginOverlay.style.display = "none";
+        setControlsEnabled(true);
+        await loadRows();
+      } else {
+        isAuthenticated = false;
+        loginOverlay.style.display = "flex";
+        renderTable();
+        showStatus("Sign in to load and save shop order tracking.", "info");
+      }
+    }
+
+    init();
+  </script>
+
+  <script src="nav.js"></script>
+</body>
+</html>
