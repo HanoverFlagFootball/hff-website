@@ -585,12 +585,22 @@
     }
 
     async function ensureTrackingRows(shopItems) {
-      const payload = shopItems
-        .filter(item => item.line_key)
-        .map(item => ({
-          item_key: buildItemKey(item),
-          line_key: item.line_key
-        }));
+      const uniqueMap = new Map();
+
+      shopItems.forEach(item => {
+        if (!item.line_key) return;
+
+        const item_key = buildItemKey(item);
+
+        if (!uniqueMap.has(item_key)) {
+          uniqueMap.set(item_key, {
+            item_key,
+            line_key: item.line_key
+          });
+        }
+      });
+
+      const payload = [...uniqueMap.values()];
 
       if (!payload.length) return;
 
