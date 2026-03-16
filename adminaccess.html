@@ -51,7 +51,7 @@
     }
 
     .page {
-      width: min(1500px, 96%);
+      width: min(1600px, 96%);
       margin: 24px auto 40px;
     }
 
@@ -123,7 +123,7 @@
 
     .summary-grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0,1fr));
+      grid-template-columns: repeat(5, minmax(0,1fr));
       gap: 14px;
       margin-bottom: 18px;
     }
@@ -233,7 +233,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 1200px;
+      min-width: 1380px;
     }
 
     thead {
@@ -284,6 +284,10 @@
       width: 18px;
       height: 18px;
       cursor: pointer;
+    }
+
+    .refunded-col {
+      background: rgba(225, 6, 0, 0.04);
     }
 
     .login-overlay {
@@ -360,7 +364,7 @@
       line-height: 1.4;
     }
 
-    @media (max-width: 900px) {
+    @media (max-width: 1100px) {
       .summary-grid {
         grid-template-columns: 1fr 1fr;
       }
@@ -396,9 +400,7 @@
       <input type="email" id="emailInput" placeholder="Email address" autocomplete="username" />
       <input type="password" id="passwordInput" placeholder="Password" autocomplete="current-password" />
       <button id="loginBtn">Sign In</button>
-      <div class="helper">
-        This page only saves changes when you are signed in.
-      </div>
+      <div class="helper">This page only saves changes when you are signed in.</div>
     </div>
   </div>
 
@@ -408,7 +410,7 @@
     <div class="header-row">
       <div class="title-wrap">
         <h1>Order Tracking</h1>
-        <p>Track ordered, processed, stocked, and fulfilled shop items.</p>
+        <p>Track ordered, processed, stocked, fulfilled, and refunded shop items.</p>
       </div>
       <button class="logout-btn" id="logoutBtn">Log Out</button>
     </div>
@@ -427,6 +429,10 @@
         <div class="value" id="fulfillCount">0</div>
       </div>
       <div class="summary-card">
+        <div class="label">Refunded</div>
+        <div class="value" id="refundedCount">0</div>
+      </div>
+      <div class="summary-card">
         <div class="label">Total Rows</div>
         <div class="value" id="totalCount">0</div>
       </div>
@@ -440,6 +446,7 @@
           <option value="needs-processing">Needs Processing</option>
           <option value="needs-stocking">Needs Stocking</option>
           <option value="needs-fulfillment">Needs Fulfillment</option>
+          <option value="refunded">Refunded</option>
           <option value="complete">Complete</option>
         </select>
       </div>
@@ -453,6 +460,8 @@
           <option value="stocked-no">Clear Stocked</option>
           <option value="fulfilled-yes">Mark Fulfilled</option>
           <option value="fulfilled-no">Clear Fulfilled</option>
+          <option value="refunded-yes">Mark Refunded</option>
+          <option value="refunded-no">Clear Refunded</option>
         </select>
 
         <button class="btn btn-dark" id="applyBulkBtn">Apply</button>
@@ -475,6 +484,7 @@
               <th class="status-cell"><button class="sort-btn" onclick="setSort('processed')">Processed</button></th>
               <th class="status-cell"><button class="sort-btn" onclick="setSort('stocked')">Stocked</button></th>
               <th class="status-cell"><button class="sort-btn" onclick="setSort('fulfilled')">Fulfilled</button></th>
+              <th class="status-cell refunded-col"><button class="sort-btn" onclick="setSort('refunded')">Refunded</button></th>
             </tr>
           </thead>
           <tbody id="tableBody"></tbody>
@@ -507,6 +517,7 @@
     const processCount = document.getElementById("processCount");
     const stockCount = document.getElementById("stockCount");
     const fulfillCount = document.getElementById("fulfillCount");
+    const refundedCount = document.getElementById("refundedCount");
     const totalCount = document.getElementById("totalCount");
     const tableBody = document.getElementById("tableBody");
     const statusBanner = document.getElementById("statusBanner");
@@ -547,32 +558,28 @@
     }
 
     function getCustomerName(item) {
-      return (
-        item.athlete_name ||
-        item.player_name ||
-        item.stripe_customer_email ||
-        "Unknown"
-      );
+      return item.athlete_name || item.player_name || item.stripe_customer_email || "Unknown";
+    }
+
+    function buildItemKey(item) {
+      return `${item.line_key}|${item.product_name}`;
     }
 
     async function ensureTrackingRows(shopItems) {
-      const lineKeys = [...new Set(
-        shopItems
-          .map(item => item.line_key)
-          .filter(Boolean)
-      )];
+      const payload = shopItems
+        .filter(item => item.line_key && item.product_name)
+        .map(item => ({
+          item_key: buildItemKey(item),
+          line_key: item.line_key
+        }));
 
-      if (!lineKeys.length) return;
-
-      const payload = lineKeys.map(line_key => ({ line_key }));
+      if (!payload.length) return;
 
       const { error } = await supabase
-        .from("order_item_tracking")
-        .upsert(payload, { onConflict: "line_key" });
+        .from("order_item_tracking_v2")
+        .upsert(payload, { onConflict: "item_key" });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
     }
 
     async function loadRows() {
@@ -627,15 +634,19 @@
         return;
       }
 
-      const lineKeys = [...new Set((shopItems || []).map(item => item.line_key).filter(Boolean))];
+      const itemKeys = [...new Set(
+        (shopItems || [])
+          .filter(item => item.line_key && item.product_name)
+          .map(item => buildItemKey(item))
+      )];
 
       let trackingMap = new Map();
 
-      if (lineKeys.length) {
+      if (itemKeys.length) {
         const { data: trackingRows, error: trackingError } = await supabase
-          .from("order_item_tracking")
-          .select("line_key, ordered, processed, stocked, fulfilled")
-          .in("line_key", lineKeys);
+          .from("order_item_tracking_v2")
+          .select("item_key, line_key, ordered, processed, stocked, fulfilled, refunded")
+          .in("item_key", itemKeys);
 
         if (trackingError) {
           showStatus("Could not load tracking data: " + trackingError.message, "error");
@@ -644,12 +655,15 @@
           return;
         }
 
-        trackingMap = new Map((trackingRows || []).map(row => [row.line_key, row]));
+        trackingMap = new Map((trackingRows || []).map(row => [row.item_key, row]));
       }
 
       rows = (shopItems || []).map(item => {
-        const tracking = trackingMap.get(item.line_key) || {};
+        const item_key = buildItemKey(item);
+        const tracking = trackingMap.get(item_key) || {};
+
         return {
+          item_key,
           line_key: item.line_key,
           order_no: item.order_no || "",
           created_at: item.created_at || "",
@@ -659,7 +673,8 @@
           ordered: tracking.ordered ?? true,
           processed: tracking.processed ?? false,
           stocked: tracking.stocked ?? false,
-          fulfilled: tracking.fulfilled ?? false
+          fulfilled: tracking.fulfilled ?? false,
+          refunded: tracking.refunded ?? false
         };
       });
 
@@ -682,10 +697,7 @@
       loginBtn.disabled = true;
       loginBtn.textContent = "Signing In...";
 
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
 
       loginBtn.disabled = false;
       loginBtn.textContent = "Sign In";
@@ -728,6 +740,8 @@
       renderTable();
     }
 
+    window.setSort = setSort;
+
     function getFilteredRows() {
       const search = searchInput.value.trim().toLowerCase();
       const filter = statusFilter.value;
@@ -740,10 +754,11 @@
 
         let matchesFilter = true;
 
-        if (filter === "needs-processing") matchesFilter = row.ordered && !row.processed;
-        if (filter === "needs-stocking") matchesFilter = row.processed && !row.stocked;
-        if (filter === "needs-fulfillment") matchesFilter = row.stocked && !row.fulfilled;
-        if (filter === "complete") matchesFilter = row.ordered && row.processed && row.stocked && row.fulfilled;
+        if (filter === "needs-processing") matchesFilter = row.ordered && !row.processed && !row.refunded;
+        if (filter === "needs-stocking") matchesFilter = row.processed && !row.stocked && !row.refunded;
+        if (filter === "needs-fulfillment") matchesFilter = row.stocked && !row.fulfilled && !row.refunded;
+        if (filter === "refunded") matchesFilter = row.refunded;
+        if (filter === "complete") matchesFilter = row.ordered && row.processed && row.stocked && row.fulfilled && !row.refunded;
 
         return matchesSearch && matchesFilter;
       });
@@ -764,9 +779,10 @@
     }
 
     function updateSummary(filteredRows) {
-      processCount.textContent = filteredRows.filter(r => r.ordered && !r.processed).length;
-      stockCount.textContent = filteredRows.filter(r => r.processed && !r.stocked).length;
-      fulfillCount.textContent = filteredRows.filter(r => r.stocked && !r.fulfilled).length;
+      processCount.textContent = filteredRows.filter(r => r.ordered && !r.processed && !r.refunded).length;
+      stockCount.textContent = filteredRows.filter(r => r.processed && !r.stocked && !r.refunded).length;
+      fulfillCount.textContent = filteredRows.filter(r => r.stocked && !r.fulfilled && !r.refunded).length;
+      refundedCount.textContent = filteredRows.filter(r => r.refunded).length;
       totalCount.textContent = filteredRows.length;
     }
 
@@ -777,7 +793,7 @@
       if (!filteredRows.length) {
         tableBody.innerHTML = `
           <tr>
-            <td colspan="10" class="muted">No rows found.</td>
+            <td colspan="11" class="muted">No rows found.</td>
           </tr>
         `;
         return;
@@ -785,23 +801,26 @@
 
       tableBody.innerHTML = filteredRows.map(row => `
         <tr>
-          <td><input type="checkbox" class="row-select" data-line-key="${row.line_key}" ${!isAuthenticated ? "disabled" : ""} /></td>
+          <td><input type="checkbox" class="row-select" data-item-key="${row.item_key}" ${!isAuthenticated ? "disabled" : ""} /></td>
           <td>${row.order_no}</td>
           <td>${formatDate(row.created_at)}</td>
           <td>${row.customer_name}</td>
           <td>${row.product_name}</td>
           <td>${row.quantity}</td>
           <td class="status-cell">
-            <input class="small-check" type="checkbox" ${row.ordered ? "checked" : ""} ${!isAuthenticated ? "disabled" : ""} onchange="window.toggleField('${row.line_key}', 'ordered', this.checked)" />
+            <input class="small-check" type="checkbox" ${row.ordered ? "checked" : ""} ${!isAuthenticated ? "disabled" : ""} onchange="window.toggleField('${encodeURIComponent(row.item_key)}', 'ordered', this.checked)" />
           </td>
           <td class="status-cell">
-            <input class="small-check" type="checkbox" ${row.processed ? "checked" : ""} ${!isAuthenticated ? "disabled" : ""} onchange="window.toggleField('${row.line_key}', 'processed', this.checked)" />
+            <input class="small-check" type="checkbox" ${row.processed ? "checked" : ""} ${!isAuthenticated ? "disabled" : ""} onchange="window.toggleField('${encodeURIComponent(row.item_key)}', 'processed', this.checked)" />
           </td>
           <td class="status-cell">
-            <input class="small-check" type="checkbox" ${row.stocked ? "checked" : ""} ${!isAuthenticated ? "disabled" : ""} onchange="window.toggleField('${row.line_key}', 'stocked', this.checked)" />
+            <input class="small-check" type="checkbox" ${row.stocked ? "checked" : ""} ${!isAuthenticated ? "disabled" : ""} onchange="window.toggleField('${encodeURIComponent(row.item_key)}', 'stocked', this.checked)" />
           </td>
           <td class="status-cell">
-            <input class="small-check" type="checkbox" ${row.fulfilled ? "checked" : ""} ${!isAuthenticated ? "disabled" : ""} onchange="window.toggleField('${row.line_key}', 'fulfilled', this.checked)" />
+            <input class="small-check" type="checkbox" ${row.fulfilled ? "checked" : ""} ${!isAuthenticated ? "disabled" : ""} onchange="window.toggleField('${encodeURIComponent(row.item_key)}', 'fulfilled', this.checked)" />
+          </td>
+          <td class="status-cell refunded-col">
+            <input class="small-check" type="checkbox" ${row.refunded ? "checked" : ""} ${!isAuthenticated ? "disabled" : ""} onchange="window.toggleField('${encodeURIComponent(row.item_key)}', 'refunded', this.checked)" />
           </td>
         </tr>
       `).join("");
@@ -842,22 +861,25 @@
       }
 
       const payload = {
+        item_key: row.item_key,
         line_key: row.line_key,
         ordered: row.ordered,
         processed: row.processed,
         stocked: row.stocked,
-        fulfilled: row.fulfilled
+        fulfilled: row.fulfilled,
+        refunded: row.refunded
       };
 
       const { error } = await supabase
-        .from("order_item_tracking")
-        .upsert(payload, { onConflict: "line_key" });
+        .from("order_item_tracking_v2")
+        .upsert(payload, { onConflict: "item_key" });
 
       if (error) throw error;
     }
 
-    window.toggleField = async function(lineKey, field, value) {
-      const row = rows.find(r => r.line_key === lineKey);
+    window.toggleField = async function(encodedItemKey, field, value) {
+      const itemKey = decodeURIComponent(encodedItemKey);
+      const row = rows.find(r => r.item_key === itemKey);
       if (!row) return;
 
       if (!isAuthenticated) {
@@ -870,11 +892,17 @@
         ordered: row.ordered,
         processed: row.processed,
         stocked: row.stocked,
-        fulfilled: row.fulfilled
+        fulfilled: row.fulfilled,
+        refunded: row.refunded
       };
 
       try {
-        applyFieldRules(row, field, value);
+        if (field !== "refunded") {
+          applyFieldRules(row, field, value);
+        } else {
+          row.refunded = value;
+        }
+
         renderTable();
         showStatus("Saving change...", "info");
         await saveTrackingRow(row);
@@ -884,6 +912,7 @@
         row.processed = original.processed;
         row.stocked = original.stocked;
         row.fulfilled = original.fulfilled;
+        row.refunded = original.refunded;
         renderTable();
         showStatus("Change was not saved: " + error.message, "error");
       }
@@ -902,7 +931,7 @@
       }
 
       const selectedKeys = [...document.querySelectorAll(".row-select:checked")]
-        .map(cb => cb.dataset.lineKey);
+        .map(cb => cb.dataset.itemKey);
 
       if (!selectedKeys.length) {
         showStatus("Select at least one row first.", "error");
@@ -912,8 +941,8 @@
       const originalRows = rows.map(row => ({ ...row }));
 
       try {
-        selectedKeys.forEach(lineKey => {
-          const row = rows.find(r => r.line_key === lineKey);
+        selectedKeys.forEach(itemKey => {
+          const row = rows.find(r => r.item_key === itemKey);
           if (!row) return;
 
           if (action === "processed-yes") {
@@ -943,17 +972,24 @@
           if (action === "fulfilled-no") {
             row.fulfilled = false;
           }
+          if (action === "refunded-yes") {
+            row.refunded = true;
+          }
+          if (action === "refunded-no") {
+            row.refunded = false;
+          }
         });
 
         renderTable();
         showStatus("Saving bulk changes...", "info");
 
-        const updates = selectedKeys.map(lineKey => {
-          const row = rows.find(r => r.line_key === lineKey);
-          return saveTrackingRow(row);
-        });
+        await Promise.all(
+          selectedKeys.map(itemKey => {
+            const row = rows.find(r => r.item_key === itemKey);
+            return saveTrackingRow(row);
+          })
+        );
 
-        await Promise.all(updates);
         showStatus(`${selectedKeys.length} row(s) updated.`, "success");
       } catch (error) {
         rows = originalRows;
