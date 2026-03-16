@@ -233,7 +233,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 1380px;
+      min-width: 1520px;
     }
 
     thead {
@@ -479,6 +479,9 @@
               <th><button class="sort-btn" onclick="setSort('created_at')">Date</button></th>
               <th><button class="sort-btn" onclick="setSort('customer_name')">Customer</button></th>
               <th><button class="sort-btn" onclick="setSort('product_name')">Item</button></th>
+              <th><button class="sort-btn" onclick="setSort('size')">Size</button></th>
+              <th><button class="sort-btn" onclick="setSort('team')">Team</button></th>
+              <th><button class="sort-btn" onclick="setSort('unit_price')">Price</button></th>
               <th><button class="sort-btn" onclick="setSort('quantity')">Qty</button></th>
               <th class="status-cell"><button class="sort-btn" onclick="setSort('ordered')">Ordered</button></th>
               <th class="status-cell"><button class="sort-btn" onclick="setSort('processed')">Processed</button></th>
@@ -557,17 +560,33 @@
       return d.toLocaleDateString("en-CA");
     }
 
+    function formatPrice(value) {
+      const num = Number(value);
+      if (Number.isNaN(num)) return value || "";
+      return `$${num.toFixed(2)}`;
+    }
+
     function getCustomerName(item) {
       return item.athlete_name || item.player_name || item.stripe_customer_email || "Unknown";
     }
 
     function buildItemKey(item) {
-      return `${item.line_key}|${item.product_name}`;
+      return [
+        item.order_no || "",
+        item.product_name || "",
+        item.size || "",
+        item.team || "",
+        item.unit_price ?? "",
+        item.quantity ?? "",
+        item.athlete_name || "",
+        item.player_name || "",
+        item.created_at || ""
+      ].join("|");
     }
 
     async function ensureTrackingRows(shopItems) {
       const payload = shopItems
-        .filter(item => item.line_key && item.product_name)
+        .filter(item => item.line_key)
         .map(item => ({
           item_key: buildItemKey(item),
           line_key: item.line_key
@@ -613,6 +632,9 @@
           player_name,
           stripe_customer_email,
           product_name,
+          team,
+          size,
+          unit_price,
           quantity
         `)
         .eq("order_type", "shop")
@@ -634,11 +656,7 @@
         return;
       }
 
-      const itemKeys = [...new Set(
-        (shopItems || [])
-          .filter(item => item.line_key && item.product_name)
-          .map(item => buildItemKey(item))
-      )];
+      const itemKeys = [...new Set((shopItems || []).map(item => buildItemKey(item)))];
 
       let trackingMap = new Map();
 
@@ -669,6 +687,9 @@
           created_at: item.created_at || "",
           customer_name: getCustomerName(item),
           product_name: item.product_name || "",
+          size: item.size || "",
+          team: item.team || "",
+          unit_price: item.unit_price ?? "",
           quantity: Number(item.quantity || 0),
           ordered: tracking.ordered ?? true,
           processed: tracking.processed ?? false,
@@ -750,7 +771,9 @@
         const matchesSearch =
           String(row.order_no).toLowerCase().includes(search) ||
           row.customer_name.toLowerCase().includes(search) ||
-          row.product_name.toLowerCase().includes(search);
+          row.product_name.toLowerCase().includes(search) ||
+          row.size.toLowerCase().includes(search) ||
+          row.team.toLowerCase().includes(search);
 
         let matchesFilter = true;
 
@@ -793,7 +816,7 @@
       if (!filteredRows.length) {
         tableBody.innerHTML = `
           <tr>
-            <td colspan="11" class="muted">No rows found.</td>
+            <td colspan="14" class="muted">No rows found.</td>
           </tr>
         `;
         return;
@@ -801,11 +824,14 @@
 
       tableBody.innerHTML = filteredRows.map(row => `
         <tr>
-          <td><input type="checkbox" class="row-select" data-item-key="${row.item_key}" ${!isAuthenticated ? "disabled" : ""} /></td>
+          <td><input type="checkbox" class="row-select" data-item-key="${encodeURIComponent(row.item_key)}" ${!isAuthenticated ? "disabled" : ""} /></td>
           <td>${row.order_no}</td>
           <td>${formatDate(row.created_at)}</td>
           <td>${row.customer_name}</td>
           <td>${row.product_name}</td>
+          <td>${row.size}</td>
+          <td>${row.team}</td>
+          <td>${formatPrice(row.unit_price)}</td>
           <td>${row.quantity}</td>
           <td class="status-cell">
             <input class="small-check" type="checkbox" ${row.ordered ? "checked" : ""} ${!isAuthenticated ? "disabled" : ""} onchange="window.toggleField('${encodeURIComponent(row.item_key)}', 'ordered', this.checked)" />
@@ -931,7 +957,7 @@
       }
 
       const selectedKeys = [...document.querySelectorAll(".row-select:checked")]
-        .map(cb => cb.dataset.itemKey);
+        .map(cb => decodeURIComponent(cb.dataset.itemKey));
 
       if (!selectedKeys.length) {
         showStatus("Select at least one row first.", "error");
