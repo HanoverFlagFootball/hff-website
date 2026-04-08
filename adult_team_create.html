@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Adult Flag Registration</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    :root { --ink:#fff; --black:#000; --line:#333; --accent:#0b5ed7; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: Arial, Helvetica, sans-serif; background:#000; color:#fff; }
+
+    /* REGISTRATION CLOSED MODE */
+    .closed-message {
+      display: none;
+      margin: 20px auto;
+      padding: 16px;
+      max-width: 700px;
+      border-radius: 14px;
+      border: 2px solid var(--accent);
+      background: #0b0b0b;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 800;
+    }
+    .registration-closed .closed-message {
+      display: block;
+    }
+    .registration-closed .toggle-wrap,
+    .registration-closed .card {
+      display: none;
+    }
+
+    /* TOP BANNER */
+    .top-banner{
+      width:100%;
+      background:#000;
+      height:72px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .logo-wrap{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      height:100%;
+      width:100%;
+    }
+    .logo-wrap img{
+      max-height:44px;
+      width:auto;
+      max-width:90vw;
+      object-fit:contain;
+      display:block;
+    }
+    @media (min-width: 800px){
+      .top-banner{ height:88px; }
+      .logo-wrap img{ max-height:54px; }
+    }
+
+    .wrap { max-width: 980px; margin: 0 auto; padding: 18px; }
+    .card { border:1px solid var(--line); border-radius: 14px; padding: 16px; background:#050505; }
+
+    h1 { font-size: 22px; margin: 0 0 6px; }
+    h2 { font-size: 16px; margin: 18px 0 10px; }
+    .muted { opacity:.85; font-size:13px; line-height:1.4; }
+
+    label { display:block; font-size:13px; margin:10px 0 6px; }
+    input, select {
+      width:100%;
+      padding:10px;
+      border-radius:10px;
+      border:1px solid var(--line);
+      background:#0b0b0b;
+      color:#fff;
+    }
+
+    .btn {
+      border:0;
+      border-radius:12px;
+      padding:11px 14px;
+      cursor:pointer;
+      font-weight:700;
+    }
+    .btn.primary { background:var(--accent); color:#fff; }
+    .btn.ghost { background:transparent; border:1px solid var(--line); color:#fff; }
+
+    /* TOGGLE */
+    .toggle-wrap {
+      margin: 14px 0 18px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .toggle-btn{
+      flex:1 1 200px;
+      text-align:center;
+      border-radius:999px;
+      padding:12px 14px;
+      border:1px solid var(--line);
+      background:transparent;
+      color:#fff;
+      font-weight:800;
+      cursor:pointer;
+    }
+    .toggle-btn.active{
+      background:var(--accent);
+      border-color:var(--accent);
+    }
+
+    .mode { display:none; }
+    .mode.show { display:block; }
+
+    /* TEAM MODE */
+    .player-grid { display:grid; gap:8px; margin-top:10px; }
+    .player-row { display:grid; grid-template-columns:1fr auto; gap:10px; }
+
+    .note {
+      margin-top:8px;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid #333;
+      background:#0b0b0b;
+      font-size:13px;
+      opacity:.9;
+    }
+
+    .sharebox { display:none; margin-top:16px; }
+    .linkrow { display:flex; gap:10px; flex-wrap:wrap; margin-top:8px; }
+    .ok { color:#7CFF8A; font-size:13px; display:none; }
+    .error { color:#ff6b6b; font-size:13px; display:none; }
+
+    .section-box {
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:16px;
+      background:#080808;
+      margin-top:18px;
+    }
+
+    .join-row {
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:12px;
+    }
+
+    .join-row input {
+      flex:1 1 280px;
+    }
+
+    iframe {
+      width:100%;
+      height:1750px;
+      border:1px solid #333;
+      border-radius:14px;
+      background:#000;
+    }
+  </style>
+</head>
+
+<body>
+
+  <script>
+    const REGISTRATION_OPEN = true; // change to false to close
+  </script>
+
+  <div class="top-banner">
+    <a href="index.html" class="logo-wrap">
+      <img src="White Logo.jpg" alt="League Logo">
+    </a>
+  </div>
+
+  <div class="wrap">
+
+    <div class="closed-message">
+      2026 registration is now closed.
+    </div>
+
+    <!-- TOGGLE BUTTONS -->
+    <div class="toggle-wrap">
+      <button id="teamBtn" class="toggle-btn" type="button">Sign up a Team</button>
+      <button id="soloBtn" class="toggle-btn" type="button">Sign up Solo</button>
+    </div>
+
+    <!-- SOLO MODE -->
+    <div class="card mode" id="soloMode">
+      <h1>Adult Flag Tournament – Solo Registration</h1>
+      <div class="muted">
+        Register individually and be placed in the <strong>Solo</strong> pool.
+      </div>
+      <div class="muted" style="margin-top:6px;">
+        Saturday, July 11 &nbsp;|&nbsp; One-day tournament
+      </div>
+      <div class="muted" style="margin-top:6px;">
+        All games are reffed.
+      </div>
+      <div class="muted" style="margin-top:6px;">
+        Registration is <strong>$80</strong> and includes an <strong>NFL Flag jersey</strong> that you keep.
+      </div>
+      <div class="muted" style="margin-top:6px;">
+        Open to players <strong>age 16+</strong>.
+      </div>
+
+      <div style="margin-top:14px;">
+        <iframe
+          src="adult_register.html?team=solo"
+          title="Adult Flag Solo Registration"
+          loading="lazy">
+        </iframe>
+      </div>
+    </div>
+
+    <!-- TEAM MODE -->
+    <div class="card mode" id="teamMode">
+
+      <div class="section-box" style="margin-top:0;">
+        <h1>Join a Team</h1>
+        <div class="muted">
+          Join a team using the team name shared with you.
+        </div>
+        <div class="muted" style="margin-top:6px;">
+          Saturday, July 11 &nbsp;|&nbsp; One-day tournament
+        </div>
+        <div class="muted" style="margin-top:6px;">
+          All games are reffed.
+        </div>
+        <div class="muted" style="margin-top:6px;">
+          Registration is <strong>$80</strong> and includes an <strong>NFL Flag jersey</strong> that you keep.
+        </div>
+        <div class="muted" style="margin-top:6px;">
+          Open to players <strong>age 16+</strong>.
+        </div>
+
+        <label for="joinTeamName">Team Name</label>
+        <div class="join-row">
+          <input id="joinTeamName" type="text" placeholder="Enter team name" />
+          <button class="btn primary" type="button" id="joinTeamBtn">Submit</button>
+        </div>
+        <div class="error" id="joinErr"></div>
+      </div>
+
+      <div class="section-box">
+        <h1>Create an Adult Flag Team Registration Link</h1>
+
+        <div class="muted">
+          Build your team and compete in our one-day Adult Flag tournament.
+        </div>
+
+        <div class="muted" style="margin-top:6px;">
+          Saturday, July 11
+        </div>
+
+        <div class="muted" style="margin-top:6px;">
+          All games are reffed.
+        </div>
+
+        <div class="muted" style="margin-top:6px;">
+          Registration is <strong>$80 per player</strong> and includes an <strong>NFL Flag jersey</strong> that each player keeps.
+        </div>
+
+        <div class="muted" style="margin-top:6px;">
+          One shareable link will be created. Anyone with the link can register and will automatically join your team.
+        </div>
+
+        <div class="muted" style="margin-top:6px;">
+          Open to players <strong>age 16+</strong>.
+        </div>
+
+        <h2>Team Details</h2>
+        <label for="teamName">Team Name<span style="color:#ff6b6b;">*</span></label>
+        <input id="teamName" type="text" placeholder="e.g., Hanover Adult Flag" />
+
+        <label for="nflTeam" style="margin-top:14px;">Preferred NFL Team (optional)</label>
+        <select id="nflTeam">
+          <option value="">Select…</option>
+          <option>Arizona Cardinals</option>
+          <option>Atlanta Falcons</option>
+          <option>Baltimore Ravens</option>
+          <option>Buffalo Bills</option>
+          <option>Carolina Panthers</option>
+          <option>Chicago Bears</option>
+          <option>Cincinnati Bengals</option>
+          <option>Cleveland Browns</option>
+          <option>Dallas Cowboys</option>
+          <option>Denver Broncos</option>
+          <option>Detroit Lions</option>
+          <option>Green Bay Packers</option>
+          <option>Houston Texans</option>
+          <option>Indianapolis Colts</option>
+          <option>Jacksonville Jaguars</option>
+          <option>Kansas City Chiefs</option>
+          <option>Las Vegas Raiders</option>
+          <option>Los Angeles Chargers</option>
+          <option>Los Angeles Rams</option>
+          <option>Miami Dolphins</option>
+          <option>Minnesota Vikings</option>
+          <option>New England Patriots</option>
+          <option>New Orleans Saints</option>
+          <option>New York Giants</option>
+          <option>New York Jets</option>
+          <option>Philadelphia Eagles</option>
+          <option>Pittsburgh Steelers</option>
+          <option>San Francisco 49ers</option>
+          <option>Seattle Seahawks</option>
+          <option>Tampa Bay Buccaneers</option>
+          <option>Tennessee Titans</option>
+          <option>Washington Commanders</option>
+        </select>
+
+        <div class="note">
+          We’ll try to accommodate preferred NFL teams where possible.
+        </div>
+
+        <h2>Players (optional)</h2>
+        <div class="player-grid" id="playerGrid"></div>
+
+        <div style="display:flex; gap:10px; margin-top:12px; flex-wrap:wrap;">
+          <button class="btn ghost" type="button" id="addPlayer">+ Add Player</button>
+          <button class="btn primary" type="button" id="createLink">Create Team Link</button>
+        </div>
+
+        <div class="error" id="err"></div>
+
+        <div class="sharebox" id="sharebox">
+          <h2>Your Team Registration Link</h2>
+          <div class="linkrow">
+            <input id="teamLink" readonly />
+            <button class="btn primary" type="button" id="copyLink">Copy</button>
+          </div>
+          <button class="btn primary" style="margin-top:12px;" type="button" id="continueBtn">
+            Continue to Registration
+          </button>
+          <div class="ok" id="ok">Copied!</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // registration open/closed toggle
+    (function () {
+      if (!REGISTRATION_OPEN) {
+        document.body.classList.add('registration-closed');
+      }
+    })();
+
+    /* TOGGLE */
+    const soloBtn = document.getElementById('soloBtn');
+    const teamBtn = document.getElementById('teamBtn');
+    const soloMode = document.getElementById('soloMode');
+    const teamMode = document.getElementById('teamMode');
+
+    function setMode(mode){
+      soloBtn.classList.remove('active');
+      teamBtn.classList.remove('active');
+      soloMode.classList.remove('show');
+      teamMode.classList.remove('show');
+
+      if(mode === 'solo'){
+        soloBtn.classList.add('active');
+        soloMode.classList.add('show');
+      } else {
+        teamBtn.classList.add('active');
+        teamMode.classList.add('show');
+      }
+    }
+
+    soloBtn.onclick = () => setMode('solo');
+    teamBtn.onclick = () => setMode('team');
+
+    setMode('team');
+
+    /* TEAM LINK LOGIC */
+    const grid = document.getElementById('playerGrid');
+    const err = document.getElementById('err');
+    const sharebox = document.getElementById('sharebox');
+    const teamLink = document.getElementById('teamLink');
+    const ok = document.getElementById('ok');
+    const continueBtn = document.getElementById('continueBtn');
+
+    function slugify(text){
+      return text.toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+    }
+
+    function addPlayer(){
+      const row = document.createElement('div');
+      row.className = 'player-row';
+      row.innerHTML = `
+        <input type="text" placeholder="Player full name">
+        <button class="btn ghost" type="button">Remove</button>
+      `;
+      row.querySelector('button').onclick = () => row.remove();
+      grid.appendChild(row);
+    }
+
+    for(let i=0;i<10;i++) addPlayer();
+    document.getElementById('addPlayer').onclick = addPlayer;
+
+    document.getElementById('createLink').onclick = () => {
+      err.style.display = 'none';
+      sharebox.style.display = 'none';
+
+      const nameRaw = document.getElementById('teamName').value.trim();
+      if (!nameRaw) {
+        err.textContent = 'Team Name is required.';
+        err.style.display = 'block';
+        return;
+      }
+
+      const nflRaw = document.getElementById('nflTeam').value.trim();
+      const displayName = nflRaw ? `${nameRaw} (${nflRaw})` : nameRaw;
+      const teamToken = slugify(displayName);
+
+      const base = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '');
+      const url = `${base}/adult_register.html?team=${encodeURIComponent(teamToken)}`;
+
+      teamLink.value = url;
+      continueBtn.onclick = () => window.location.href = url;
+
+      sharebox.style.display = 'block';
+    };
+
+    document.getElementById('copyLink').onclick = async () => {
+      await navigator.clipboard.writeText(teamLink.value);
+      ok.style.display = 'block';
+      setTimeout(() => ok.style.display = 'none', 900);
+    };
+
+    /* JOIN TEAM LOGIC */
+    const joinTeamBtn = document.getElementById('joinTeamBtn');
+    const joinTeamName = document.getElementById('joinTeamName');
+    const joinErr = document.getElementById('joinErr');
+
+    function goToJoinTeam() {
+      joinErr.style.display = 'none';
+
+      const raw = joinTeamName.value.trim();
+      if (!raw) {
+        joinErr.textContent = 'Please enter a team name.';
+        joinErr.style.display = 'block';
+        return;
+      }
+
+      const url = `https://hanoverflagfootball.ca/adult_register.html?team=${encodeURIComponent(raw)}`;
+      window.location.href = url;
+    }
+
+    joinTeamBtn.onclick = goToJoinTeam;
+
+    joinTeamName.addEventListener('keydown', function(e){
+      if(e.key === 'Enter'){
+        e.preventDefault();
+        goToJoinTeam();
+      }
+    });
+  </script>
+
+</body>
+</html>
