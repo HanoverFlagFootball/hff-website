@@ -26,6 +26,7 @@
     .registration-closed .closed-message {
       display: block;
     }
+    .registration-closed .event-panel,
     .registration-closed .toggle-wrap,
     .registration-closed .card {
       display: none;
@@ -85,6 +86,65 @@
     }
     .btn.primary { background:var(--accent); color:#fff; }
     .btn.ghost { background:transparent; border:1px solid var(--line); color:#fff; }
+
+    /* EVENT PANEL */
+    .event-panel {
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:18px;
+      background:#050505;
+      margin-bottom:18px;
+    }
+    .event-kicker {
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 12px;
+      opacity: 0.75;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    .event-title {
+      font-size: clamp(1.4rem, 3vw, 2rem);
+      font-weight: 800;
+      text-align: center;
+      margin: 0 0 8px;
+    }
+    .event-subtitle {
+      text-align: center;
+      font-size: 14px;
+      opacity: 0.88;
+      margin-bottom: 16px;
+    }
+    .event-grid {
+      display:grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap:10px;
+    }
+    .event-box {
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:#0b0b0b;
+      padding:14px 12px;
+      text-align:center;
+    }
+    .event-label {
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:0.06em;
+      opacity:0.7;
+      margin-bottom:6px;
+    }
+    .event-value {
+      font-size:15px;
+      font-weight:700;
+      line-height:1.35;
+    }
+    @media (max-width: 760px){
+      .event-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 460px){
+      .event-grid { grid-template-columns: 1fr; }
+    }
 
     /* TOGGLE */
     .toggle-wrap {
@@ -178,6 +238,31 @@
       2026 registration is now closed.
     </div>
 
+    <div class="event-panel">
+      <div class="event-kicker">Adult Flag BYOT</div>
+      <div class="event-title">One-Day Tournament</div>
+      <div class="event-subtitle">Bring your own team, join a team, or sign up solo.</div>
+
+      <div class="event-grid">
+        <div class="event-box">
+          <div class="event-label">Date</div>
+          <div class="event-value">Saturday,<br>July 11</div>
+        </div>
+        <div class="event-box">
+          <div class="event-label">Format</div>
+          <div class="event-value">One-Day<br>Tournament</div>
+        </div>
+        <div class="event-box">
+          <div class="event-label">Cost</div>
+          <div class="event-value">$80 Per<br>Player</div>
+        </div>
+        <div class="event-box">
+          <div class="event-label">Includes</div>
+          <div class="event-value">Reffed Games<br>+ NFL Flag Jersey</div>
+        </div>
+      </div>
+    </div>
+
     <!-- TOGGLE BUTTONS -->
     <div class="toggle-wrap">
       <button id="teamBtn" class="toggle-btn" type="button">Sign up a Team</button>
@@ -189,15 +274,6 @@
       <h1>Adult Flag Tournament – Solo Registration</h1>
       <div class="muted">
         Register individually and be placed in the <strong>Solo</strong> pool.
-      </div>
-      <div class="muted" style="margin-top:6px;">
-        Saturday, July 11 &nbsp;|&nbsp; One-day tournament
-      </div>
-      <div class="muted" style="margin-top:6px;">
-        All games are reffed.
-      </div>
-      <div class="muted" style="margin-top:6px;">
-        Registration is <strong>$80</strong> and includes an <strong>NFL Flag jersey</strong> that you keep.
       </div>
       <div class="muted" style="margin-top:6px;">
         Open to players <strong>age 16+</strong>.
@@ -221,15 +297,6 @@
           Join a team using the team name shared with you.
         </div>
         <div class="muted" style="margin-top:6px;">
-          Saturday, July 11 &nbsp;|&nbsp; One-day tournament
-        </div>
-        <div class="muted" style="margin-top:6px;">
-          All games are reffed.
-        </div>
-        <div class="muted" style="margin-top:6px;">
-          Registration is <strong>$80</strong> and includes an <strong>NFL Flag jersey</strong> that you keep.
-        </div>
-        <div class="muted" style="margin-top:6px;">
           Open to players <strong>age 16+</strong>.
         </div>
 
@@ -245,19 +312,7 @@
         <h1>Create an Adult Flag Team Registration Link</h1>
 
         <div class="muted">
-          Build your team and compete in our one-day Adult Flag tournament.
-        </div>
-
-        <div class="muted" style="margin-top:6px;">
-          Saturday, July 11
-        </div>
-
-        <div class="muted" style="margin-top:6px;">
-          All games are reffed.
-        </div>
-
-        <div class="muted" style="margin-top:6px;">
-          Registration is <strong>$80 per player</strong> and includes an <strong>NFL Flag jersey</strong> that each player keeps.
+          Build your team and compete in the Adult Flag BYOT tournament.
         </div>
 
         <div class="muted" style="margin-top:6px;">
