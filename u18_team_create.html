@@ -10,6 +10,27 @@
     * { box-sizing: border-box; }
     body { margin:0; font-family: Arial, Helvetica, sans-serif; background:#000; color:#fff; }
 
+    /* REGISTRATION CLOSED MODE */
+    .closed-message {
+      display: none;
+      margin: 20px auto;
+      padding: 16px;
+      max-width: 700px;
+      border-radius: 14px;
+      border: 2px solid var(--accent);
+      background: #0b0b0b;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 800;
+    }
+    .registration-closed .closed-message {
+      display: block;
+    }
+    .registration-closed .toggle-wrap,
+    .registration-closed .card {
+      display: none;
+    }
+
     /* TOP BANNER (FIXED HEIGHT + PROPER WRAP) */
     .top-banner{
       width:100%;
@@ -141,6 +162,10 @@
 
 <body>
 
+  <script>
+    const REGISTRATION_OPEN = false; // change to true to reopen
+  </script>
+
   <div class="top-banner">
     <a href="index.html" class="logo-wrap">
       <img src="White Logo.jpg" alt="League Logo">
@@ -148,6 +173,10 @@
   </div>
 
   <div class="wrap">
+
+    <div class="closed-message">
+      2026 registration is now closed.
+    </div>
 
     <!-- TOGGLE BUTTONS -->
     <div class="toggle-wrap">
@@ -272,6 +301,13 @@
   </div>
 
   <script>
+    // registration open/closed toggle
+    (function () {
+      if (!REGISTRATION_OPEN) {
+        document.body.classList.add('registration-closed');
+      }
+    })();
+
     /* TOGGLE */
     const soloBtn = document.getElementById('soloBtn');
     const teamBtn = document.getElementById('teamBtn');

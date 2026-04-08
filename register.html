@@ -14,6 +14,26 @@
       color: var(--ink);
     }
 
+    /* REGISTRATION CLOSED MODE */
+    .closed-message {
+      display: none;
+      margin: 1rem 0 1.5rem;
+      padding: 1rem 1.2rem;
+      border: 2px solid #0b5ed7;
+      background: #f0f6ff;
+      color: #000;
+      text-align: center;
+      font-size: 1.05rem;
+      font-weight: 700;
+      border-radius: 0.4rem;
+    }
+    .registration-closed .closed-message {
+      display: block;
+    }
+    .registration-closed #registrationForm {
+      display: none;
+    }
+
     /* SCORES STRIP */
     .scores-strip { width:100%; background:#000; padding:0.35rem 1rem; overflow:hidden; }
     .score-row { display:flex; gap:0.5rem; align-items:stretch; min-height:70px; }
@@ -125,6 +145,10 @@
 </head>
 <body>
 
+  <script>
+    const REGISTRATION_OPEN = false; // change to true when you want registration open again
+  </script>
+
   <div class="scores-strip">
     <div class="score-row" id="scoreRow"></div>
   </div>
@@ -160,6 +184,10 @@
       <div class="credit-banner" id="creditBanner">
         <strong>Store Credit Applied:</strong>
         <span id="creditCodeText"></span>
+      </div>
+
+      <div class="closed-message" id="closedMessage">
+        2026 registration is now closed.
       </div>
 
       <form id="registrationForm" novalidate>
@@ -232,7 +260,6 @@
             </div>
 
             <div class="form-row">
-              <!-- ✅ UPDATED: Shirt Size is REQUIRED -->
               <label for="shirtSize">Shirt Size<span class="required">*</span></label>
               <select id="shirtSize" name="shirtSize" required>
                 <option value="">Select size...</option>
@@ -349,6 +376,13 @@
   </div>
 
   <script>
+    // registration open/closed toggle
+    (function () {
+      if (!REGISTRATION_OPEN) {
+        document.body.classList.add('registration-closed');
+      }
+    })();
+
     // sponsor rotation
     const sponsorTrack = document.getElementById('sponsorTrack');
     if (sponsorTrack) {
@@ -414,7 +448,7 @@
       });
     })();
 
-    // ✅ BULLETPROOF SUBMIT HANDLER (capture + stopImmediate + dual storage + cache-busted redirect)
+    // submit handler
     document.addEventListener('DOMContentLoaded', () => {
       const form = document.getElementById('registrationForm');
       if (!form) return;
@@ -429,7 +463,6 @@
         const photoPermission = document.querySelector('input[name="photoPermission"]:checked');
         const ageGroupRadio = document.querySelector('input[name="ageGroup"]:checked');
 
-        // ✅ NEW: Shirt Size must be selected
         const shirtSizeEl = document.getElementById('shirtSize');
         if (!shirtSizeEl || !shirtSizeEl.value) {
           shirtSizeEl && shirtSizeEl.focus();
@@ -501,7 +534,6 @@
         sessionStorage.setItem('HFF_CHECKOUT_PAYLOAD', checkoutPayload);
         localStorage.setItem('HFF_CHECKOUT_PAYLOAD', checkoutPayload);
 
-        // ✅ cache-bust to avoid stale loading.html causing wrong redirects
         window.location.replace('loading.html?v=' + Date.now());
       }, true);
     });
