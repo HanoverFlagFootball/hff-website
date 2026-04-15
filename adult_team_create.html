@@ -281,7 +281,7 @@
 
       <div style="margin-top:14px;">
         <iframe
-          src="adult_register.html?team=solo"
+          src="adult_registration?team=solo"
           title="Adult Flag Solo Registration"
           loading="lazy">
         </iframe>
@@ -468,8 +468,7 @@
       const displayName = nflRaw ? `${nameRaw} (${nflRaw})` : nameRaw;
       const teamToken = slugify(displayName);
 
-      const base = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '');
-      const url = `${base}/adult_register.html?team=${encodeURIComponent(teamToken)}`;
+      const url = `${window.location.origin}/adult_registration?team=${encodeURIComponent(teamToken)}`;
 
       teamLink.value = url;
       continueBtn.onclick = () => window.location.href = url;
@@ -498,7 +497,7 @@
         return;
       }
 
-      const url = `https://hanoverflagfootball.ca/adult_register.html?team=${encodeURIComponent(raw)}`;
+      const url = `https://hanoverflagfootball.ca/adult_registration?team=${encodeURIComponent(raw)}`;
       window.location.href = url;
     }
 
