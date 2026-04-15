@@ -209,14 +209,6 @@
     .join-row input {
       flex:1 1 280px;
     }
-
-    iframe {
-      width:100%;
-      height:1750px;
-      border:1px solid #333;
-      border-radius:14px;
-      background:#000;
-    }
   </style>
 </head>
 
@@ -267,25 +259,6 @@
     <div class="toggle-wrap">
       <button id="teamBtn" class="toggle-btn" type="button">Sign up a Team</button>
       <button id="soloBtn" class="toggle-btn" type="button">Sign up Solo</button>
-    </div>
-
-    <!-- SOLO MODE -->
-    <div class="card mode" id="soloMode">
-      <h1>Adult Flag Tournament – Solo Registration</h1>
-      <div class="muted">
-        Register individually and be placed in the <strong>Solo</strong> pool.
-      </div>
-      <div class="muted" style="margin-top:6px;">
-        Open to players <strong>age 16+</strong>.
-      </div>
-
-      <div style="margin-top:14px;">
-        <iframe
-          src="adult_registration?team=solo"
-          title="Adult Flag Solo Registration"
-          loading="lazy">
-        </iframe>
-      </div>
     </div>
 
     <!-- TEAM MODE -->
@@ -404,25 +377,22 @@
     /* TOGGLE */
     const soloBtn = document.getElementById('soloBtn');
     const teamBtn = document.getElementById('teamBtn');
-    const soloMode = document.getElementById('soloMode');
     const teamMode = document.getElementById('teamMode');
 
     function setMode(mode){
-      soloBtn.classList.remove('active');
       teamBtn.classList.remove('active');
-      soloMode.classList.remove('show');
       teamMode.classList.remove('show');
 
-      if(mode === 'solo'){
-        soloBtn.classList.add('active');
-        soloMode.classList.add('show');
-      } else {
+      if(mode === 'team'){
         teamBtn.classList.add('active');
         teamMode.classList.add('show');
       }
     }
 
-    soloBtn.onclick = () => setMode('solo');
+    soloBtn.onclick = () => {
+      window.location.href = 'adult_registration?team=solo';
+    };
+
     teamBtn.onclick = () => setMode('team');
 
     setMode('team');
