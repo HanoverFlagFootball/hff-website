@@ -96,7 +96,7 @@
       <div class="spinner"></div>
       <div class="txt" id="mainTxt">Preparing your secure Stripe checkout…</div>
       <div class="sub" id="subTxt">One moment. You’ll be redirected automatically.</div>
-      <div class="badge" id="badge">LOADING VERSION: SPLIT-SUCCESS-004 + GIRLS-U18-LABEL</div>
+      <div class="badge" id="badge">LOADING VERSION: SPLIT-SUCCESS-005 + ADULT-FLAG</div>
       <div class="err" id="errBox"></div>
     </div>
   </div>
@@ -137,7 +137,8 @@
       const isRegistration =
         parsed.type === 'registration' ||
         (parsed.data && parsed.data.parent && parsed.data.player) ||
-        (parsed.parent && parsed.player);
+        (parsed.parent && parsed.player) ||
+        (parsed.data && parsed.data.flow === 'adult_flag');
 
       if (mainTxt) {
         mainTxt.textContent = isRegistration
@@ -154,33 +155,43 @@
       if (isRegistration) {
         const reg = parsed.data || parsed;
 
-        // ✅ TEAM TOKEN (optional; used for girls team link registrations)
         const teamToken = (reg && reg.teamToken) ? String(reg.teamToken).trim() : '';
 
-        // ✅ Detect girls team flow (set by girls_register.html)
+        const isAdultFlag =
+          (reg && reg.flow === 'adult_flag');
+
         const isGirlsTeam =
-          (reg && reg.flow === 'girls_team') ||
-          !!teamToken;
+          (reg && reg.flow === 'girls_team');
 
         if (teamToken && subTxt) {
           subTxt.textContent = 'Team link detected. Connecting your registration to the team…';
+        } else if (isAdultFlag && subTxt) {
+          subTxt.textContent = 'Preparing your Adult Flag registration checkout…';
         }
 
-        // Pricing logic (unchanged)
-        const ageGroup = reg.ageGroup; // "U6" or "7plus"
-        const fee = (ageGroup === 'U6') ? 80 : 185;
+        let fee;
+        let lineItemName;
+
+        if (isAdultFlag) {
+          fee = 80;
+          lineItemName = reg.registrationType === 'solo'
+            ? 'Adult Flag Solo Registration'
+            : 'Adult Flag Team Registration';
+        } else {
+          const ageGroup = reg.ageGroup; // "U6" or "7plus"
+          fee = (ageGroup === 'U6') ? 80 : 185;
+
+          lineItemName = isGirlsTeam
+            ? 'Girls U18 Team Registration'
+            : (ageGroup === 'U6')
+              ? 'Player Registration (U6)'
+              : 'Player Registration (Age 6+)';
+        }
 
         const playerName =
           (reg.player && (reg.player.firstName || reg.player.lastName))
             ? ((reg.player.firstName || '') + ' ' + (reg.player.lastName || '')).trim()
             : '';
-
-        // ✅ Stripe line item name fix
-        const lineItemName = isGirlsTeam
-          ? 'Girls U18 Team Registration'
-          : (ageGroup === 'U6')
-            ? 'Player Registration (U6)'
-            : 'Player Registration (Age 6+)';
 
         const cart = [{
           name: lineItemName,
@@ -192,7 +203,7 @@
           cart,
           athleteName: playerName || (reg.parent && reg.parent.name) || 'Registration',
           registration: reg,
-          teamToken: teamToken || null,  // still fine to send; backend can ignore
+          teamToken: teamToken || null,
           successUrl,
           cancelUrl
         };
