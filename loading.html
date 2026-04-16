@@ -96,7 +96,7 @@
       <div class="spinner"></div>
       <div class="txt" id="mainTxt">Preparing your secure Stripe checkout…</div>
       <div class="sub" id="subTxt">One moment. You’ll be redirected automatically.</div>
-      <div class="badge" id="badge">LOADING VERSION: SPLIT-SUCCESS-005 + ADULT-FLAG</div>
+      <div class="badge" id="badge">LOADING VERSION: SPLIT-SUCCESS-006 + ADULT-JERSEY-OPTION</div>
       <div class="err" id="errBox"></div>
     </div>
   </div>
@@ -173,10 +173,14 @@
         let lineItemName;
 
         if (isAdultFlag) {
-          fee = 80;
-          lineItemName = reg.registrationType === 'solo'
-            ? 'Adult Flag Solo Registration'
-            : 'Adult Flag Team Registration';
+          fee = Number(reg.price || (reg.wantsJersey ? 80 : 30));
+          lineItemName = reg.wantsJersey
+            ? (reg.registrationType === 'solo'
+              ? 'Adult Flag Solo Registration (With Jersey)'
+              : 'Adult Flag Team Registration (With Jersey)')
+            : (reg.registrationType === 'solo'
+              ? 'Adult Flag Solo Registration (No Jersey)'
+              : 'Adult Flag Team Registration (No Jersey)');
         } else {
           const ageGroup = reg.ageGroup; // "U6" or "7plus"
           fee = (ageGroup === 'U6') ? 80 : 185;
