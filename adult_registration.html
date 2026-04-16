@@ -1,203 +1,642 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<title>Adult Flag Registration</title>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8" />
+  <title>Adult Flag Registration - Flag Football League</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root { --ink:#fff; --line:#333; --black:#000; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #000;
+      color: var(--ink);
+    }
 
-<style>
-body{
-  margin:0;
-  font-family:Arial, Helvetica, sans-serif;
-  background:#000;
-  color:#fff;
-}
+    /* REGISTRATION CLOSED MODE */
+    .closed-message {
+      display: none;
+      margin: 1rem 0 1.5rem;
+      padding: 1rem 1.2rem;
+      border: 2px solid #0b5ed7;
+      background: #f0f6ff;
+      color: #000;
+      text-align: center;
+      font-size: 1.05rem;
+      font-weight: 700;
+      border-radius: 0.4rem;
+    }
+    .registration-closed .closed-message {
+      display: block;
+    }
+    .registration-closed #registrationForm {
+      display: none;
+    }
 
-.wrap{
-  max-width:900px;
-  margin:auto;
-  background:#fff;
-  color:#000;
-  padding:20px;
-}
+    /* SCORES STRIP */
+    .scores-strip { width:100%; background:#000; padding:0.35rem 1rem; overflow:hidden; }
+    .score-row { display:flex; gap:0.5rem; align-items:stretch; min-height:70px; }
+    .score-box { background:#fff; color:#000; border:1px solid #ccc; border-radius:0.5rem; padding:0.35rem 0.45rem; flex:0 0 calc((100% - 4.5rem)/10); min-height:74px; display:flex; flex-direction:column; justify-content:center; }
+    .score-title { font-size:0.65rem; text-align:center; border-bottom:1px solid #ddd; margin-bottom:0.15rem; padding-bottom:0.15rem; }
+    .team-row { display:flex; justify-content:space-between; align-items:center; gap:0.15rem; line-height:1.05; }
+    .team-left { display:flex; align-items:center; gap:0.2rem; min-width:0; flex:1; }
+    .team-logo { width:20px; height:20px; object-fit:contain; background:#fff; border-radius:4px; padding:1px; }
+    .team-name { flex:1; font-size:0.68rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .team-score { width:1.9rem; text-align:right; font-size:0.7rem; font-weight:600; }
+    .score-status { font-size:0.58rem; text-align:center; margin-top:0.2rem; text-transform:uppercase; letter-spacing:0.04em; }
+    @media (max-width:700px) {
+      .scores-strip { overflow:hidden; }
+      .score-row { justify-content:center; }
+      .score-box { flex:0 0 calc((100% - 0.6rem)/2); }
+      .score-box:nth-child(n + 3) { display:none; }
+    }
 
-h1{text-align:center;}
+    /* TOP BANNER */
+    .top-banner {
+      width: 100%;
+      background: #000;
+      aspect-ratio: 8 / 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 56px;
+      position: relative;
+    }
+    .top-banner img {
+      height: 82%;
+      width: auto;
+      max-width: 90vw;
+      object-fit: contain;
+      display: block;
+    }
 
-.form-row{margin-bottom:12px;}
+    /* HAMBURGER */
+    .mobile-nav { position:absolute; bottom:6px; left:10px; display:flex; align-items:center; }
+    .mobile-nav-btn { width:34px; height:28px; border:1px solid #fff; background:rgba(0,0,0,0.3); display:inline-flex; flex-direction:column; justify-content:center; gap:4px; cursor:pointer; }
+    .mobile-nav-btn span { display:block; height:2px; background:#fff; }
+    .mobile-nav-menu { position:absolute; top:calc(100% + 4px); left:10px; background:#111; border:1px solid #333; border-radius:0.5rem; display:none; flex-direction:column; z-index:999; min-width:180px; }
+    .mobile-nav-menu a { color:#fff; text-decoration:none; padding:0.6rem 0.8rem; border-bottom:1px solid #222; font-size:0.9rem; }
+    .mobile-nav-menu a:last-child { border-bottom:none; }
+    .mobile-nav-menu.show { display:flex; }
+    @media (min-width:701px) {
+      .mobile-nav { bottom:38px; left:44px; }
+      .mobile-nav-btn { width:65px; height:50px; gap:5px; border-width:2px; }
+      .mobile-nav-btn span { height:3px; }
+    }
 
-label{display:block;font-size:14px;margin-bottom:4px;}
+    /* REGISTRATION FORM */
+    .register-page { background:#000; padding:1.5rem 1rem 3rem; display:flex; justify-content:center; }
+    .register-wrapper { width:100%; max-width:900px; background:#fff; color:#000; border:1px solid #333; border-radius:0; padding:1.5rem 1.5rem 2rem; }
+    .register-wrapper h1 { margin:0 0 0.5rem; font-size:clamp(1.4rem, 2.4vw, 1.8rem); text-align:center; }
+    .register-intro { font-size:0.9rem; color:#333; margin-bottom:0.4rem; text-align:center; }
+    .register-details { font-size:0.9rem; color:#333; text-align:center; margin-bottom:1.2rem; }
+    .team-banner {
+      background:#fff7e6;
+      border:1px solid #f0ad4e;
+      color:#000;
+      padding:0.55rem 0.75rem;
+      border-radius:0.4rem;
+      font-size:0.9rem;
+      margin-bottom:1.2rem;
+      display:none;
+    }
+    .credit-banner {
+      background:#f0f6ff;
+      border:1px solid #0b5ed7;
+      color:#000;
+      padding:0.55rem 0.75rem;
+      border-radius:0.4rem;
+      font-size:0.9rem;
+      margin-bottom:1.2rem;
+      display:none;
+    }
+    .choice-banner {
+      background:#f8f9fa;
+      border:1px solid #ddd;
+      color:#000;
+      padding:0.75rem 0.85rem;
+      border-radius:0.4rem;
+      font-size:0.9rem;
+      margin-bottom:0.9rem;
+      line-height:1.45;
+    }
+    .form-section { margin-bottom:1.4rem; border-top:1px solid #ddd; padding-top:1rem; }
+    .form-section:first-of-type { border-top:none; padding-top:0; }
+    .form-section h2 { margin:0 0 0.6rem; font-size:1rem; }
+    .info-note { font-size:0.8rem; color:#555; margin-bottom:0.6rem; }
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.75rem 1rem; }
+    .form-row { margin-bottom:0.75rem; }
+    label { display:block; font-size:0.85rem; margin-bottom:0.25rem; color:#333; }
+    input[type="text"], input[type="email"], input[type="tel"], input[type="date"], select, textarea {
+      width:100%; padding:0.4rem 0.5rem; font-size:0.9rem; border-radius:4px; border:1px solid #ccc; font-family:inherit;
+    }
+    textarea { min-height:80px; resize:vertical; }
+    .checkbox-row, .radio-row { margin-bottom:0.6rem; font-size:0.85rem; color:#333; }
+    .checkbox-row input, .radio-row input { margin-right:0.35rem; }
+    .radio-group { display:flex; gap:1.5rem; align-items:center; flex-wrap:wrap; }
+    .required { color:#c00; margin-left:0.1rem; }
+    .signature-note { font-size:0.8rem; color:#555; margin-bottom:0.5rem; }
+    .submit-row { text-align:center; margin-top:1.5rem; }
+    .submit-btn { padding:0.6rem 1.6rem; border-radius:999px; border:none; background:#0b5ed7; color:#fff; font-size:0.95rem; font-weight:600; cursor:pointer; }
+    .submit-btn:hover { opacity:0.9; }
+    .small-note { font-size:0.8rem; color:#555; margin-top:0.4rem; text-align:center; }
 
-input, select, textarea{
-  width:100%;
-  padding:8px;
-}
+    .disabled-select {
+      background:#e9ecef !important;
+      color:#666 !important;
+      cursor:not-allowed;
+    }
 
-.radio-group{
-  display:flex;
-  gap:20px;
-  flex-wrap:wrap;
-}
+    @media (max-width:800px) {
+      .register-wrapper { padding:1.1rem 1rem 1.6rem; }
+      .form-grid { grid-template-columns:1fr; }
+    }
 
-.disabled{
-  background:#eee;
-  color:#777;
-}
+    /* ORGANIZER BUTTONS */
+    .coach-choice { display:flex; gap:0.6rem; flex-wrap:wrap; margin-top:0.5rem; }
+    .coach-btn {
+      border:1px solid #333; background:#fff; color:#000;
+      padding:0.55rem 0.8rem; font-size:0.9rem; cursor:pointer;
+      border-radius:999px;
+      transition: transform 0.05s ease, opacity 0.15s ease, background 0.15s ease;
+      user-select:none;
+    }
+    .coach-btn:hover { opacity:0.9; }
+    .coach-btn:active { transform:scale(0.98); }
+    .coach-btn.selected { background:#0b5ed7; color:#fff; border-color:#0b5ed7; }
 
-button{
-  padding:10px 20px;
-  background:#0b5ed7;
-  color:#fff;
-  border:none;
-  border-radius:20px;
-  cursor:pointer;
-}
-</style>
+    /* SPONSORS */
+    .sponsor-strip { background:#000; color:#fff; padding:1.5vw 2vw 3vw; text-align:center; }
+    .sponsor-strip h2 { margin:0 0 1vw; font-size:clamp(1rem, 2.2vw, 1.2rem); letter-spacing:0.08em; }
+    .sponsor-track-wrapper { overflow:hidden; width:100%; display:flex; justify-content:center; }
+    .sponsor-track { display:flex; justify-content:space-around; gap:2.5vw; width:100%; transition:transform 0.4s ease; }
+    .sponsor-logo { flex:0 0 auto; width:clamp(80px, 10vw, 130px); aspect-ratio:1/1; border-radius:1vw; overflow:hidden; background:#fff; }
+    .sponsor-logo img { width:100%; height:100%; object-fit:cover; display:block; }
+    @media (max-width:600px) {
+      .sponsor-track { gap:4vw; }
+      .sponsor-logo { width:22vw; }
+    }
+  </style>
 </head>
-
 <body>
 
-<div class="wrap">
+  <script>
+    const REGISTRATION_OPEN = true; // change to false when you want registration closed
+  </script>
 
-<h1>Adult Flag Registration</h1>
-
-<p style="text-align:center;">
-Choose <strong>$80 with jersey</strong> or <strong>$30 without jersey</strong>
-</p>
-
-<form id="form">
-
-<!-- Jersey choice -->
-<div class="form-row">
-  <label>Registration Option *</label>
-  <div class="radio-group">
-    <label><input type="radio" name="jersey" value="yes"> With Jersey ($80)</label>
-    <label><input type="radio" name="jersey" value="no"> No Jersey ($30)</label>
+  <div class="scores-strip">
+    <div class="score-row" id="scoreRow"></div>
   </div>
-</div>
 
-<!-- Player -->
-<div class="form-row">
-  <label>First Name *</label>
-  <input id="first" required>
-</div>
+  <div class="top-banner">
+    <a href="index.html" style="display:flex; align-items:center; justify-content:center; height:100%; width:100%;">
+      <img src="White Logo.jpg" alt="League Logo">
+    </a>
 
-<div class="form-row">
-  <label>Last Name *</label>
-  <input id="last" required>
-</div>
+    <div class="mobile-nav">
+      <button id="mobileMenuBtn" class="mobile-nav-btn" aria-label="Open menu" type="button">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="mobile-nav-menu" id="mobileMenu">
+        <a href="scores&schedules.html">Scores &amp; Schedules</a>
+        <a href="shop.html">Shop</a>
+        <a href="index.html">Home</a>
+        <a href="AboutUs.html">About Us</a>
+      </div>
+    </div>
+  </div>
 
-<div class="form-row">
-  <label>Email *</label>
-  <input id="email" required>
-</div>
+  <section class="register-page" id="register">
+    <div class="register-wrapper">
+      <h1>Adult Flag Registration</h1>
+      <p class="register-intro">
+        Use the team link you received to register for your Adult Flag team, or use the solo link if you are signing up individually.
+      </p>
+      <p class="register-details">
+        Players must be <strong>age 16+</strong>.
+      </p>
 
-<div class="form-row">
-  <label>Phone *</label>
-  <input id="phone" required>
-</div>
+      <div class="team-banner" id="teamBanner">
+        <strong id="teamBannerLabel">Team Link Confirmed:</strong>
+        <span id="teamTokenText"></span>
+      </div>
 
-<div class="form-row">
-  <label>Date of Birth *</label>
-  <input type="date" id="dob" required>
-</div>
+      <div class="credit-banner" id="creditBanner">
+        <strong>Store Credit Applied:</strong>
+        <span id="creditCodeText"></span>
+      </div>
 
-<div class="form-row">
-  <label>Jersey Size *</label>
-  <select id="size">
-    <option value="">Select</option>
-    <option>AS</option>
-    <option>AM</option>
-    <option>AL</option>
-    <option>AXL</option>
-  </select>
-</div>
+      <div class="closed-message" id="closedMessage">
+        2026 registration is now closed.
+      </div>
 
-<div class="form-row">
-  <label>Health Notes</label>
-  <textarea id="health"></textarea>
-</div>
+      <form id="registrationForm" novalidate>
+        <input type="hidden" id="storeCreditCode" name="storeCreditCode" />
+        <input type="hidden" id="teamToken" name="teamToken" />
+        <input type="hidden" id="forcedAgeGroup" name="forcedAgeGroup" value="adult16plus" />
 
-<div style="text-align:center;margin-top:20px;">
-  <button type="submit">Continue to Payment</button>
-</div>
+        <div class="form-section">
+          <h2>Registration Option</h2>
+          <div class="choice-banner">
+            <strong>With Jersey:</strong> $80<br>
+            <strong>No Jersey:</strong> $30
+          </div>
 
-</form>
+          <div class="radio-row">
+            <div>Jersey Option<span class="required">*</span></div>
+            <div class="radio-group">
+              <label><input type="radio" name="jerseyOption" value="with_jersey" /> With jersey ($80)</label>
+              <label><input type="radio" name="jerseyOption" value="no_jersey" /> No jersey ($30)</label>
+            </div>
+          </div>
+        </div>
 
-</div>
+        <div class="form-section">
+          <h2>Player Information</h2>
+          <p class="info-note">
+            This registration is for Adult Flag BYOT / Solo.
+          </p>
 
-<script>
+          <div class="form-grid">
+            <div class="form-row">
+              <label for="playerFirstName">Player First Name<span class="required">*</span></label>
+              <input type="text" id="playerFirstName" name="playerFirstName" required />
+            </div>
+            <div class="form-row">
+              <label for="playerLastName">Player Last Name<span class="required">*</span></label>
+              <input type="text" id="playerLastName" name="playerLastName" required />
+            </div>
+            <div class="form-row">
+              <label for="playerEmail">Email<span class="required">*</span></label>
+              <input type="email" id="playerEmail" name="playerEmail" required />
+            </div>
+            <div class="form-row">
+              <label for="playerPhone">Phone Number<span class="required">*</span></label>
+              <input type="tel" id="playerPhone" name="playerPhone" required />
+            </div>
+            <div class="form-row">
+              <label for="playerDob">Date of Birth<span class="required">*</span></label>
+              <input type="date" id="playerDob" name="playerDob" required />
+            </div>
+            <div class="form-row">
+              <label for="homeTown">Town / Community</label>
+              <input type="text" id="homeTown" name="homeTown" />
+            </div>
 
-// detect team
-const params = new URLSearchParams(window.location.search);
-const team = params.get('team');
+            <div class="form-row">
+              <label for="shirtSize">Jersey Size<span class="required">*</span></label>
+              <select id="shirtSize" name="shirtSize" required>
+                <option value="">Select size...</option>
+                <option value="YS">Youth Small</option>
+                <option value="YM">Youth Medium</option>
+                <option value="YL">Youth Large</option>
+                <option value="AS">Adult Small</option>
+                <option value="AM">Adult Medium</option>
+                <option value="AL">Adult Large</option>
+                <option value="AXL">Adult XL</option>
+                <option value="A2XL">Adult 2XL</option>
+                <option value="A3XL">Adult 3XL</option>
+              </select>
+            </div>
 
-if(!team){
-  alert("This page must be opened using a team or solo link.");
-}
+            <div class="form-row">
+              <label for="experience">Flag Football Experience</label>
+              <select id="experience" name="experience">
+                <option value="">Select...</option>
+                <option value="first-time">First time playing</option>
+                <option value="some">Some experience</option>
+                <option value="experienced">Experienced player</option>
+              </select>
+            </div>
+          </div>
+        </div>
 
-// jersey toggle
-const jerseyRadios = document.querySelectorAll('input[name="jersey"]');
-const sizeField = document.getElementById('size');
+        <div class="form-section">
+          <h2>Team Organizer Interest (Optional)</h2>
+          <p class="info-note">Choose one option below if you are helping organize or lead a team.</p>
+          <input type="hidden" id="coachInterest" name="coachInterest" value="" />
 
-function updateJersey(){
-  const selected = document.querySelector('input[name="jersey"]:checked');
-  if(!selected) return;
+          <div class="coach-choice">
+            <button type="button" class="coach-btn" data-value="captain">I will captain / organize this team</button>
+            <button type="button" class="coach-btn" data-value="help">I am open to helping organize this team</button>
+          </div>
 
-  if(selected.value === "no"){
-    sizeField.disabled = true;
-    sizeField.classList.add("disabled");
-    sizeField.value = "";
-  } else {
-    sizeField.disabled = false;
-    sizeField.classList.remove("disabled");
-  }
-}
+          <div class="small-note" style="text-align:left; margin-top:0.5rem;">
+            Tip: click the selected option again to clear it.
+          </div>
+        </div>
 
-jerseyRadios.forEach(r => r.addEventListener('change', updateJersey));
+        <div class="form-section">
+          <h2>Health</h2>
+          <div class="form-row">
+            <label for="healthConcerns">Health Concerns / Allergies / Accessibility Needs</label>
+            <textarea id="healthConcerns" name="healthConcerns"
+              placeholder="Please list any medical, allergy, or accessibility information organizers should be aware of."></textarea>
+          </div>
+        </div>
 
-// submit
-document.getElementById('form').addEventListener('submit', function(e){
+        <div class="form-section">
+          <h2>Waivers & Permissions</h2>
 
-  e.preventDefault();
+          <div class="checkbox-row">
+            <label>
+              <input type="checkbox" id="liabilityWaiver" name="liabilityWaiver" />
+              I understand and accept that participation in flag football involves inherent risks of injury. I have read and agree to the terms of the
+              <a href="Waiver and Release of Liability.pdf" target="_blank" rel="noopener noreferrer">
+                Waiver and Release of Liability
+              </a>,
+              and I release the league, organizers, and staff from liability to the fullest extent permitted by law.
+              <span class="required">*</span>
+            </label>
+          </div>
 
-  const jersey = document.querySelector('input[name="jersey"]:checked');
-  if(!jersey){
-    alert("Select jersey option");
-    return;
-  }
+          <div class="checkbox-row">
+            <label>
+              <input type="checkbox" id="riskAck" name="riskAck" />
+              I acknowledge that I have reviewed the league rules and risk information, and I agree to support safe play
+              and sportsmanship.<span class="required">*</span>
+            </label>
+          </div>
 
-  if(jersey.value === "yes" && !sizeField.value){
-    alert("Select jersey size");
-    return;
-  }
+          <div class="radio-row">
+            <div>Photo / Video Permission<span class="required">*</span></div>
+            <div class="radio-group">
+              <label><input type="radio" name="photoPermission" value="yes" /> Yes, I give permission for league photos and videos.</label>
+              <label><input type="radio" name="photoPermission" value="no" /> No, please do not include me in photos or videos.</label>
+            </div>
+          </div>
+        </div>
 
-  const wantsJersey = jersey.value === "yes";
-  const price = wantsJersey ? 80 : 30;
+        <div class="form-section">
+          <h2>Player Signature</h2>
+          <p class="signature-note">
+            By typing my full name below, I confirm that the information provided is accurate and that I agree to the waivers and permissions above.
+          </p>
 
-  const payload = {
-    type:"registration",
-    data:{
-      flow:"adult_flag",
-      teamToken: team,
-      wantsJersey: wantsJersey,
-      price: price,
-      player:{
-        firstName: document.getElementById('first').value,
-        lastName: document.getElementById('last').value,
-        email: document.getElementById('email').value,
-        phone: document.getElementById('phone').value,
-        dob: document.getElementById('dob').value,
-        shirtSize: wantsJersey ? sizeField.value : ""
+          <div class="form-grid">
+            <div class="form-row">
+              <label for="signatureName">Full Name (acts as signature)<span class="required">*</span></label>
+              <input type="text" id="signatureName" name="signatureName" required />
+            </div>
+            <div class="form-row">
+              <label for="signatureDate">Date<span class="required">*</span></label>
+              <input type="date" id="signatureDate" name="signatureDate" required />
+            </div>
+          </div>
+        </div>
+
+        <div class="submit-row">
+          <button type="submit" class="submit-btn">Submit &amp; Continue to Payment</button>
+          <div class="small-note">You’ll review your details and complete secure payment on the next step.</div>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <div class="sponsor-strip">
+    <h2>SPONSORED BY</h2>
+    <div class="sponsor-track-wrapper">
+      <div class="sponsor-track" id="sponsorTrack">
+        <div class="sponsor-logo"><img src="DC Cab.png" alt="Sponsor 1"></div>
+        <div class="sponsor-logo"><img src="YourAdHere.png" alt="Sponsor 2"></div>
+        <div class="sponsor-logo"><img src="SponsorFun.png" alt="Sponsor 3"></div>
+        <div class="sponsor-logo"><img src="ThankYouSponsors.png" alt="Sponsor 4"></div>
+        <div class="sponsor-logo"><img src="YourAdHere.png" alt="Sponsor 5"></div>
+        <div class="sponsor-logo"><img src="SponsorFun.png" alt="Sponsor 6"></div>
+        <div class="sponsor-logo"><img src="ThankYouSponsors.png" alt="Sponsor 7"></div>
+        <div class="sponsor-logo"><img src="YourAdHere.png" alt="Sponsor 8"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // registration open/closed toggle
+    (function () {
+      if (!REGISTRATION_OPEN) {
+        document.body.classList.add('registration-closed');
       }
+    })();
+
+    // sponsor rotation
+    const sponsorTrack = document.getElementById('sponsorTrack');
+    if (sponsorTrack) {
+      setInterval(() => {
+        const firstLogo = sponsorTrack.firstElementChild;
+        if (firstLogo) sponsorTrack.appendChild(firstLogo);
+      }, 5000);
     }
-  };
 
-  sessionStorage.setItem("HFF_CHECKOUT_PAYLOAD", JSON.stringify(payload));
-  localStorage.setItem("HFF_CHECKOUT_PAYLOAD", JSON.stringify(payload));
+    // hamburger toggle
+    const mobileBtn = document.getElementById('mobileMenuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    if (mobileBtn && mobileMenu) {
+      mobileBtn.addEventListener('click', () => {
+        mobileMenu.classList.toggle('show');
+      });
+    }
 
-  window.location.href = "loading.html";
-});
-</script>
+    // store credit from URL (?code=ABC123)
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get('code');
+      const banner = document.getElementById('creditBanner');
+      const codeText = document.getElementById('creditCodeText');
+      const hiddenField = document.getElementById('storeCreditCode');
 
+      if (code && banner && codeText && hiddenField) {
+        banner.style.display = 'block';
+        codeText.textContent = code;
+        hiddenField.value = code;
+      }
+    })();
+
+    // team token from URL (?team=XXXX or ?team=solo)
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+      const team = params.get('team');
+      const teamField = document.getElementById('teamToken');
+      const teamBanner = document.getElementById('teamBanner');
+      const teamTokenText = document.getElementById('teamTokenText');
+      const teamBannerLabel = document.getElementById('teamBannerLabel');
+
+      if (!team) {
+        alert('This Adult Flag registration page must be opened using a team link or solo link.');
+        const btn = document.querySelector('.submit-btn');
+        if (btn) btn.disabled = true;
+        if (btn) btn.style.opacity = '0.5';
+        return;
+      }
+
+      teamField.value = team;
+      teamBanner.style.display = 'block';
+
+      if (team.toLowerCase() === 'solo') {
+        teamBannerLabel.textContent = 'Solo Registration Confirmed:';
+        teamTokenText.textContent = 'Solo Pool';
+      } else {
+        teamBannerLabel.textContent = 'Team Link Confirmed:';
+        teamTokenText.textContent = team;
+      }
+    })();
+
+    // pre-fill signature date with today
+    (function () {
+      const dateInput = document.getElementById('signatureDate');
+      if (!dateInput) return;
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      dateInput.value = `${yyyy}-${mm}-${dd}`;
+    })();
+
+    // organizer buttons (toggle + single select)
+    (function () {
+      const hidden = document.getElementById('coachInterest');
+      const buttons = document.querySelectorAll('.coach-btn');
+      if (!hidden || !buttons.length) return;
+
+      buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const val = btn.getAttribute('data-value');
+          if (btn.classList.contains('selected')) {
+            btn.classList.remove('selected');
+            hidden.value = '';
+            return;
+          }
+          buttons.forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+          hidden.value = val;
+        });
+      });
+    })();
+
+    // jersey option toggle
+    (function () {
+      const jerseyRadios = document.querySelectorAll('input[name="jerseyOption"]');
+      const shirtSizeEl = document.getElementById('shirtSize');
+
+      function updateShirtState() {
+        const selected = document.querySelector('input[name="jerseyOption"]:checked');
+        if (!selected || !shirtSizeEl) return;
+
+        const noJersey = selected.value === 'no_jersey';
+        shirtSizeEl.disabled = noJersey;
+        shirtSizeEl.classList.toggle('disabled-select', noJersey);
+
+        if (noJersey) {
+          shirtSizeEl.value = '';
+        }
+      }
+
+      jerseyRadios.forEach(radio => {
+        radio.addEventListener('change', updateShirtState);
+      });
+
+      updateShirtState();
+    })();
+
+    // submit handler
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('registrationForm');
+      if (!form) return;
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+
+        const liabilityWaiver = document.getElementById('liabilityWaiver');
+        const riskAck = document.getElementById('riskAck');
+        const photoPermission = document.querySelector('input[name="photoPermission"]:checked');
+        const jerseyOption = document.querySelector('input[name="jerseyOption"]:checked');
+
+        if (!jerseyOption) {
+          alert('Please choose whether you are registering with or without a jersey.');
+          return;
+        }
+
+        const wantsJersey = jerseyOption.value === 'with_jersey';
+        const shirtSizeEl = document.getElementById('shirtSize');
+
+        if (wantsJersey && (!shirtSizeEl || !shirtSizeEl.value)) {
+          shirtSizeEl && shirtSizeEl.focus();
+          alert('Please select a jersey size.');
+          return;
+        }
+
+        if (!liabilityWaiver.checked || !riskAck.checked) {
+          alert('Please agree to the liability waiver and risk acknowledgement to continue.');
+          return;
+        }
+
+        if (!photoPermission) {
+          alert('Please select a photo/video permission option.');
+          return;
+        }
+
+        const requiredIds = [
+          'playerFirstName', 'playerLastName', 'playerEmail', 'playerPhone',
+          'playerDob', 'signatureName', 'signatureDate'
+        ];
+        for (const id of requiredIds) {
+          const el = document.getElementById(id);
+          if (!el || !el.value.trim()) {
+            el && el.focus();
+            alert('Please complete all required fields.');
+            return;
+          }
+        }
+
+        const forcedAgeGroup = document.getElementById('forcedAgeGroup').value;
+        const teamToken = document.getElementById('teamToken').value;
+        const registrationType = teamToken.toLowerCase() === 'solo' ? 'solo' : 'team';
+        const price = wantsJersey ? 80 : 30;
+
+        const payload = {
+          flow: 'adult_flag',
+          registrationType: registrationType,
+          teamToken: teamToken,
+          player: {
+            firstName: document.getElementById('playerFirstName').value.trim(),
+            lastName: document.getElementById('playerLastName').value.trim(),
+            email: document.getElementById('playerEmail').value.trim(),
+            phone: document.getElementById('playerPhone').value.trim(),
+            dob: document.getElementById('playerDob').value,
+            homeTown: document.getElementById('homeTown').value.trim(),
+            shirtSize: wantsJersey ? document.getElementById('shirtSize').value : '',
+            experience: document.getElementById('experience').value
+          },
+          ageGroup: forcedAgeGroup,
+          organizerInterest: document.getElementById('coachInterest').value || null,
+          health: { concerns: document.getElementById('healthConcerns').value.trim() },
+          waivers: {
+            liabilityWaiver: liabilityWaiver.checked,
+            riskAcknowledgement: riskAck.checked,
+            photoPermission: photoPermission.value
+          },
+          signature: {
+            name: document.getElementById('signatureName').value.trim(),
+            date: document.getElementById('signatureDate').value
+          },
+          wantsJersey: wantsJersey,
+          jerseyOption: jerseyOption.value,
+          price: price,
+          includesJersey: wantsJersey,
+          storeCreditCode: document.getElementById('storeCreditCode').value || null
+        };
+
+        const checkoutPayload = JSON.stringify({ type: 'registration', data: payload });
+
+        sessionStorage.setItem('HFF_CHECKOUT_PAYLOAD', checkoutPayload);
+        localStorage.setItem('HFF_CHECKOUT_PAYLOAD', checkoutPayload);
+
+        window.location.replace('loading.html?v=' + Date.now());
+      }, true);
+    });
+  </script>
+
+  <script src="scores-strip.js"></script>
 </body>
 </html>
