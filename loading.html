@@ -8,6 +8,7 @@
   <style>
     :root { --ink:#fff; --black:#000; }
     * { box-sizing: border-box; }
+
     body{
       margin:0;
       background:#000;
@@ -16,7 +17,6 @@
       min-height:100vh;
     }
 
-    /* TOP BANNER (LOGO ONLY) */
     .top-banner{
       width:100%;
       background:#000;
@@ -25,68 +25,62 @@
       align-items:center;
       justify-content:center;
       min-height:56px;
-      position:relative;
-    }
-    .top-banner img{
-      height:82%;
-      width:auto;
-      max-width:90vw;
-      object-fit:contain;
-      display:block;
     }
 
-    /* LOADING */
+    .top-banner img{
+      height:82%;
+      max-width:90vw;
+      object-fit:contain;
+    }
+
     .stage{
       display:flex;
       align-items:center;
       justify-content:center;
-      padding: 3rem 1rem;
+      padding:3rem 1rem;
     }
+
     .wrap{
       text-align:center;
-      padding:2rem;
-      max-width:760px;
+      max-width:700px;
       width:100%;
     }
+
     .spinner{
-      width:56px; height:56px;
+      width:56px;
+      height:56px;
       border:6px solid #333;
       border-top-color:#fff;
       border-radius:50%;
       margin:0 auto 1rem;
       animation: spin 0.9s linear infinite;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .txt{ opacity:0.92; font-size:1rem; }
-    .sub{ opacity:0.65; margin-top:0.35rem; font-size:0.9rem; line-height:1.35; }
-    .badge{
-      display:inline-block;
-      margin-top:0.9rem;
-      padding:0.25rem 0.6rem;
-      border:1px solid #333;
-      border-radius:999px;
-      font-size:0.8rem;
-      opacity:0.7;
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
+
+    .txt{ font-size:1rem; }
+    .sub{ opacity:0.7; margin-top:0.4rem; font-size:0.9rem; }
+
     .err{
       display:none;
-      margin-top:1.1rem;
+      margin-top:1rem;
       background:#111;
-      border:1px solid #333;
       padding:1rem;
-      border-radius:12px;
-      color:#fff;
+      border-radius:10px;
+      border:1px solid #333;
       text-align:left;
-      font-size:0.92rem;
-      opacity:0.95;
+      font-size:0.9rem;
       white-space:pre-wrap;
     }
   </style>
 </head>
 
 <body>
+
   <div class="top-banner">
-    <a href="index.html" style="display:flex; align-items:center; justify-content:center; height:100%; width:100%;">
+    <a href="index.html">
       <img src="White Logo.jpg" alt="League Logo">
     </a>
   </div>
@@ -94,133 +88,102 @@
   <div class="stage">
     <div class="wrap">
       <div class="spinner"></div>
-      <div class="txt" id="mainTxt">Preparing your secure Stripe checkout…</div>
-      <div class="sub" id="subTxt">One moment. You’ll be redirected automatically.</div>
-      <div class="badge" id="badge">LOADING VERSION: SPLIT-SUCCESS-006 + ADULT-JERSEY-OPTION</div>
+      <div class="txt">Preparing your secure checkout…</div>
+      <div class="sub">One moment. You’ll be redirected automatically.</div>
       <div class="err" id="errBox"></div>
     </div>
   </div>
 
   <script>
     (async function () {
-      const BACKEND_URL = "https://hff-server.onrender.com";
 
+      const BACKEND_URL = "https://hff-server.onrender.com";
       const errBox = document.getElementById('errBox');
-      const mainTxt = document.getElementById('mainTxt');
-      const subTxt = document.getElementById('subTxt');
 
       function showError(msg) {
         errBox.style.display = 'block';
         errBox.textContent = msg;
       }
 
-      function getRawPayload() {
+      function getPayload() {
         return (
           sessionStorage.getItem('HFF_CHECKOUT_PAYLOAD') ||
           localStorage.getItem('HFF_CHECKOUT_PAYLOAD')
         );
       }
 
-      function safeJson(raw) {
-        try { return JSON.parse(raw); } catch { return null; }
-      }
+      const raw = getPayload();
 
-      const raw = getRawPayload();
-      const parsed = raw ? safeJson(raw) : null;
-
-      if (!raw || !parsed) {
-        window.location.replace('cart.html?v=' + Date.now());
+      if (!raw) {
+        window.location.replace('cart.html');
         return;
       }
 
-      // Determine flow type
-      const isRegistration =
-        parsed.type === 'registration' ||
-        (parsed.data && parsed.data.parent && parsed.data.player) ||
-        (parsed.parent && parsed.player) ||
-        (parsed.data && parsed.data.flow === 'adult_flag');
-
-      if (mainTxt) {
-        mainTxt.textContent = isRegistration
-          ? 'Preparing your registration payment…'
-          : 'Preparing your shop checkout…';
+      let parsed;
+      try {
+        parsed = JSON.parse(raw);
+      } catch {
+        window.location.replace('cart.html');
+        return;
       }
 
-      const successPath = isRegistration ? '/success.html' : '/cart_success.html';
-      const successUrl = window.location.origin + successPath + '?session_id={CHECKOUT_SESSION_ID}';
-      const cancelUrl = window.location.origin + (isRegistration ? '/register.html' : '/cart.html');
+      const isRegistration =
+        parsed.type === 'registration' ||
+        (parsed.data && parsed.data.flow === 'adult_flag');
 
       let body;
 
       if (isRegistration) {
+
         const reg = parsed.data || parsed;
 
-        const teamToken = (reg && reg.teamToken) ? String(reg.teamToken).trim() : '';
+        const isAdultFlag = reg.flow === 'adult_flag';
 
-        const isAdultFlag =
-          (reg && reg.flow === 'adult_flag');
-
-        const isGirlsTeam =
-          (reg && reg.flow === 'girls_team');
-
-        if (teamToken && subTxt) {
-          subTxt.textContent = 'Team link detected. Connecting your registration to the team…';
-        } else if (isAdultFlag && subTxt) {
-          subTxt.textContent = 'Preparing your Adult Flag registration checkout…';
-        }
-
-        let fee;
-        let lineItemName;
+        let fee = 185;
+        let name = "Registration";
 
         if (isAdultFlag) {
           fee = Number(reg.price || (reg.wantsJersey ? 80 : 30));
-          lineItemName = reg.wantsJersey
-            ? (reg.registrationType === 'solo'
-              ? 'Adult Flag Solo Registration (With Jersey)'
-              : 'Adult Flag Team Registration (With Jersey)')
-            : (reg.registrationType === 'solo'
-              ? 'Adult Flag Solo Registration (No Jersey)'
-              : 'Adult Flag Team Registration (No Jersey)');
-        } else {
-          const ageGroup = reg.ageGroup; // "U6" or "7plus"
-          fee = (ageGroup === 'U6') ? 80 : 185;
 
-          lineItemName = isGirlsTeam
-            ? 'Girls U18 Team Registration'
-            : (ageGroup === 'U6')
-              ? 'Player Registration (U6)'
-              : 'Player Registration (Age 6+)';
+          name = reg.wantsJersey
+            ? "Adult Flag Registration (With Jersey)"
+            : "Adult Flag Registration (No Jersey)";
+        } else {
+          const ageGroup = reg.ageGroup;
+          fee = (ageGroup === 'U6') ? 80 : 185;
+          name = "Player Registration";
         }
 
         const playerName =
-          (reg.player && (reg.player.firstName || reg.player.lastName))
+          reg.player
             ? ((reg.player.firstName || '') + ' ' + (reg.player.lastName || '')).trim()
-            : '';
-
-        const cart = [{
-          name: lineItemName,
-          price: fee,
-          quantity: 1
-        }];
+            : 'Registration';
 
         body = {
-          cart,
-          athleteName: playerName || (reg.parent && reg.parent.name) || 'Registration',
+          cart: [{
+            name: name,
+            price: fee,
+            quantity: 1
+          }],
+          athleteName: playerName,
           registration: reg,
-          teamToken: teamToken || null,
-          successUrl,
-          cancelUrl
+          teamToken: reg.teamToken || null,
+          successUrl: window.location.origin + '/success.html?session_id={CHECKOUT_SESSION_ID}',
+          cancelUrl: window.location.origin + '/register.html'
         };
+
       } else {
+
         body = {
           cart: parsed.cart,
           athleteName: parsed.athleteName || '',
-          successUrl,
-          cancelUrl
+          successUrl: window.location.origin + '/cart_success.html?session_id={CHECKOUT_SESSION_ID}',
+          cancelUrl: window.location.origin + '/cart.html'
         };
       }
 
       try {
+
         const res = await fetch(BACKEND_URL + '/create-checkout-session', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -228,25 +191,31 @@
         });
 
         const text = await res.text();
-        if (!res.ok) throw new Error(`POST /create-checkout-session failed (${res.status}).\n${text}`);
+
+        if (!res.ok) {
+          throw new Error(text);
+        }
 
         const out = JSON.parse(text);
-        const url = out.url || out.checkoutUrl || out.sessionUrl;
-        if (!url) throw new Error('No Stripe checkout URL returned.\n\n' + text);
+        const url = out.url;
+
+        if (!url) {
+          throw new Error("No Stripe URL returned.");
+        }
 
         window.location.href = url;
+
       } catch (e) {
-        showError(
-          "Stripe checkout failed.\n\nBackend:\n" + BACKEND_URL + "\n\n" +
-          (e && e.message ? e.message : String(e))
-        );
+
+        showError("Checkout failed:\n\n" + e.message);
 
         setTimeout(() => {
-          const back = isRegistration ? 'register.html' : 'cart.html';
-          window.location.replace(back + '?v=' + Date.now());
-        }, 6000);
+          window.location.replace('cart.html');
+        }, 4000);
       }
+
     })();
   </script>
+
 </body>
 </html>
