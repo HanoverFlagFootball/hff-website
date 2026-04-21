@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -123,7 +123,7 @@
 
     .summary-grid {
       display: grid;
-      grid-template-columns: repeat(5, minmax(0,1fr));
+      grid-template-columns: repeat(4, minmax(0,1fr));
       gap: 14px;
       margin-bottom: 18px;
     }
@@ -233,7 +233,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 1550px;
+      min-width: 1500px;
     }
 
     thead {
@@ -462,10 +462,6 @@
         <div class="label">Refunded</div>
         <div class="value" id="refundedCount">0</div>
       </div>
-      <div class="summary-card">
-        <div class="label">Total Rows</div>
-        <div class="value" id="totalCount">0</div>
-      </div>
     </section>
 
     <section class="toolbar">
@@ -510,7 +506,6 @@
               <th><button class="sort-btn" onclick="setSort('team_name')">Team Name</button></th>
               <th><button class="sort-btn" onclick="setSort('division')">Division</button></th>
               <th><button class="sort-btn" onclick="setSort('jersey_size')">Jersey Size</button></th>
-              <th class="status-cell"><button class="sort-btn" onclick="setSort('ordered')">Ordered</button></th>
               <th class="status-cell"><button class="sort-btn" onclick="setSort('processed')">Processed</button></th>
               <th class="status-cell"><button class="sort-btn" onclick="setSort('stocked')">Stocked</button></th>
               <th class="status-cell"><button class="sort-btn" onclick="setSort('fulfilled')">Fulfilled</button></th>
@@ -548,7 +543,6 @@
     const stockCount = document.getElementById("stockCount");
     const fulfillCount = document.getElementById("fulfillCount");
     const refundedCount = document.getElementById("refundedCount");
-    const totalCount = document.getElementById("totalCount");
     const tableBody = document.getElementById("tableBody");
     const statusBanner = document.getElementById("statusBanner");
 
@@ -612,7 +606,6 @@
             order_id: item.id,
             team_name: "",
             division: "",
-            ordered: false,
             processed: false,
             stocked: false,
             fulfilled: false,
@@ -691,7 +684,7 @@
       if (registrationKeys.length) {
         const { data: trackingRows, error: trackingError } = await supabase
           .from("registration_tracking_v1")
-          .select("registration_key, order_id, team_name, division, ordered, processed, stocked, fulfilled, refunded")
+          .select("registration_key, order_id, team_name, division, processed, stocked, fulfilled, refunded")
           .in("registration_key", registrationKeys);
 
         if (trackingError) {
@@ -721,7 +714,6 @@
           team_name: tracking.team_name ?? "",
           division: tracking.division ?? "",
           jersey_size: player.shirtSize || "",
-          ordered: tracking.ordered ?? false,
           processed: tracking.processed ?? false,
           stocked: tracking.stocked ?? false,
           fulfilled: tracking.fulfilled ?? false,
@@ -806,11 +798,11 @@
 
         let matchesFilter = true;
 
-        if (filter === "needs-processing") matchesFilter = row.ordered && !row.processed && !row.refunded;
+        if (filter === "needs-processing") matchesFilter = !row.processed && !row.refunded;
         if (filter === "needs-stocking") matchesFilter = row.processed && !row.stocked && !row.refunded;
         if (filter === "needs-fulfillment") matchesFilter = row.stocked && !row.fulfilled && !row.refunded;
         if (filter === "refunded") matchesFilter = row.refunded;
-        if (filter === "complete") matchesFilter = row.ordered && row.processed && row.stocked && row.fulfilled && !row.refunded;
+        if (filter === "complete") matchesFilter = row.processed && row.stocked && row.fulfilled && !row.refunded;
 
         return matchesSearch && matchesFilter;
       });
@@ -831,11 +823,10 @@
     }
 
     function updateSummary(filteredRows) {
-      processCount.textContent = filteredRows.filter(r => r.ordered && !r.processed && !r.refunded).length;
+      processCount.textContent = filteredRows.filter(r => !r.processed && !r.refunded).length;
       stockCount.textContent = filteredRows.filter(r => r.processed && !r.stocked && !r.refunded).length;
       fulfillCount.textContent = filteredRows.filter(r => r.stocked && !r.fulfilled && !r.refunded).length;
       refundedCount.textContent = filteredRows.filter(r => r.refunded).length;
-      totalCount.textContent = filteredRows.length;
     }
 
     function renderTable() {
@@ -845,7 +836,7 @@
       if (!filteredRows.length) {
         tableBody.innerHTML = `
           <tr>
-            <td colspan="11" class="muted">No rows found.</td>
+            <td colspan="10" class="muted">No rows found.</td>
           </tr>
         `;
         return;
@@ -880,9 +871,6 @@
           </td>
           <td class="jersey-cell">${escapeHtml(row.jersey_size)}</td>
           <td class="status-cell">
-            <input class="small-check" type="checkbox" ${row.ordered ? "checked" : ""} ${!isAuthenticated ? "disabled" : ""} onchange="window.toggleField('${encodeURIComponent(row.registration_key)}', 'ordered', this.checked)" />
-          </td>
-          <td class="status-cell">
             <input class="small-check" type="checkbox" ${row.processed ? "checked" : ""} ${!isAuthenticated ? "disabled" : ""} onchange="window.toggleField('${encodeURIComponent(row.registration_key)}', 'processed', this.checked)" />
           </td>
           <td class="status-cell">
@@ -914,16 +902,10 @@
       if (field === "fulfilled" && value) {
         row.stocked = true;
         row.processed = true;
-        row.ordered = true;
       }
 
       if (field === "stocked" && value) {
         row.processed = true;
-        row.ordered = true;
-      }
-
-      if (field === "processed" && value) {
-        row.ordered = true;
       }
     }
 
@@ -937,7 +919,6 @@
         order_id: row.order_id,
         team_name: row.team_name,
         division: row.division,
-        ordered: row.ordered,
         processed: row.processed,
         stocked: row.stocked,
         fulfilled: row.fulfilled,
@@ -1004,7 +985,6 @@
       }
 
       const original = {
-        ordered: row.ordered,
         processed: row.processed,
         stocked: row.stocked,
         fulfilled: row.fulfilled,
@@ -1023,7 +1003,6 @@
         await saveTrackingRow(row);
         showStatus("Change saved.", "success");
       } catch (error) {
-        row.ordered = original.ordered;
         row.processed = original.processed;
         row.stocked = original.stocked;
         row.fulfilled = original.fulfilled;
@@ -1061,7 +1040,6 @@
           if (!row) return;
 
           if (action === "processed-yes") {
-            row.ordered = true;
             row.processed = true;
           }
           if (action === "processed-no") {
@@ -1070,7 +1048,6 @@
             row.fulfilled = false;
           }
           if (action === "stocked-yes") {
-            row.ordered = true;
             row.processed = true;
             row.stocked = true;
           }
@@ -1079,7 +1056,6 @@
             row.fulfilled = false;
           }
           if (action === "fulfilled-yes") {
-            row.ordered = true;
             row.processed = true;
             row.stocked = true;
             row.fulfilled = true;
