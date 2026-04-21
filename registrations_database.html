@@ -597,16 +597,15 @@
 
         if (!uniqueMap.has(registration_key)) {
           uniqueMap.set(registration_key, {
-            registration_key,
-            order_id: item.id,
-            team_name: "",
-            division: "",
-            jersey_size: "",
-            processed: false,
-            stocked: false,
-            fulfilled: false,
-            refunded: false
-          });
+  registration_key,
+  order_id: item.id,
+  team_name: "",
+  division: "",
+  processed: false,
+  stocked: false,
+  fulfilled: false,
+  refunded: false
+});
         }
       });
 
