@@ -1,4 +1,4 @@
-<<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -292,7 +292,7 @@
 
     .editable-input {
       width: 100%;
-      min-width: 140px;
+      min-width: 120px;
       background: #080808;
       border: 1px solid #313131;
       color: #fff;
@@ -313,11 +313,6 @@
 
     .saved {
       border-color: #1f8f47 !important;
-    }
-
-    .jersey-cell {
-      font-weight: 700;
-      color: #f2f2f2;
     }
 
     .login-overlay {
@@ -606,6 +601,7 @@
             order_id: item.id,
             team_name: "",
             division: "",
+            jersey_size: "",
             processed: false,
             stocked: false,
             fulfilled: false,
@@ -684,7 +680,7 @@
       if (registrationKeys.length) {
         const { data: trackingRows, error: trackingError } = await supabase
           .from("registration_tracking_v1")
-          .select("registration_key, order_id, team_name, division, processed, stocked, fulfilled, refunded")
+          .select("registration_key, order_id, team_name, division, jersey_size, processed, stocked, fulfilled, refunded")
           .in("registration_key", registrationKeys);
 
         if (trackingError) {
@@ -713,7 +709,7 @@
           player_name: fullName,
           team_name: tracking.team_name ?? "",
           division: tracking.division ?? "",
-          jersey_size: player.shirtSize || "",
+          jersey_size: tracking.jersey_size ?? player.shirtSize ?? "",
           processed: tracking.processed ?? false,
           stocked: tracking.stocked ?? false,
           fulfilled: tracking.fulfilled ?? false,
@@ -869,7 +865,16 @@
               onkeydown="window.handleTextInputKey(event, '${encodeURIComponent(row.registration_key)}', 'division', this)"
             />
           </td>
-          <td class="jersey-cell">${escapeHtml(row.jersey_size)}</td>
+          <td>
+            <input
+              class="editable-input"
+              type="text"
+              value="${escapeHtml(row.jersey_size)}"
+              ${!isAuthenticated ? "disabled" : ""}
+              onblur="window.saveTextField('${encodeURIComponent(row.registration_key)}', 'jersey_size', this)"
+              onkeydown="window.handleTextInputKey(event, '${encodeURIComponent(row.registration_key)}', 'jersey_size', this)"
+            />
+          </td>
           <td class="status-cell">
             <input class="small-check" type="checkbox" ${row.processed ? "checked" : ""} ${!isAuthenticated ? "disabled" : ""} onchange="window.toggleField('${encodeURIComponent(row.registration_key)}', 'processed', this.checked)" />
           </td>
@@ -919,6 +924,7 @@
         order_id: row.order_id,
         team_name: row.team_name,
         division: row.division,
+        jersey_size: row.jersey_size,
         processed: row.processed,
         stocked: row.stocked,
         fulfilled: row.fulfilled,
