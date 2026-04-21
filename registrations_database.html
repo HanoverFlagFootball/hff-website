@@ -2,1145 +2,755 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Registrations Database</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Registrations Admin</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    :root {
-      --ink: #fff;
-      --line: #333;
-      --black: #000;
-      --accent: #0b5ed7;
-      --panel: #111;
-      --panel-2: #181818;
-      --muted: #c8c8c8;
-      --danger: #e10600;
-      --danger-hover: #ff2a23;
-      --good: #1f8f47;
-      --warn: #c88a00;
-      --info: #0b5ed7;
-      --shadow: 0 10px 28px rgba(0,0,0,.28);
-      --radius: 16px;
+    :root{
+      --bg:#0b0b0b;
+      --panel:#151515;
+      --panel-2:#1d1d1d;
+      --line:#2d2d2d;
+      --text:#f5f5f5;
+      --muted:#b8b8b8;
+      --accent:#d4af37;
+      --green:#1f8f4e;
+      --red:#b33a3a;
+      --blue:#2b6cb0;
+      --input:#101010;
     }
 
     * { box-sizing: border-box; }
 
-    body {
-      margin: 0;
+    body{
+      margin:0;
       font-family: Arial, Helvetica, sans-serif;
-      background: #000;
-      color: var(--ink);
+      background:var(--bg);
+      color:var(--text);
     }
 
-    .top-banner {
-      width: 100%;
-      background: #000;
-      aspect-ratio: 8 / 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 56px;
-      position: relative;
+    .wrap{
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 20px;
     }
 
-    .top-banner img {
-      height: 82%;
-      width: auto;
-      max-width: 90vw;
-      object-fit: contain;
-      display: block;
+    h1{
+      margin:0 0 16px;
+      font-size: 28px;
+      color: var(--accent);
     }
 
-    .page {
-      width: min(1650px, 96%);
-      margin: 24px auto 40px;
+    .topbar{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:16px;
     }
 
-    .header-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-      flex-wrap: wrap;
-      margin-bottom: 18px;
+    .controls{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
     }
 
-    .title-wrap h1 {
-      margin: 0 0 6px;
-      font-size: clamp(1.6rem, 2.6vw, 2.3rem);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-
-    .title-wrap p {
-      margin: 0;
-      color: var(--muted);
-    }
-
-    .logout-btn {
-      border: 1px solid #383838;
-      background: #161616;
-      color: #fff;
-      padding: 10px 16px;
-      border-radius: 999px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .logout-btn:hover {
-      border-color: #666;
-    }
-
-    .status-banner {
-      display: none;
-      margin-bottom: 18px;
-      padding: 12px 14px;
-      border-radius: 12px;
-      font-weight: 700;
-      border: 1px solid transparent;
-    }
-
-    .status-banner.show {
-      display: block;
-    }
-
-    .status-success {
-      background: rgba(31, 143, 71, 0.14);
-      color: #73e09d;
-      border-color: rgba(31, 143, 71, 0.42);
-    }
-
-    .status-error {
-      background: rgba(225, 6, 0, 0.12);
-      color: #ff9a96;
-      border-color: rgba(225, 6, 0, 0.4);
-    }
-
-    .status-info {
-      background: rgba(11, 94, 215, 0.14);
-      color: #8dbbff;
-      border-color: rgba(11, 94, 215, 0.42);
-    }
-
-    .summary-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0,1fr));
-      gap: 14px;
-      margin-bottom: 18px;
-    }
-
-    .summary-card {
-      background: linear-gradient(180deg, var(--panel-2), var(--panel));
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      padding: 18px;
-      box-shadow: var(--shadow);
-    }
-
-    .summary-card .label {
-      color: var(--muted);
-      font-size: 0.92rem;
-      margin-bottom: 8px;
-    }
-
-    .summary-card .value {
-      font-size: 1.9rem;
-      font-weight: 800;
-    }
-
-    .toolbar {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      gap: 12px;
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      padding: 14px;
-      box-shadow: var(--shadow);
-      margin-bottom: 18px;
-    }
-
-    .toolbar-left,
-    .toolbar-right {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      align-items: center;
+    .card{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px;
+      box-shadow: 0 8px 30px rgba(0,0,0,.25);
     }
 
     input[type="text"],
-    input[type="email"],
-    input[type="password"],
-    select {
-      background: #0a0a0a;
-      border: 1px solid #333;
-      color: #fff;
-      border-radius: 12px;
-      padding: 11px 12px;
-      font-size: 0.95rem;
+    input[type="search"],
+    input[type="date"],
+    select{
+      background:var(--input);
+      color:var(--text);
+      border:1px solid #3a3a3a;
+      border-radius:10px;
+      padding:10px 12px;
+      min-height:40px;
     }
 
-    .search {
-      min-width: 260px;
+    button{
+      background:var(--accent);
+      color:#111;
+      border:none;
+      border-radius:10px;
+      padding:10px 14px;
+      font-weight:700;
+      cursor:pointer;
     }
 
-    .btn {
-      border: none;
-      border-radius: 12px;
-      padding: 11px 14px;
-      font-weight: 700;
-      cursor: pointer;
+    button.secondary{
+      background:#2a2a2a;
+      color:var(--text);
+      border:1px solid #404040;
     }
 
-    .btn-red {
-      background: var(--danger);
-      color: #fff;
+    button:hover{
+      opacity:.95;
     }
 
-    .btn-red:hover {
-      background: var(--danger-hover);
+    .status{
+      margin:10px 0 14px;
+      padding:10px 12px;
+      border-radius:10px;
+      font-size:14px;
+      display:none;
     }
 
-    .btn-dark {
-      background: #181818;
-      color: #fff;
-      border: 1px solid #383838;
+    .status.show{ display:block; }
+    .status.ok{ background:rgba(31,143,78,.15); border:1px solid rgba(31,143,78,.45); color:#b7f0c9; }
+    .status.err{ background:rgba(179,58,58,.15); border:1px solid rgba(179,58,58,.45); color:#ffd0d0; }
+    .status.info{ background:rgba(43,108,176,.15); border:1px solid rgba(43,108,176,.45); color:#d7e9ff; }
+
+    .table-wrap{
+      overflow:auto;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background:var(--panel);
     }
 
-    .btn-dark:hover {
-      border-color: #666;
+    table{
+      width:100%;
+      border-collapse:collapse;
+      min-width:1400px;
     }
 
-    .btn:disabled,
-    .logout-btn:disabled {
-      opacity: 0.55;
-      cursor: not-allowed;
+    th, td{
+      padding:12px 10px;
+      border-bottom:1px solid var(--line);
+      text-align:left;
+      vertical-align:top;
+      font-size:14px;
     }
 
-    .table-wrap {
-      background: linear-gradient(180deg, var(--panel-2), var(--panel));
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      overflow: hidden;
-      box-shadow: var(--shadow);
+    th{
+      position:sticky;
+      top:0;
+      background:var(--panel-2);
+      z-index:1;
+      color:var(--accent);
+      white-space:nowrap;
     }
 
-    .table-scroll {
-      overflow: auto;
-      width: 100%;
+    tr:hover td{
+      background:rgba(255,255,255,.02);
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 1500px;
+    .small{
+      font-size:12px;
+      color:var(--muted);
     }
 
-    thead {
-      background: #0d0d0d;
+    .pill{
+      display:inline-block;
+      padding:4px 8px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:700;
+      white-space:nowrap;
     }
 
-    th, td {
-      padding: 12px 10px;
-      border-bottom: 1px solid #232323;
-      text-align: left;
-      vertical-align: middle;
-      font-size: 0.95rem;
+    .pill.source-order{
+      background:rgba(43,108,176,.18);
+      border:1px solid rgba(43,108,176,.45);
+      color:#d7e9ff;
     }
 
-    th {
-      color: #fff;
-      font-size: 0.9rem;
-      letter-spacing: 0.02em;
-      white-space: nowrap;
-      position: sticky;
-      top: 0;
-      z-index: 1;
+    .pill.source-saved{
+      background:rgba(31,143,78,.18);
+      border:1px solid rgba(31,143,78,.45);
+      color:#b7f0c9;
     }
 
-    tbody tr:hover {
-      background: rgba(255,255,255,.03);
+    .pill.source-blank{
+      background:rgba(255,255,255,.07);
+      border:1px solid rgba(255,255,255,.12);
+      color:#ddd;
     }
 
-    .sort-btn {
-      background: none;
-      border: none;
-      color: #fff;
-      font: inherit;
-      font-weight: 800;
-      cursor: pointer;
-      padding: 0;
+    .cell-input{
+      width:100%;
+      min-width:90px;
+      padding:8px 10px;
+      border-radius:8px;
+      background:#0d0d0d;
+      color:#fff;
+      border:1px solid #3b3b3b;
     }
 
-    .muted {
-      color: var(--muted);
+    .cell-input.saving{
+      border-color:#2b6cb0;
+      box-shadow:0 0 0 2px rgba(43,108,176,.18);
     }
 
-    .status-cell {
-      text-align: center;
+    .cell-input.saved{
+      border-color:#1f8f4e;
+      box-shadow:0 0 0 2px rgba(31,143,78,.18);
     }
 
-    .small-check {
-      width: 18px;
-      height: 18px;
-      cursor: pointer;
+    .cell-input.error{
+      border-color:#b33a3a;
+      box-shadow:0 0 0 2px rgba(179,58,58,.18);
     }
 
-    .refunded-col {
-      background: rgba(225, 6, 0, 0.04);
+    .muted{
+      color:var(--muted);
     }
 
-    .editable-input {
-      width: 100%;
-      min-width: 120px;
-      background: #080808;
-      border: 1px solid #313131;
-      color: #fff;
-      border-radius: 10px;
-      padding: 8px 10px;
-      font-size: 0.92rem;
+    .right{
+      text-align:right;
     }
 
-    .editable-input:focus {
-      outline: none;
-      border-color: #777;
+    .nowrap{
+      white-space:nowrap;
     }
 
-    .saving {
-      border-color: #0b5ed7 !important;
-      box-shadow: 0 0 0 1px rgba(11, 94, 215, 0.35);
+    .name-block{
+      display:flex;
+      flex-direction:column;
+      gap:3px;
     }
 
-    .saved {
-      border-color: #1f8f47 !important;
+    .toolbar-note{
+      color:var(--muted);
+      font-size:13px;
     }
 
-    .login-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,.88);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      z-index: 1000;
+    .count{
+      font-weight:700;
+      color:var(--accent);
     }
 
-    .login-box {
-      width: min(460px, 100%);
-      background: linear-gradient(180deg, #171717, #101010);
-      border: 1px solid #313131;
-      border-radius: 22px;
-      padding: 26px;
-      box-shadow: 0 20px 55px rgba(0,0,0,.45);
-    }
-
-    .login-box h2 {
-      margin: 0 0 10px;
-      font-size: 1.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-
-    .login-box p {
-      margin: 0 0 18px;
-      color: var(--muted);
-      line-height: 1.5;
-    }
-
-    .login-box input {
-      width: 100%;
-      margin-bottom: 12px;
-      padding: 14px;
-      border-radius: 14px;
-      border: 1px solid #333;
-      background: #080808;
-      color: #fff;
-      font-size: 1rem;
-    }
-
-    .login-box button {
-      width: 100%;
-      border: none;
-      background: var(--danger);
-      color: #fff;
-      font-weight: 800;
-      border-radius: 14px;
-      padding: 14px;
-      cursor: pointer;
-      font-size: 1rem;
-    }
-
-    .login-box button:hover {
-      background: var(--danger-hover);
-    }
-
-    .login-error {
-      color: #ff8b8b;
-      min-height: 20px;
-      margin-bottom: 10px;
-      font-size: 0.92rem;
-    }
-
-    .helper {
-      color: #8f8f8f;
-      font-size: 0.83rem;
-      margin-top: 12px;
-      line-height: 1.4;
-    }
-
-    @media (max-width: 1100px) {
-      .summary-grid {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
-
-    @media (max-width: 640px) {
-      .summary-grid {
-        grid-template-columns: 1fr;
+    @media (max-width: 900px){
+      .topbar{
+        flex-direction:column;
+        align-items:stretch;
       }
 
-      .search {
-        min-width: unset;
-        width: 100%;
+      .controls{
+        width:100%;
+      }
+
+      .controls > *{
+        flex:1 1 180px;
       }
     }
   </style>
 </head>
-
 <body>
+  <div class="wrap">
+    <div class="topbar">
+      <div>
+        <h1>Registrations Admin</h1>
+        <div class="toolbar-note">
+          Jersey Size is editable and will pre-fill from matching order data when available.
+        </div>
+      </div>
 
-  <div class="top-banner">
-    <a href="index.html" style="display:flex; align-items:center; justify-content:center; height:100%; width:100%;">
-      <img src="White Logo.jpg" alt="League Logo" style="height:82%; width:auto; max-width:90vw; object-fit:contain; display:block; cursor:pointer;">
-    </a>
-    <div id="site-nav"></div>
-  </div>
+      <div class="controls">
+        <input type="search" id="searchInput" placeholder="Search name, email, team, division..." />
+        <button id="refreshBtn">Refresh</button>
+      </div>
+    </div>
 
-  <div class="login-overlay" id="loginOverlay">
-    <div class="login-box">
-      <h2>Admin Access</h2>
-      <p>Sign in with your admin email and password.</p>
-      <div class="login-error" id="loginError"></div>
-      <input type="email" id="emailInput" placeholder="Email address" autocomplete="username" />
-      <input type="password" id="passwordInput" placeholder="Password" autocomplete="current-password" />
-      <button id="loginBtn">Sign In</button>
-      <div class="helper">This page only saves changes when you are signed in.</div>
+    <div id="statusBox" class="status"></div>
+
+    <div class="card" style="margin-bottom: 14px;">
+      <span>Total registrations shown: <span id="rowCount" class="count">0</span></span>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="nowrap">Created</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th class="nowrap">DOB</th>
+            <th>Division</th>
+            <th>Team</th>
+            <th class="nowrap">Jersey Size</th>
+            <th>Source</th>
+            <th>Buddy Request</th>
+            <th>Phone</th>
+            <th>Medical Notes</th>
+            <th class="nowrap">Photo Permission</th>
+            <th class="nowrap">Waiver</th>
+          </tr>
+        </thead>
+        <tbody id="registrationsBody">
+          <tr>
+            <td colspan="13" class="muted">Loading registrations...</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 
-  <main class="page">
-    <div id="statusBanner" class="status-banner"></div>
+  <script>
+    // =========================
+    // SUPABASE SETTINGS
+    // =========================
+    const SUPABASE_URL = "YOUR_SUPABASE_URL";
+    const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
 
-    <div class="header-row">
-      <div class="title-wrap">
-        <h1>Registrations Database</h1>
-        <p>Track player registrations, team names, divisions, jersey sizes, and fulfillment status.</p>
-      </div>
-      <button class="logout-btn" id="logoutBtn">Log Out</button>
-    </div>
+    const REGISTRATIONS_TABLE = "registrations";
+    const ORDERS_TABLE = "orders";
 
-    <section class="summary-grid">
-      <div class="summary-card">
-        <div class="label">Still to Process</div>
-        <div class="value" id="processCount">0</div>
-      </div>
-      <div class="summary-card">
-        <div class="label">Still to Stock</div>
-        <div class="value" id="stockCount">0</div>
-      </div>
-      <div class="summary-card">
-        <div class="label">Still to Fulfill</div>
-        <div class="value" id="fulfillCount">0</div>
-      </div>
-      <div class="summary-card">
-        <div class="label">Refunded</div>
-        <div class="value" id="refundedCount">0</div>
-      </div>
-    </section>
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    <section class="toolbar">
-      <div class="toolbar-left">
-        <input class="search" id="searchInput" type="text" placeholder="Search player, team, division, jersey size..." />
-        <select id="statusFilter">
-          <option value="all">All Rows</option>
-          <option value="needs-processing">Needs Processing</option>
-          <option value="needs-stocking">Needs Stocking</option>
-          <option value="needs-fulfillment">Needs Fulfillment</option>
-          <option value="refunded">Refunded</option>
-          <option value="complete">Complete</option>
-        </select>
-      </div>
-
-      <div class="toolbar-right">
-        <select id="bulkAction">
-          <option value="">Bulk Action</option>
-          <option value="processed-yes">Mark Processed</option>
-          <option value="processed-no">Clear Processed</option>
-          <option value="stocked-yes">Mark Stocked</option>
-          <option value="stocked-no">Clear Stocked</option>
-          <option value="fulfilled-yes">Mark Fulfilled</option>
-          <option value="fulfilled-no">Clear Fulfilled</option>
-          <option value="refunded-yes">Mark Refunded</option>
-          <option value="refunded-no">Clear Refunded</option>
-        </select>
-
-        <button class="btn btn-dark" id="applyBulkBtn">Apply</button>
-        <button class="btn btn-red" id="refreshBtn">Refresh</button>
-      </div>
-    </section>
-
-    <section class="table-wrap">
-      <div class="table-scroll">
-        <table>
-          <thead>
-            <tr>
-              <th>Select</th>
-              <th><button class="sort-btn" onclick="setSort('created_at')">Date</button></th>
-              <th><button class="sort-btn" onclick="setSort('player_name')">Player Name</button></th>
-              <th><button class="sort-btn" onclick="setSort('team_name')">Team Name</button></th>
-              <th><button class="sort-btn" onclick="setSort('division')">Division</button></th>
-              <th><button class="sort-btn" onclick="setSort('jersey_size')">Jersey Size</button></th>
-              <th class="status-cell"><button class="sort-btn" onclick="setSort('processed')">Processed</button></th>
-              <th class="status-cell"><button class="sort-btn" onclick="setSort('stocked')">Stocked</button></th>
-              <th class="status-cell"><button class="sort-btn" onclick="setSort('fulfilled')">Fulfilled</button></th>
-              <th class="status-cell refunded-col"><button class="sort-btn" onclick="setSort('refunded')">Refunded</button></th>
-            </tr>
-          </thead>
-          <tbody id="tableBody"></tbody>
-        </table>
-      </div>
-    </section>
-  </main>
-
-  <script type="module">
-    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-    const SUPABASE_URL = "https://wnhzgxnwlmohfldnhhyt.supabase.co";
-    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_x5Xkl7tfpUwhz_ENftiaqQ_am915vqY";
-
-    const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
-
-    const loginOverlay = document.getElementById("loginOverlay");
-    const emailInput = document.getElementById("emailInput");
-    const passwordInput = document.getElementById("passwordInput");
-    const loginBtn = document.getElementById("loginBtn");
-    const loginError = document.getElementById("loginError");
-    const logoutBtn = document.getElementById("logoutBtn");
-
+    const statusBox = document.getElementById("statusBox");
+    const registrationsBody = document.getElementById("registrationsBody");
     const searchInput = document.getElementById("searchInput");
-    const statusFilter = document.getElementById("statusFilter");
-    const bulkAction = document.getElementById("bulkAction");
-    const applyBulkBtn = document.getElementById("applyBulkBtn");
     const refreshBtn = document.getElementById("refreshBtn");
+    const rowCount = document.getElementById("rowCount");
 
-    const processCount = document.getElementById("processCount");
-    const stockCount = document.getElementById("stockCount");
-    const fulfillCount = document.getElementById("fulfillCount");
-    const refundedCount = document.getElementById("refundedCount");
-    const tableBody = document.getElementById("tableBody");
-    const statusBanner = document.getElementById("statusBanner");
-
-    let sortKey = "created_at";
-    let sortAsc = false;
-    let rows = [];
-    let isAuthenticated = false;
+    let allRows = [];
 
     function showStatus(message, type = "info") {
-      statusBanner.textContent = message;
-      statusBanner.className = "status-banner show";
-
-      if (type === "success") statusBanner.classList.add("status-success");
-      else if (type === "error") statusBanner.classList.add("status-error");
-      else statusBanner.classList.add("status-info");
+      statusBox.textContent = message;
+      statusBox.className = `status show ${type}`;
     }
 
     function clearStatus() {
-      statusBanner.textContent = "";
-      statusBanner.className = "status-banner";
+      statusBox.textContent = "";
+      statusBox.className = "status";
     }
 
-    function setControlsEnabled(enabled) {
-      searchInput.disabled = !enabled;
-      statusFilter.disabled = !enabled;
-      bulkAction.disabled = !enabled;
-      applyBulkBtn.disabled = !enabled;
-      refreshBtn.disabled = !enabled;
-      logoutBtn.disabled = !enabled;
+    function safeLower(value) {
+      return String(value || "").trim().toLowerCase();
     }
 
-    function formatDate(dateStr) {
-      if (!dateStr) return "";
-      const d = new Date(dateStr);
-      if (Number.isNaN(d.getTime())) return dateStr;
-      return d.toLocaleDateString("en-CA");
+    function normalizeDate(value) {
+      if (!value) return "";
+      const d = new Date(value);
+      if (isNaN(d.getTime())) return String(value).slice(0, 10);
+      return d.toISOString().slice(0, 10);
     }
 
-    function escapeHtml(value) {
-      return String(value || "")
+    function makeKey(firstName, lastName, dob, email = "") {
+      return [
+        safeLower(firstName),
+        safeLower(lastName),
+        normalizeDate(dob),
+        safeLower(email)
+      ].join("|");
+    }
+
+    function makeKeyNoEmail(firstName, lastName, dob) {
+      return [
+        safeLower(firstName),
+        safeLower(lastName),
+        normalizeDate(dob)
+      ].join("|");
+    }
+
+    function escapeHtml(str) {
+      return String(str ?? "")
         .replace(/&/g, "&amp;")
-        .replace(/"/g, "&quot;")
         .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
     }
 
-    function buildRegistrationKey(item) {
-      return String(item.id);
+    function formatDate(value) {
+      if (!value) return "";
+      const d = new Date(value);
+      if (isNaN(d.getTime())) return String(value).slice(0, 10);
+      return d.toLocaleDateString();
     }
 
-    async function ensureTrackingRows(registrations) {
-      const uniqueMap = new Map();
-
-      registrations.forEach(item => {
-        const registration_key = buildRegistrationKey(item);
-        if (!registration_key) return;
-
-        if (!uniqueMap.has(registration_key)) {
-          uniqueMap.set(registration_key, {
-  registration_key,
-  order_id: item.id,
-  team_name: "",
-  division: "",
-  processed: false,
-  stocked: false,
-  fulfilled: false,
-  refunded: false
-});
-        }
-      });
-
-      const payload = [...uniqueMap.values()];
-      if (!payload.length) return;
-
-      const { error } = await supabase
-        .from("registration_tracking_v1")
-        .upsert(payload, { onConflict: "registration_key" });
-
-      if (error) throw error;
+    function getRegistrationName(row) {
+      const first =
+        row.first_name ||
+        row.firstname ||
+        row.player_first_name ||
+        "";
+      const last =
+        row.last_name ||
+        row.lastname ||
+        row.player_last_name ||
+        "";
+      return `${first} ${last}`.trim();
     }
 
-    async function loadRows() {
-      clearStatus();
+    function getRegistrationEmail(row) {
+      return (
+        row.email ||
+        row.parent_email ||
+        row.guardian_email ||
+        row.stripe_customer_email ||
+        ""
+      );
+    }
 
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData.session) {
-        isAuthenticated = false;
-        loginOverlay.style.display = "flex";
-        setControlsEnabled(false);
-        rows = [];
-        renderTable();
-        showStatus("You must sign in to load or save registration changes.", "error");
-        return;
-      }
+    function getRegistrationDob(row) {
+      return (
+        row.date_of_birth ||
+        row.dob ||
+        row.player_date_of_birth ||
+        ""
+      );
+    }
 
-      isAuthenticated = true;
-      loginOverlay.style.display = "none";
-      setControlsEnabled(true);
+    function getRegistrationDivision(row) {
+      return (
+        row.division ||
+        row.age_group ||
+        row.program ||
+        row.registration_type ||
+        ""
+      );
+    }
 
-      showStatus("Loading registrations...", "info");
+    function getRegistrationTeam(row) {
+      return (
+        row.team ||
+        row.team_name ||
+        row.team_code ||
+        ""
+      );
+    }
 
-      const { data: registrationItems, error: itemsError } = await supabase
-        .from("orders")
-        .select(`
-          id,
-          order_no,
-          created_at,
-          status,
-          order_type,
-          stripe_customer_email,
-          payload
-        `)
+    function getBuddyRequest(row) {
+      return (
+        row.buddy_request ||
+        row.buddy ||
+        ""
+      );
+    }
+
+    function getPhone(row) {
+      return (
+        row.phone ||
+        row.parent_phone ||
+        row.guardian_phone ||
+        ""
+      );
+    }
+
+    function getMedical(row) {
+      return (
+        row.medical_notes ||
+        row.medical ||
+        row.notes ||
+        ""
+      );
+    }
+
+    function getPhotoPermission(row) {
+      const val =
+        row.photo_permission ??
+        row.photo_waiver ??
+        row.media_permission ??
+        "";
+      if (val === true) return "Yes";
+      if (val === false) return "No";
+      return String(val || "");
+    }
+
+    function getWaiver(row) {
+      const val =
+        row.waiver_accepted ??
+        row.risk_waiver ??
+        row.waiver ??
+        "";
+      if (val === true) return "Yes";
+      if (val === false) return "No";
+      return String(val || "");
+    }
+
+    async function fetchRegistrations() {
+      const { data, error } = await supabase
+        .from(REGISTRATIONS_TABLE)
+        .select("*")
         .order("created_at", { ascending: false });
 
-      if (itemsError) {
-        showStatus("Could not load registrations: " + itemsError.message, "error");
-        rows = [];
-        renderTable();
-        return;
-      }
+      if (error) throw error;
+      return data || [];
+    }
 
-      const filteredRegistrations = (registrationItems || []).filter(item => {
-        return item.payload?.registration?.player;
-      });
+    async function fetchOrders() {
+      const { data, error } = await supabase
+        .from(ORDERS_TABLE)
+        .select("id, created_at, stripe_customer_email, payload")
+        .order("created_at", { ascending: false });
 
-      try {
-        await ensureTrackingRows(filteredRegistrations);
-      } catch (error) {
-        showStatus("Could not prepare registration rows: " + error.message, "error");
-        rows = [];
-        renderTable();
-        return;
-      }
+      if (error) throw error;
+      return data || [];
+    }
 
-      const registrationKeys = [...new Set(filteredRegistrations.map(item => buildRegistrationKey(item)))];
+    function buildOrderShirtSizeMaps(orders) {
+      const byFullKey = new Map();
+      const byNameDob = new Map();
 
-      let trackingMap = new Map();
+      for (const order of orders) {
+        const payload = order.payload || {};
+        const reg = payload.registration || {};
+        const player = reg.player || {};
 
-      if (registrationKeys.length) {
-        const { data: trackingRows, error: trackingError } = await supabase
-          .from("registration_tracking_v1")
-          .select("registration_key, order_id, team_name, division, jersey_size, processed, stocked, fulfilled, refunded")
-          .in("registration_key", registrationKeys);
+        const firstName = player.firstName || player.first_name || "";
+        const lastName = player.lastName || player.last_name || "";
+        const dob = player.dob || player.dateOfBirth || player.date_of_birth || "";
+        const shirtSize = player.shirtSize || player.shirt_size || "";
+        const email = order.stripe_customer_email || reg.email || reg.parentEmail || "";
 
-        if (trackingError) {
-          showStatus("Could not load registration tracking data: " + trackingError.message, "error");
-          rows = [];
-          renderTable();
-          return;
+        if (!shirtSize || !firstName || !lastName || !dob) continue;
+
+        const fullKey = makeKey(firstName, lastName, dob, email);
+        const nameDobKey = makeKeyNoEmail(firstName, lastName, dob);
+
+        if (!byFullKey.has(fullKey)) {
+          byFullKey.set(fullKey, shirtSize);
         }
 
-        trackingMap = new Map((trackingRows || []).map(row => [row.registration_key, row]));
+        if (!byNameDob.has(nameDobKey)) {
+          byNameDob.set(nameDobKey, shirtSize);
+        }
       }
 
-      rows = filteredRegistrations.map(item => {
-        const registration_key = buildRegistrationKey(item);
-        const tracking = trackingMap.get(registration_key) || {};
-        const player = item.payload?.registration?.player || {};
+      return { byFullKey, byNameDob };
+    }
 
-        const firstName = player.firstName || "";
-        const lastName = player.lastName || "";
-        const fullName = `${firstName} ${lastName}`.trim() || item.stripe_customer_email || "Unknown";
+    function mergeRegistrationAndOrderData(registrations, orderMaps) {
+      return registrations.map(row => {
+        const firstName =
+          row.first_name ||
+          row.firstname ||
+          row.player_first_name ||
+          "";
+        const lastName =
+          row.last_name ||
+          row.lastname ||
+          row.player_last_name ||
+          "";
+        const dob = getRegistrationDob(row);
+        const email = getRegistrationEmail(row);
+
+        const savedJersey =
+          row.jersey_size ||
+          row.shirt_size ||
+          "";
+
+        const orderMatch =
+          orderMaps.byFullKey.get(makeKey(firstName, lastName, dob, email)) ||
+          orderMaps.byNameDob.get(makeKeyNoEmail(firstName, lastName, dob)) ||
+          "";
+
+        const displayJersey = savedJersey || orderMatch || "";
+        const jerseySource = savedJersey ? "saved" : (orderMatch ? "order" : "blank");
 
         return {
-          registration_key,
-          order_id: item.id,
-          created_at: item.created_at || "",
-          player_name: fullName,
-          team_name: tracking.team_name ?? "",
-          division: tracking.division ?? "",
-          jersey_size: tracking.jersey_size ?? player.shirtSize ?? "",
-          processed: tracking.processed ?? false,
-          stocked: tracking.stocked ?? false,
-          fulfilled: tracking.fulfilled ?? false,
-          refunded: tracking.refunded ?? false
+          ...row,
+          _display_name: getRegistrationName(row),
+          _display_email: email,
+          _display_dob: dob,
+          _display_division: getRegistrationDivision(row),
+          _display_team: getRegistrationTeam(row),
+          _display_buddy: getBuddyRequest(row),
+          _display_phone: getPhone(row),
+          _display_medical: getMedical(row),
+          _display_photo_permission: getPhotoPermission(row),
+          _display_waiver: getWaiver(row),
+          _jersey_size_display: displayJersey,
+          _jersey_source: jerseySource
         };
       });
-
-      renderTable();
-      showStatus("Registrations loaded.", "success");
     }
 
-    async function handleLogin() {
-      loginError.textContent = "";
-      clearStatus();
-
-      const email = emailInput.value.trim();
-      const password = passwordInput.value;
-
-      if (!email || !password) {
-        loginError.textContent = "Enter your email and password.";
-        return;
+    function sourceBadge(source) {
+      if (source === "saved") {
+        return `<span class="pill source-saved">Saved in registrations</span>`;
       }
-
-      loginBtn.disabled = true;
-      loginBtn.textContent = "Signing In...";
-
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-
-      loginBtn.disabled = false;
-      loginBtn.textContent = "Sign In";
-
-      if (error) {
-        loginError.textContent = error.message;
-        showStatus("Sign-in failed. Nothing can be saved until you log in.", "error");
-        return;
+      if (source === "order") {
+        return `<span class="pill source-order">Pulled from order</span>`;
       }
-
-      emailInput.value = "";
-      passwordInput.value = "";
-      loginOverlay.style.display = "none";
-      showStatus("Signed in successfully.", "success");
-      await loadRows();
+      return `<span class="pill source-blank">No size found</span>`;
     }
 
-    async function handleLogout() {
-      const { error } = await supabase.auth.signOut();
+    function renderTable(rows) {
+      rowCount.textContent = rows.length;
 
-      if (error) {
-        showStatus("Could not log out: " + error.message, "error");
-        return;
-      }
-
-      isAuthenticated = false;
-      rows = [];
-      renderTable();
-      setControlsEnabled(false);
-      loginOverlay.style.display = "flex";
-      showStatus("Logged out. Changes cannot be saved until you sign in again.", "info");
-    }
-
-    function setSort(key) {
-      if (sortKey === key) sortAsc = !sortAsc;
-      else {
-        sortKey = key;
-        sortAsc = true;
-      }
-      renderTable();
-    }
-
-    window.setSort = setSort;
-
-    function getFilteredRows() {
-      const search = searchInput.value.trim().toLowerCase();
-      const filter = statusFilter.value;
-
-      let filtered = rows.filter(row => {
-        const matchesSearch =
-          row.player_name.toLowerCase().includes(search) ||
-          row.team_name.toLowerCase().includes(search) ||
-          row.division.toLowerCase().includes(search) ||
-          row.jersey_size.toLowerCase().includes(search);
-
-        let matchesFilter = true;
-
-        if (filter === "needs-processing") matchesFilter = !row.processed && !row.refunded;
-        if (filter === "needs-stocking") matchesFilter = row.processed && !row.stocked && !row.refunded;
-        if (filter === "needs-fulfillment") matchesFilter = row.stocked && !row.fulfilled && !row.refunded;
-        if (filter === "refunded") matchesFilter = row.refunded;
-        if (filter === "complete") matchesFilter = row.processed && row.stocked && row.fulfilled && !row.refunded;
-
-        return matchesSearch && matchesFilter;
-      });
-
-      filtered.sort((a, b) => {
-        let av = a[sortKey];
-        let bv = b[sortKey];
-
-        if (typeof av === "string") av = av.toLowerCase();
-        if (typeof bv === "string") bv = bv.toLowerCase();
-
-        if (av < bv) return sortAsc ? -1 : 1;
-        if (av > bv) return sortAsc ? 1 : -1;
-        return 0;
-      });
-
-      return filtered;
-    }
-
-    function updateSummary(filteredRows) {
-      processCount.textContent = filteredRows.filter(r => !r.processed && !r.refunded).length;
-      stockCount.textContent = filteredRows.filter(r => r.processed && !r.stocked && !r.refunded).length;
-      fulfillCount.textContent = filteredRows.filter(r => r.stocked && !r.fulfilled && !r.refunded).length;
-      refundedCount.textContent = filteredRows.filter(r => r.refunded).length;
-    }
-
-    function renderTable() {
-      const filteredRows = getFilteredRows();
-      updateSummary(filteredRows);
-
-      if (!filteredRows.length) {
-        tableBody.innerHTML = `
+      if (!rows.length) {
+        registrationsBody.innerHTML = `
           <tr>
-            <td colspan="10" class="muted">No rows found.</td>
+            <td colspan="13" class="muted">No registrations found.</td>
           </tr>
         `;
         return;
       }
 
-      tableBody.innerHTML = filteredRows.map(row => `
-        <tr>
-          <td>
-            <input type="checkbox" class="row-select" data-registration-key="${encodeURIComponent(row.registration_key)}" ${!isAuthenticated ? "disabled" : ""} />
-          </td>
-          <td>${formatDate(row.created_at)}</td>
-          <td>${escapeHtml(row.player_name)}</td>
-          <td>
-            <input
-              class="editable-input"
-              type="text"
-              value="${escapeHtml(row.team_name)}"
-              ${!isAuthenticated ? "disabled" : ""}
-              onblur="window.saveTextField('${encodeURIComponent(row.registration_key)}', 'team_name', this)"
-              onkeydown="window.handleTextInputKey(event, '${encodeURIComponent(row.registration_key)}', 'team_name', this)"
-            />
-          </td>
-          <td>
-            <input
-              class="editable-input"
-              type="text"
-              value="${escapeHtml(row.division)}"
-              ${!isAuthenticated ? "disabled" : ""}
-              onblur="window.saveTextField('${encodeURIComponent(row.registration_key)}', 'division', this)"
-              onkeydown="window.handleTextInputKey(event, '${encodeURIComponent(row.registration_key)}', 'division', this)"
-            />
-          </td>
-          <td>
-            <input
-              class="editable-input"
-              type="text"
-              value="${escapeHtml(row.jersey_size)}"
-              ${!isAuthenticated ? "disabled" : ""}
-              onblur="window.saveTextField('${encodeURIComponent(row.registration_key)}', 'jersey_size', this)"
-              onkeydown="window.handleTextInputKey(event, '${encodeURIComponent(row.registration_key)}', 'jersey_size', this)"
-            />
-          </td>
-          <td class="status-cell">
-            <input class="small-check" type="checkbox" ${row.processed ? "checked" : ""} ${!isAuthenticated ? "disabled" : ""} onchange="window.toggleField('${encodeURIComponent(row.registration_key)}', 'processed', this.checked)" />
-          </td>
-          <td class="status-cell">
-            <input class="small-check" type="checkbox" ${row.stocked ? "checked" : ""} ${!isAuthenticated ? "disabled" : ""} onchange="window.toggleField('${encodeURIComponent(row.registration_key)}', 'stocked', this.checked)" />
-          </td>
-          <td class="status-cell">
-            <input class="small-check" type="checkbox" ${row.fulfilled ? "checked" : ""} ${!isAuthenticated ? "disabled" : ""} onchange="window.toggleField('${encodeURIComponent(row.registration_key)}', 'fulfilled', this.checked)" />
-          </td>
-          <td class="status-cell refunded-col">
-            <input class="small-check" type="checkbox" ${row.refunded ? "checked" : ""} ${!isAuthenticated ? "disabled" : ""} onchange="window.toggleField('${encodeURIComponent(row.registration_key)}', 'refunded', this.checked)" />
-          </td>
-        </tr>
-      `).join("");
+      registrationsBody.innerHTML = rows.map(row => {
+        return `
+          <tr>
+            <td class="nowrap">${escapeHtml(formatDate(row.created_at))}</td>
+            <td>
+              <div class="name-block">
+                <strong>${escapeHtml(row._display_name)}</strong>
+                <span class="small">ID: ${escapeHtml(row.id)}</span>
+              </div>
+            </td>
+            <td>${escapeHtml(row._display_email)}</td>
+            <td class="nowrap">${escapeHtml(formatDate(row._display_dob))}</td>
+            <td>${escapeHtml(row._display_division)}</td>
+            <td>${escapeHtml(row._display_team)}</td>
+            <td>
+              <input
+                type="text"
+                class="cell-input jersey-input"
+                data-id="${escapeHtml(row.id)}"
+                value="${escapeHtml(row._jersey_size_display)}"
+                placeholder="Jersey size"
+              />
+            </td>
+            <td>${sourceBadge(row._jersey_source)}</td>
+            <td>${escapeHtml(row._display_buddy)}</td>
+            <td>${escapeHtml(row._display_phone)}</td>
+            <td>${escapeHtml(row._display_medical)}</td>
+            <td>${escapeHtml(row._display_photo_permission)}</td>
+            <td>${escapeHtml(row._display_waiver)}</td>
+          </tr>
+        `;
+      }).join("");
+
+      attachInputHandlers();
     }
 
-    function applyFieldRules(row, field, value) {
-      row[field] = value;
+    function filterRows() {
+      const term = safeLower(searchInput.value);
 
-      if (!value) {
-        if (field === "processed") {
-          row.stocked = false;
-          row.fulfilled = false;
-        }
-        if (field === "stocked") {
-          row.fulfilled = false;
-        }
+      if (!term) {
+        renderTable(allRows);
+        return;
       }
 
-      if (field === "fulfilled" && value) {
-        row.stocked = true;
-        row.processed = true;
-      }
+      const filtered = allRows.filter(row => {
+        return [
+          row._display_name,
+          row._display_email,
+          row._display_division,
+          row._display_team,
+          row._display_buddy,
+          row._display_phone,
+          row._jersey_size_display
+        ].some(value => safeLower(value).includes(term));
+      });
 
-      if (field === "stocked" && value) {
-        row.processed = true;
-      }
+      renderTable(filtered);
     }
 
-    async function saveTrackingRow(row) {
-      if (!isAuthenticated) {
-        throw new Error("You must be signed in to save changes.");
-      }
+    async function saveJerseySize(registrationId, newValue, inputEl) {
+      inputEl.classList.remove("saved", "error");
+      inputEl.classList.add("saving");
 
-      const payload = {
-        registration_key: row.registration_key,
-        order_id: row.order_id,
-        team_name: row.team_name,
-        division: row.division,
-        jersey_size: row.jersey_size,
-        processed: row.processed,
-        stocked: row.stocked,
-        fulfilled: row.fulfilled,
-        refunded: row.refunded
+      const updatePayload = {
+        jersey_size: newValue
       };
 
       const { error } = await supabase
-        .from("registration_tracking_v1")
-        .upsert(payload, { onConflict: "registration_key" });
+        .from(REGISTRATIONS_TABLE)
+        .update(updatePayload)
+        .eq("id", registrationId);
 
-      if (error) throw error;
+      inputEl.classList.remove("saving");
+
+      if (error) {
+        inputEl.classList.add("error");
+        showStatus(`Could not save Jersey Size for registration ${registrationId}: ${error.message}`, "err");
+        return false;
+      }
+
+      inputEl.classList.add("saved");
+      setTimeout(() => inputEl.classList.remove("saved"), 1200);
+      return true;
     }
 
-    window.handleTextInputKey = async function(event, encodedRegistrationKey, field, input) {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        input.blur();
-      }
-    };
+    function attachInputHandlers() {
+      const inputs = document.querySelectorAll(".jersey-input");
 
-    window.saveTextField = async function(encodedRegistrationKey, field, input) {
-      const registrationKey = decodeURIComponent(encodedRegistrationKey);
-      const row = rows.find(r => r.registration_key === registrationKey);
-      if (!row) return;
+      inputs.forEach(input => {
+        let originalValue = input.value;
 
-      if (!isAuthenticated) {
-        showStatus("You must log in to save changes.", "error");
-        await loadRows();
-        return;
-      }
+        input.addEventListener("focus", () => {
+          originalValue = input.value;
+        });
 
-      const newValue = input.value.trim();
-      if (row[field] === newValue) return;
-
-      const originalValue = row[field];
-      row[field] = newValue;
-
-      try {
-        input.classList.remove("saved");
-        input.classList.add("saving");
-        showStatus("Saving change...", "info");
-        await saveTrackingRow(row);
-        input.classList.remove("saving");
-        input.classList.add("saved");
-        showStatus("Change saved.", "success");
-        renderTable();
-      } catch (error) {
-        row[field] = originalValue;
-        input.value = originalValue;
-        input.classList.remove("saving");
-        showStatus("Change was not saved: " + error.message, "error");
-      }
-    };
-
-    window.toggleField = async function(encodedRegistrationKey, field, value) {
-      const registrationKey = decodeURIComponent(encodedRegistrationKey);
-      const row = rows.find(r => r.registration_key === registrationKey);
-      if (!row) return;
-
-      if (!isAuthenticated) {
-        showStatus("You must log in to save changes.", "error");
-        await loadRows();
-        return;
-      }
-
-      const original = {
-        processed: row.processed,
-        stocked: row.stocked,
-        fulfilled: row.fulfilled,
-        refunded: row.refunded
-      };
-
-      try {
-        if (field !== "refunded") {
-          applyFieldRules(row, field, value);
-        } else {
-          row.refunded = value;
-        }
-
-        renderTable();
-        showStatus("Saving change...", "info");
-        await saveTrackingRow(row);
-        showStatus("Change saved.", "success");
-      } catch (error) {
-        row.processed = original.processed;
-        row.stocked = original.stocked;
-        row.fulfilled = original.fulfilled;
-        row.refunded = original.refunded;
-        renderTable();
-        showStatus("Change was not saved: " + error.message, "error");
-      }
-    };
-
-    async function applyBulkAction() {
-      if (!isAuthenticated) {
-        showStatus("You must log in to save changes.", "error");
-        return;
-      }
-
-      const action = bulkAction.value;
-      if (!action) {
-        showStatus("Choose a bulk action first.", "error");
-        return;
-      }
-
-      const selectedKeys = [...document.querySelectorAll(".row-select:checked")]
-        .map(cb => decodeURIComponent(cb.dataset.registrationKey));
-
-      if (!selectedKeys.length) {
-        showStatus("Select at least one row first.", "error");
-        return;
-      }
-
-      const originalRows = rows.map(row => ({ ...row }));
-
-      try {
-        selectedKeys.forEach(registrationKey => {
-          const row = rows.find(r => r.registration_key === registrationKey);
-          if (!row) return;
-
-          if (action === "processed-yes") {
-            row.processed = true;
+        input.addEventListener("keydown", async (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            input.blur();
           }
-          if (action === "processed-no") {
-            row.processed = false;
-            row.stocked = false;
-            row.fulfilled = false;
-          }
-          if (action === "stocked-yes") {
-            row.processed = true;
-            row.stocked = true;
-          }
-          if (action === "stocked-no") {
-            row.stocked = false;
-            row.fulfilled = false;
-          }
-          if (action === "fulfilled-yes") {
-            row.processed = true;
-            row.stocked = true;
-            row.fulfilled = true;
-          }
-          if (action === "fulfilled-no") {
-            row.fulfilled = false;
-          }
-          if (action === "refunded-yes") {
-            row.refunded = true;
-          }
-          if (action === "refunded-no") {
-            row.refunded = false;
+          if (e.key === "Escape") {
+            input.value = originalValue;
+            input.blur();
           }
         });
 
-        renderTable();
-        showStatus("Saving bulk changes...", "info");
+        input.addEventListener("blur", async () => {
+          const registrationId = input.dataset.id;
+          const newValue = input.value.trim();
 
-        await Promise.all(
-          selectedKeys.map(registrationKey => {
-            const row = rows.find(r => r.registration_key === registrationKey);
-            return saveTrackingRow(row);
-          })
-        );
+          if (newValue === originalValue.trim()) return;
 
-        showStatus(`${selectedKeys.length} row(s) updated.`, "success");
-      } catch (error) {
-        rows = originalRows;
-        renderTable();
-        showStatus("Bulk update failed: " + error.message, "error");
+          const ok = await saveJerseySize(registrationId, newValue, input);
+
+          if (ok) {
+            const row = allRows.find(r => String(r.id) === String(registrationId));
+            if (row) {
+              row._jersey_size_display = newValue;
+              row._jersey_source = newValue ? "saved" : "blank";
+            }
+            originalValue = newValue;
+            showStatus("Jersey Size saved.", "ok");
+            filterRows();
+          }
+        });
+      });
+    }
+
+    async function loadPage() {
+      clearStatus();
+      registrationsBody.innerHTML = `
+        <tr>
+          <td colspan="13" class="muted">Loading registrations...</td>
+        </tr>
+      `;
+
+      try {
+        const [registrations, orders] = await Promise.all([
+          fetchRegistrations(),
+          fetchOrders()
+        ]);
+
+        const orderMaps = buildOrderShirtSizeMaps(orders);
+        allRows = mergeRegistrationAndOrderData(registrations, orderMaps);
+
+        filterRows();
+        showStatus("Registrations loaded successfully.", "ok");
+      } catch (err) {
+        console.error(err);
+        registrationsBody.innerHTML = `
+          <tr>
+            <td colspan="13" class="muted">Could not load registrations.</td>
+          </tr>
+        `;
+        showStatus(`Could not load registrations: ${err.message}`, "err");
       }
     }
 
-    loginBtn.addEventListener("click", handleLogin);
-    passwordInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") handleLogin();
-    });
-    emailInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") handleLogin();
-    });
+    searchInput.addEventListener("input", filterRows);
+    refreshBtn.addEventListener("click", loadPage);
 
-    logoutBtn.addEventListener("click", handleLogout);
-    searchInput.addEventListener("input", renderTable);
-    statusFilter.addEventListener("change", renderTable);
-    applyBulkBtn.addEventListener("click", applyBulkAction);
-    refreshBtn.addEventListener("click", loadRows);
-
-    supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session) {
-        isAuthenticated = true;
-        loginOverlay.style.display = "none";
-        setControlsEnabled(true);
-      } else {
-        isAuthenticated = false;
-        loginOverlay.style.display = "flex";
-        setControlsEnabled(false);
-      }
-    });
-
-    async function init() {
-      setControlsEnabled(false);
-
-      const { data } = await supabase.auth.getSession();
-
-      if (data.session) {
-        isAuthenticated = true;
-        loginOverlay.style.display = "none";
-        setControlsEnabled(true);
-        await loadRows();
-      } else {
-        isAuthenticated = false;
-        loginOverlay.style.display = "flex";
-        renderTable();
-        showStatus("Sign in to load and save registration tracking.", "info");
-      }
-    }
-
-    init();
+    loadPage();
   </script>
-
-  <script src="nav.js"></script>
 </body>
 </html>
