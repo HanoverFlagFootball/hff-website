@@ -51,7 +51,7 @@
     }
 
     .page {
-      width: min(1600px, 96%);
+      width: min(1650px, 96%);
       margin: 24px auto 40px;
     }
 
@@ -233,7 +233,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 1380px;
+      min-width: 1550px;
     }
 
     thead {
@@ -313,6 +313,11 @@
 
     .saved {
       border-color: #1f8f47 !important;
+    }
+
+    .jersey-cell {
+      font-weight: 700;
+      color: #f2f2f2;
     }
 
     .login-overlay {
@@ -435,7 +440,7 @@
     <div class="header-row">
       <div class="title-wrap">
         <h1>Registrations Database</h1>
-        <p>Track player registrations, team names, divisions, and fulfillment status.</p>
+        <p>Track player registrations, team names, divisions, jersey sizes, and fulfillment status.</p>
       </div>
       <button class="logout-btn" id="logoutBtn">Log Out</button>
     </div>
@@ -465,7 +470,7 @@
 
     <section class="toolbar">
       <div class="toolbar-left">
-        <input class="search" id="searchInput" type="text" placeholder="Search player, team, division..." />
+        <input class="search" id="searchInput" type="text" placeholder="Search player, team, division, jersey size..." />
         <select id="statusFilter">
           <option value="all">All Rows</option>
           <option value="needs-processing">Needs Processing</option>
@@ -504,6 +509,7 @@
               <th><button class="sort-btn" onclick="setSort('player_name')">Player Name</button></th>
               <th><button class="sort-btn" onclick="setSort('team_name')">Team Name</button></th>
               <th><button class="sort-btn" onclick="setSort('division')">Division</button></th>
+              <th><button class="sort-btn" onclick="setSort('jersey_size')">Jersey Size</button></th>
               <th class="status-cell"><button class="sort-btn" onclick="setSort('ordered')">Ordered</button></th>
               <th class="status-cell"><button class="sort-btn" onclick="setSort('processed')">Processed</button></th>
               <th class="status-cell"><button class="sort-btn" onclick="setSort('stocked')">Stocked</button></th>
@@ -581,18 +587,16 @@
       return d.toLocaleDateString("en-CA");
     }
 
-    function getPlayerName(item) {
-      return item.athlete_name || item.player_name || "Unknown";
+    function escapeHtml(value) {
+      return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/"/g, "&quot;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
     }
 
     function buildRegistrationKey(item) {
-      return item.line_key || [
-        item.order_no || "",
-        item.created_at || "",
-        item.athlete_name || "",
-        item.player_name || "",
-        item.stripe_customer_email || ""
-      ].join("|");
+      return String(item.id);
     }
 
     async function ensureTrackingRows(registrations) {
@@ -605,7 +609,7 @@
         if (!uniqueMap.has(registration_key)) {
           uniqueMap.set(registration_key, {
             registration_key,
-            line_key: item.line_key || null,
+            order_id: item.id,
             team_name: "",
             division: "",
             ordered: true,
@@ -648,17 +652,16 @@
       showStatus("Loading registrations...", "info");
 
       const { data: registrationItems, error: itemsError } = await supabase
-        .from("order_items")
+        .from("orders")
         .select(`
-          line_key,
+          id,
           order_no,
           created_at,
+          status,
           order_type,
-          athlete_name,
-          player_name,
-          stripe_customer_email
+          stripe_customer_email,
+          payload
         `)
-        .neq("order_type", "shop")
         .order("created_at", { ascending: false });
 
       if (itemsError) {
@@ -668,8 +671,12 @@
         return;
       }
 
+      const filteredRegistrations = (registrationItems || []).filter(item => {
+        return item.payload?.registration?.player;
+      });
+
       try {
-        await ensureTrackingRows(registrationItems || []);
+        await ensureTrackingRows(filteredRegistrations);
       } catch (error) {
         showStatus("Could not prepare registration rows: " + error.message, "error");
         rows = [];
@@ -677,14 +684,14 @@
         return;
       }
 
-      const registrationKeys = [...new Set((registrationItems || []).map(item => buildRegistrationKey(item)))];
+      const registrationKeys = [...new Set(filteredRegistrations.map(item => buildRegistrationKey(item)))];
 
       let trackingMap = new Map();
 
       if (registrationKeys.length) {
         const { data: trackingRows, error: trackingError } = await supabase
           .from("registration_tracking_v1")
-          .select("registration_key, line_key, team_name, division, ordered, processed, stocked, fulfilled, refunded")
+          .select("registration_key, order_id, team_name, division, ordered, processed, stocked, fulfilled, refunded")
           .in("registration_key", registrationKeys);
 
         if (trackingError) {
@@ -697,17 +704,23 @@
         trackingMap = new Map((trackingRows || []).map(row => [row.registration_key, row]));
       }
 
-      rows = (registrationItems || []).map(item => {
+      rows = filteredRegistrations.map(item => {
         const registration_key = buildRegistrationKey(item);
         const tracking = trackingMap.get(registration_key) || {};
+        const player = item.payload?.registration?.player || {};
+
+        const firstName = player.firstName || "";
+        const lastName = player.lastName || "";
+        const fullName = `${firstName} ${lastName}`.trim() || item.stripe_customer_email || "Unknown";
 
         return {
           registration_key,
-          line_key: item.line_key || null,
+          order_id: item.id,
           created_at: item.created_at || "",
-          player_name: getPlayerName(item),
+          player_name: fullName,
           team_name: tracking.team_name ?? "",
           division: tracking.division ?? "",
+          jersey_size: player.shirtSize || "",
           ordered: tracking.ordered ?? true,
           processed: tracking.processed ?? false,
           stocked: tracking.stocked ?? false,
@@ -788,7 +801,8 @@
         const matchesSearch =
           row.player_name.toLowerCase().includes(search) ||
           row.team_name.toLowerCase().includes(search) ||
-          row.division.toLowerCase().includes(search);
+          row.division.toLowerCase().includes(search) ||
+          row.jersey_size.toLowerCase().includes(search);
 
         let matchesFilter = true;
 
@@ -831,7 +845,7 @@
       if (!filteredRows.length) {
         tableBody.innerHTML = `
           <tr>
-            <td colspan="10" class="muted">No rows found.</td>
+            <td colspan="11" class="muted">No rows found.</td>
           </tr>
         `;
         return;
@@ -843,7 +857,7 @@
             <input type="checkbox" class="row-select" data-registration-key="${encodeURIComponent(row.registration_key)}" ${!isAuthenticated ? "disabled" : ""} />
           </td>
           <td>${formatDate(row.created_at)}</td>
-          <td>${row.player_name}</td>
+          <td>${escapeHtml(row.player_name)}</td>
           <td>
             <input
               class="editable-input"
@@ -864,6 +878,7 @@
               onkeydown="window.handleTextInputKey(event, '${encodeURIComponent(row.registration_key)}', 'division', this)"
             />
           </td>
+          <td class="jersey-cell">${escapeHtml(row.jersey_size)}</td>
           <td class="status-cell">
             <input class="small-check" type="checkbox" ${row.ordered ? "checked" : ""} ${!isAuthenticated ? "disabled" : ""} onchange="window.toggleField('${encodeURIComponent(row.registration_key)}', 'ordered', this.checked)" />
           </td>
@@ -881,14 +896,6 @@
           </td>
         </tr>
       `).join("");
-    }
-
-    function escapeHtml(value) {
-      return String(value || "")
-        .replace(/&/g, "&amp;")
-        .replace(/"/g, "&quot;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
     }
 
     function applyFieldRules(row, field, value) {
@@ -927,7 +934,7 @@
 
       const payload = {
         registration_key: row.registration_key,
-        line_key: row.line_key,
+        order_id: row.order_id,
         team_name: row.team_name,
         division: row.division,
         ordered: row.ordered,
