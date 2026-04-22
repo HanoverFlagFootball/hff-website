@@ -411,39 +411,42 @@
     }
 
     function createWeekGameBox(g) {
-      const box = document.createElement('div');
-      box.className = 'week-game';
-      box.innerHTML = `
-        <div class="week-left">
-          <div class="week-team-row">
-            <div class="week-team-info">
-              <img src="${g.awayLogo}" alt="${g.away}" class="week-team-logo">
-              <div class="week-team-name-wrap">
-                <span class="week-team-name">${g.away}</span>
-                <span class="week-team-record">${g.awayRecord || ''}</span>
-              </div>
-            </div>
-            <div class="week-score">${g.awayScore || 'TBD'}</div>
-          </div>
-          <div class="week-team-row">
-            <div class="week-team-info">
-              <img src="${g.homeLogo}" alt="${g.home}" class="week-team-logo">
-              <div class="week-team-name-wrap">
-                <span class="week-team-name">${g.home}</span>
-                <span class="week-team-record">${g.homeRecord || ''}</span>
-              </div>
-            </div>
-            <div class="week-score">${g.homeScore || 'TBD'}</div>
+  const awayRecordText = g.awayRecord ? `(${g.awayRecord})` : '(0-0)';
+  const homeRecordText = g.homeRecord ? `(${g.homeRecord})` : '(0-0)';
+
+  const box = document.createElement('div');
+  box.className = 'week-game';
+  box.innerHTML = `
+    <div class="week-left">
+      <div class="week-team-row">
+        <div class="week-team-info">
+          <img src="${g.awayLogo}" alt="${g.away}" class="week-team-logo">
+          <div class="week-team-name-wrap">
+            <span class="week-team-name">${g.away}</span>
+            <span class="week-team-record">${awayRecordText}</span>
           </div>
         </div>
-        <div class="week-divider"></div>
-        <div class="week-right">
-          <div class="week-datetime">${g.datetime}</div>
-          <div class="week-field">${g.field}</div>
+        <div class="week-score">${g.awayScore || 'TBD'}</div>
+      </div>
+      <div class="week-team-row">
+        <div class="week-team-info">
+          <img src="${g.homeLogo}" alt="${g.home}" class="week-team-logo">
+          <div class="week-team-name-wrap">
+            <span class="week-team-name">${g.home}</span>
+            <span class="week-team-record">${homeRecordText}</span>
+          </div>
         </div>
-      `;
-      return box;
-    }
+        <div class="week-score">${g.homeScore || 'TBD'}</div>
+      </div>
+    </div>
+    <div class="week-divider"></div>
+    <div class="week-right">
+      <div class="week-datetime">${g.datetime}</div>
+      <div class="week-field">Field ${g.field}</div>
+    </div>
+  `;
+  return box;
+}
 
     (function renderByTeamFromDirectory() {
       const tabTeam = document.getElementById('tab-team');

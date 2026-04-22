@@ -1,4 +1,4 @@
-console.log("season-schedule.js loaded");
+console.log("season-schedule.js loaded v3");
 
 window.HFF_SCHEDULE = {
   getAllWeeks: function () {
@@ -10,98 +10,98 @@ window.HFF_SCHEDULE = {
           {
             away: "Giants (U6)",
             awayLogo: "White Logo.jpg",
-            awayRecord: "",
+            awayRecord: "0-0",
             awayScore: "0",
             home: "Giants (U6)",
             homeLogo: "White Logo.jpg",
-            homeRecord: "",
+            homeRecord: "0-0",
             homeScore: "0",
             datetime: "9:15 AM",
-            field: "Field 1"
+            field: "B"
           },
           {
             away: "Packers (U9)",
             awayLogo: "White Logo.jpg",
-            awayRecord: "",
+            awayRecord: "0-1",
             awayScore: "0",
             home: "Saints (U9)",
             homeLogo: "White Logo.jpg",
-            homeRecord: "",
+            homeRecord: "1-1",
             homeScore: "1",
             datetime: "9:30 AM",
-            field: "Field 1"
+            field: "A"
           },
           {
             away: "Browns (U12)",
             awayLogo: "White Logo.jpg",
-            awayRecord: "",
+            awayRecord: "0-1",
             awayScore: "0",
             home: "Jets (U12)",
             homeLogo: "White Logo.jpg",
-            homeRecord: "",
+            homeRecord: "1-0",
             homeScore: "2",
             datetime: "10:00 AM",
-            field: "Field 1"
+            field: "C"
           },
           {
             away: "Bears (U9)",
             awayLogo: "White Logo.jpg",
-            awayRecord: "",
+            awayRecord: "1-0",
             awayScore: "4",
             home: "Saints (U9)",
             homeLogo: "White Logo.jpg",
-            homeRecord: "",
+            homeRecord: "0-1",
             homeScore: "3",
             datetime: "10:30 AM",
-            field: "Field 1"
+            field: "A"
           },
           {
             away: "Bills (U12)",
             awayLogo: "White Logo.jpg",
-            awayRecord: "",
+            awayRecord: "1-0",
             awayScore: "6",
             home: "Ravens (U12)",
             homeLogo: "White Logo.jpg",
-            homeRecord: "",
+            homeRecord: "0-1",
             homeScore: "5",
             datetime: "11:00 AM",
-            field: "Field 1"
+            field: "C"
           },
           {
             away: "Chiefs (U16)",
             awayLogo: "White Logo.jpg",
-            awayRecord: "",
+            awayRecord: "0-1",
             awayScore: "4",
             home: "Cowboys (U16)",
             homeLogo: "White Logo.jpg",
-            homeRecord: "",
+            homeRecord: "2-0",
             homeScore: "6",
             datetime: "11:30 AM",
-            field: "Field 1"
+            field: "A"
           },
           {
             away: "Panthers (U16)",
             awayLogo: "White Logo.jpg",
-            awayRecord: "",
+            awayRecord: "0-1",
             awayScore: "2",
             home: "Patriots (U16)",
             homeLogo: "White Logo.jpg",
-            homeRecord: "",
+            homeRecord: "1-0",
             homeScore: "23",
             datetime: "12:00 PM",
-            field: "Field 1"
+            field: "C"
           },
           {
             away: "Cowboys (U16)",
             awayLogo: "White Logo.jpg",
-            awayRecord: "",
+            awayRecord: "1-0",
             awayScore: "65",
             home: "Commanders (U16)",
             homeLogo: "White Logo.jpg",
-            homeRecord: "",
+            homeRecord: "0-1",
             homeScore: "25",
             datetime: "12:30 PM",
-            field: "Field 1"
+            field: "A"
           }
         ]
       },
@@ -119,7 +119,7 @@ window.HFF_SCHEDULE = {
             homeRecord: "",
             homeScore: "",
             datetime: "9:15 AM",
-            field: "Field 1"
+            field: "B"
           },
           {
             away: "Bears (U9)",
@@ -131,7 +131,7 @@ window.HFF_SCHEDULE = {
             homeRecord: "",
             homeScore: "",
             datetime: "9:30 AM",
-            field: "Field 1"
+            field: "A"
           },
           {
             away: "Jets (U12)",
@@ -143,7 +143,7 @@ window.HFF_SCHEDULE = {
             homeRecord: "",
             homeScore: "",
             datetime: "10:00 AM",
-            field: "Field 1"
+            field: "C"
           },
           {
             away: "Saints (U9)",
@@ -155,7 +155,7 @@ window.HFF_SCHEDULE = {
             homeRecord: "",
             homeScore: "",
             datetime: "10:30 AM",
-            field: "Field 1"
+            field: "A"
           },
           {
             away: "Ravens (U12)",
@@ -167,7 +167,7 @@ window.HFF_SCHEDULE = {
             homeRecord: "",
             homeScore: "",
             datetime: "11:00 AM",
-            field: "Field 1"
+            field: "C"
           },
           {
             away: "Panthers (U16)",
@@ -179,7 +179,7 @@ window.HFF_SCHEDULE = {
             homeRecord: "",
             homeScore: "",
             datetime: "11:30 AM",
-            field: "Field 1"
+            field: "A"
           },
           {
             away: "Patriots (U16)",
@@ -191,7 +191,7 @@ window.HFF_SCHEDULE = {
             homeRecord: "",
             homeScore: "",
             datetime: "12:00 PM",
-            field: "Field 1"
+            field: "C"
           },
           {
             away: "Chiefs (U16)",
@@ -203,7 +203,7 @@ window.HFF_SCHEDULE = {
             homeRecord: "",
             homeScore: "",
             datetime: "12:30 PM",
-            field: "Field 1"
+            field: "A"
           }
         ]
       }
