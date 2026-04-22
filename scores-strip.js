@@ -1,64 +1,140 @@
 // scores-strip.js
 
-// Automatically get logo path based on team name (spaces removed)
+function stripDivision(teamName) {
+  return String(teamName || '').replace(/\s*\((U\d+|Adult)\)\s*/i, '').trim();
+}
+
 function getTeamLogo(teamName) {
-  const cleanName = teamName.replace(/\s+/g, '');
+  const cleanName = stripDivision(teamName).replace(/\s+/g, '');
+
+  if (
+    window.HFF_TEAM_DIRECTORY &&
+    typeof window.HFF_TEAM_DIRECTORY.getAllTeams === 'function'
+  ) {
+    const teams = window.HFF_TEAM_DIRECTORY.getAllTeams() || [];
+    const match = teams.find(t => {
+      const label = stripDivision(t.teamLabel || '').toLowerCase();
+      const card = stripDivision(t.cardTitle || '').toLowerCase();
+      const target = stripDivision(teamName).toLowerCase();
+      return label === target || card === target;
+    });
+
+    if (match && match.teamLogo) return match.teamLogo;
+  }
+
   return `${cleanName}.png`;
 }
 
-// === GAMES DATA (EDIT THIS WEEKLY IN ONE PLACE) ===
-const games = [
-  { home: "Bengals", homeRecord: "0-0", away: "Broncos", awayRecord: "0-0", date: "TBD", status: "Field TBD" },
-  { home: "Patriots", homeRecord: "0-0", away: "Jets", awayRecord: "0-0", date: "TBD", status: "Field TBD" },
-  { home: "Packers", homeRecord: "0-0", away: "Bears", awayRecord: "0-0", date: "TBD", status: "Field TBD" },
-  { home: "49ers",   homeRecord: "0-0", away: "Seahawks", awayRecord: "0-0", date: "TBD", status: "Field TBD" },
-  { home: "Giants",  homeRecord: "0-0", away: "Jets", awayRecord: "0-0", date: "TBD", status: "Field TBD" },
-  { home: "Lions",   homeRecord: "0-0", away: "Cowboys", awayRecord: "0-0", date: "TBD", status: "Field TBD" },
-  { home: "Raiders", homeRecord: "0-0", away: "Falcons", awayRecord: "0-0", date: "TBD", status: "Field TBD" },
-  { home: "Bills",   homeRecord: "0-0", away: "Bears", awayRecord: "0-0", date: "TBD", status: "Field TBD" },
-  { home: "Packers",  homeRecord: "0-0", away: "Dolphins", awayRecord: "0-0", date: "TBD", status: "Field TBD" },
-  { home: "Commanders",   homeRecord: "0-0", away: "Chargers", awayRecord: "0-0", date: "TBD", status: "Field TBD" }
+function hasRealScore(value) {
+  return value !== '' && value !== null && value !== undefined;
+}
 
+function weekHasAnyScores(week) {
+  return (week.games || []).some(g => hasRealScore(g.homeScore) || hasRealScore(g.awayScore));
+}
 
-// { home: "Packers", homeRecord: "4-2", away: "Bears", awayRecord: "1-6", date: "Nov 12, 2:30 PM", status: "Field C" },
-// { home: "Bills",   homeScore: 30, away: "Dolphins", awayScore: 28, date: "Nov 7, 6:00 PM", status: "Final" },
+function formatUpcomingTitle(week, game) {
+  if (game.datetime) return game.datetime;
+  return week.weekDate || week.weekTitle || '';
+}
 
-];
+function buildStripGames() {
+  if (!window.HFF_SCHEDULE || typeof window.HFF_SCHEDULE.getAllWeeks !== 'function') {
+    return [];
+  }
+
+  const weeks = window.HFF_SCHEDULE.getAllWeeks() || [];
+  if (!weeks.length) return [];
+
+  let latestScoredWeekIndex = -1;
+
+  weeks.forEach((week, idx) => {
+    if (weekHasAnyScores(week)) latestScoredWeekIndex = idx;
+  });
+
+  const output = [];
+
+  if (latestScoredWeekIndex >= 0) {
+    const scoredWeek = weeks[latestScoredWeekIndex];
+    (scoredWeek.games || []).forEach(game => {
+      output.push({
+        type: 'final',
+        title: scoredWeek.weekTitle || scoredWeek.weekDate || '',
+        status: 'Final',
+        home: game.home,
+        away: game.away,
+        homeLogo: game.homeLogo || getTeamLogo(game.home),
+        awayLogo: game.awayLogo || getTeamLogo(game.away),
+        homeDisplay: hasRealScore(game.homeScore) ? game.homeScore : (game.homeRecord || ''),
+        awayDisplay: hasRealScore(game.awayScore) ? game.awayScore : (game.awayRecord || '')
+      });
+    });
+
+    const nextWeek = weeks[latestScoredWeekIndex + 1];
+    if (nextWeek) {
+      (nextWeek.games || []).forEach(game => {
+        output.push({
+          type: 'upcoming',
+          title: formatUpcomingTitle(nextWeek, game),
+          status: game.field ? `Field ${game.field}` : 'Upcoming',
+          home: game.home,
+          away: game.away,
+          homeLogo: game.homeLogo || getTeamLogo(game.home),
+          awayLogo: game.awayLogo || getTeamLogo(game.away),
+          homeDisplay: game.homeRecord || '',
+          awayDisplay: game.awayRecord || ''
+        });
+      });
+    }
+  } else {
+    const firstWeek = weeks[0];
+    (firstWeek.games || []).forEach(game => {
+      output.push({
+        type: 'upcoming',
+        title: formatUpcomingTitle(firstWeek, game),
+        status: game.field ? `Field ${game.field}` : 'Upcoming',
+        home: game.home,
+        away: game.away,
+        homeLogo: game.homeLogo || getTeamLogo(game.home),
+        awayLogo: game.awayLogo || getTeamLogo(game.away),
+        homeDisplay: game.homeRecord || '',
+        awayDisplay: game.awayRecord || ''
+      });
+    });
+  }
+
+  return output;
+}
 
 function renderScoreStrip(targetId = 'scoreRow') {
   const scoreRow = document.getElementById(targetId);
   if (!scoreRow) return;
 
+  const games = buildStripGames();
+  scoreRow.innerHTML = '';
+
   games.forEach(game => {
     const box = document.createElement('a');
     box.className = 'score-box';
-    box.href = "scores&schedules.html"; // link for every box
-    box.style.textDecoration = "none";
-    box.style.color = "#000"; // force black text on the anchor itself
-
-    const homeLogo = getTeamLogo(game.home);
-    const awayLogo = getTeamLogo(game.away);
-
-    const homeDisplay = (typeof game.homeScore === 'number')
-      ? game.homeScore : (game.homeRecord || '');
-    const awayDisplay = (typeof game.awayScore === 'number')
-      ? game.awayScore : (game.awayRecord || '');
+    box.href = 'scores&schedules.html';
+    box.style.textDecoration = 'none';
+    box.style.color = '#000';
 
     box.innerHTML = `
-      <div class="score-title" style="color:#000;">${game.date || ""}</div>
+      <div class="score-title" style="color:#000;">${game.title || ''}</div>
       <div class="team-row">
         <div class="team-left">
-          <img src="${homeLogo}" alt="${game.home}" class="team-logo">
+          <img src="${game.homeLogo}" alt="${game.home}" class="team-logo">
           <span class="team-name" style="color:#000;">${game.home}</span>
         </div>
-        <span class="team-score" style="color:#000;">${homeDisplay}</span>
+        <span class="team-score" style="color:#000;">${game.homeDisplay}</span>
       </div>
       <div class="team-row">
         <div class="team-left">
-          <img src="${awayLogo}" alt="${game.away}" class="team-logo">
+          <img src="${game.awayLogo}" alt="${game.away}" class="team-logo">
           <span class="team-name" style="color:#000;">${game.away}</span>
         </div>
-        <span class="team-score" style="color:#000;">${awayDisplay}</span>
+        <span class="team-score" style="color:#000;">${game.awayDisplay}</span>
       </div>
       <div class="score-status" style="color:#000;">${game.status}</div>
     `;
@@ -66,17 +142,14 @@ function renderScoreStrip(targetId = 'scoreRow') {
     scoreRow.appendChild(box);
   });
 
-  // rotate score boxes every 5 seconds
-  setInterval(() => {
-    const firstBox = scoreRow.firstElementChild;
-    if (firstBox) scoreRow.appendChild(firstBox);
-  }, 5000);
+  if (scoreRow.children.length > 1) {
+    setInterval(() => {
+      const firstBox = scoreRow.firstElementChild;
+      if (firstBox) scoreRow.appendChild(firstBox);
+    }, 5000);
+  }
 }
 
-// Run automatically on each page that includes this file
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => renderScoreStrip());
-} else {
+window.addEventListener('load', function () {
   renderScoreStrip();
-}
-
+});
