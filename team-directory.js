@@ -10,22 +10,30 @@
   // =========================================================
   // IMPORTANT:
   // - teamLabel MUST match the labels used in season-schedule.js exactly
-  //   e.g., "Dolphins (U6)"
+  //   e.g., "Giants (U6)"
   // - page is the schedule page filename for that team card
   // - cardTitle is what you want displayed on the card (usually just the nickname)
   const TEAMS = [
     // U6
-    { division: 'U6', teamLabel: 'Dolphins (U6)', cardTitle: 'Dolphins', teamLogo: 'Dolphins.png', page: 'scheduleA1.html' },
+    { division: 'U6', teamLabel: 'Giants (U6)', cardTitle: 'Giants', teamLogo: 'Giants.png', page: 'scheduleA1.html' },
 
-    // U8
-    { division: 'U8', teamLabel: 'Bears (U8)', cardTitle: 'Bears', teamLogo: 'Bears.png', page: 'scheduleB1.html' },
-    { division: 'U8', teamLabel: 'Saints (U8)', cardTitle: 'Saints', teamLogo: 'Saints.png', page: 'scheduleB2.html' },
-    { division: 'U8', teamLabel: 'Bills (U8)', cardTitle: 'Bills', teamLogo: 'Bills.png', page: 'scheduleB3.html' }
+    // U9
+    { division: 'U9', teamLabel: 'Packers (U9)', cardTitle: 'Packers', teamLogo: 'Packers.png', page: 'scheduleB1.html' },
+    { division: 'U9', teamLabel: 'Saints (U9)', cardTitle: 'Saints', teamLogo: 'Saints.png', page: 'scheduleB2.html' },
+    { division: 'U9', teamLabel: 'Bears (U9)', cardTitle: 'Bears', teamLogo: 'Bears.png', page: 'scheduleB3.html' },
 
+    // U12
+    { division: 'U12', teamLabel: 'Ravens (U12)', cardTitle: 'Ravens', teamLogo: 'Ravens.png', page: 'scheduleC1.html' },
+    { division: 'U12', teamLabel: 'Bills (U12)', cardTitle: 'Bills', teamLogo: 'Bills.png', page: 'scheduleC2.html' },
+    { division: 'U12', teamLabel: 'Jets (U12)', cardTitle: 'Jets', teamLogo: 'Jets.png', page: 'scheduleC3.html' },
+    { division: 'U12', teamLabel: 'Browns (U12)', cardTitle: 'Browns', teamLogo: 'Browns.png', page: 'scheduleC4.html' },
 
-    // Add more later, examples:
-    // { division:'U8', teamLabel:'Ravens (U8)', cardTitle:'Ravens', teamLogo:'Ravens.png', page:'scheduleB1.html' },
-    // { division:'U8', teamLabel:'Bills (U8)', cardTitle:'Bills', teamLogo:'Bills.png', page:'scheduleB2.html' },
+    // U16
+    { division: 'U16', teamLabel: 'Cowboys (U16)', cardTitle: 'Cowboys', teamLogo: 'Cowboys.png', page: 'scheduleD1.html' },
+    { division: 'U16', teamLabel: 'Chiefs (U16)', cardTitle: 'Chiefs', teamLogo: 'Chiefs.png', page: 'scheduleD2.html' },
+    { division: 'U16', teamLabel: 'Patriots (U16)', cardTitle: 'Patriots', teamLogo: 'Patriots.png', page: 'scheduleD3.html' },
+    { division: 'U16', teamLabel: 'Panthers (U16)', cardTitle: 'Panthers', teamLogo: 'Panthers.png', page: 'scheduleD4.html' },
+    { division: 'U16', teamLabel: 'Commanders (U16)', cardTitle: 'Commanders', teamLogo: 'Commanders.png', page: 'scheduleD5.html' }
   ];
 
   // =========================================================
