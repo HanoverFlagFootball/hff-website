@@ -1,3 +1,5 @@
+console.log("season-schedule.js loaded");
+
 window.HFF_SCHEDULE = {
   getAllWeeks: function () {
     return [
