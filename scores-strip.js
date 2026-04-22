@@ -22,9 +22,28 @@ function weekHasAnyScores(week) {
 }
 
 function formatStripTitle(week, game) {
-  if (!game.dateText) {
+  let dateSource = game.dateText || week.weekDate || '';
+
+  if (!dateSource) {
     return game.datetime || '';
   }
+
+  const date = new Date(dateSource);
+
+  if (isNaN(date)) {
+    return game.datetime || '';
+  }
+
+  const month = date.toLocaleString('en-US', { month: 'short' });
+  const day = date.getDate();
+
+  let time = game.datetime || '';
+
+  // Clean up spacing
+  time = time.replace(' AM', 'AM').replace(' PM', 'PM');
+
+  return `${month} ${day} - ${time}`;
+}
 
   const date = new Date(game.dateText);
 
