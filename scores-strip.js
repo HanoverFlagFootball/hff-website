@@ -6,36 +6,25 @@ function stripDivision(teamName) {
 
 function getTeamLogo(teamName) {
   const cleanName = stripDivision(teamName).replace(/\s+/g, '');
-
-  if (
-    window.HFF_TEAM_DIRECTORY &&
-    typeof window.HFF_TEAM_DIRECTORY.getAllTeams === 'function'
-  ) {
-    const teams = window.HFF_TEAM_DIRECTORY.getAllTeams() || [];
-    const match = teams.find(t => {
-      const label = stripDivision(t.teamLabel || '').toLowerCase();
-      const card = stripDivision(t.cardTitle || '').toLowerCase();
-      const target = stripDivision(teamName).toLowerCase();
-      return label === target || card === target;
-    });
-
-    if (match && match.teamLogo) return match.teamLogo;
-  }
-
   return `${cleanName}.png`;
 }
 
-function hasRealScore(value) {
+function hasRealValue(value) {
   return value !== '' && value !== null && value !== undefined;
+}
+
+function hasRealScore(value) {
+  return hasRealValue(value);
 }
 
 function weekHasAnyScores(week) {
   return (week.games || []).some(g => hasRealScore(g.homeScore) || hasRealScore(g.awayScore));
 }
 
-function formatUpcomingTitle(week, game) {
-  if (game.datetime) return game.datetime;
-  return week.weekDate || week.weekTitle || '';
+function formatStripTitle(week, game) {
+  const dateText = game.dateText || week.weekDate || '';
+  const timeText = game.datetime || '';
+  return [dateText, timeText].filter(Boolean).join(' • ');
 }
 
 function buildStripGames() {
@@ -56,15 +45,15 @@ function buildStripGames() {
 
   if (latestScoredWeekIndex >= 0) {
     const scoredWeek = weeks[latestScoredWeekIndex];
+
     (scoredWeek.games || []).forEach(game => {
       output.push({
-        type: 'final',
-        title: scoredWeek.weekTitle || scoredWeek.weekDate || '',
+        title: formatStripTitle(scoredWeek, game),
         status: 'Final',
         home: game.home,
         away: game.away,
-        homeLogo: game.homeLogo || getTeamLogo(game.home),
-        awayLogo: game.awayLogo || getTeamLogo(game.away),
+        homeLogo: getTeamLogo(game.home),
+        awayLogo: getTeamLogo(game.away),
         homeDisplay: hasRealScore(game.homeScore) ? game.homeScore : (game.homeRecord || ''),
         awayDisplay: hasRealScore(game.awayScore) ? game.awayScore : (game.awayRecord || '')
       });
@@ -74,13 +63,12 @@ function buildStripGames() {
     if (nextWeek) {
       (nextWeek.games || []).forEach(game => {
         output.push({
-          type: 'upcoming',
-          title: formatUpcomingTitle(nextWeek, game),
+          title: formatStripTitle(nextWeek, game),
           status: game.field ? `Field ${game.field}` : 'Upcoming',
           home: game.home,
           away: game.away,
-          homeLogo: game.homeLogo || getTeamLogo(game.home),
-          awayLogo: game.awayLogo || getTeamLogo(game.away),
+          homeLogo: getTeamLogo(game.home),
+          awayLogo: getTeamLogo(game.away),
           homeDisplay: game.homeRecord || '',
           awayDisplay: game.awayRecord || ''
         });
@@ -88,15 +76,15 @@ function buildStripGames() {
     }
   } else {
     const firstWeek = weeks[0];
+
     (firstWeek.games || []).forEach(game => {
       output.push({
-        type: 'upcoming',
-        title: formatUpcomingTitle(firstWeek, game),
+        title: formatStripTitle(firstWeek, game),
         status: game.field ? `Field ${game.field}` : 'Upcoming',
         home: game.home,
         away: game.away,
-        homeLogo: game.homeLogo || getTeamLogo(game.home),
-        awayLogo: game.awayLogo || getTeamLogo(game.away),
+        homeLogo: getTeamLogo(game.home),
+        awayLogo: getTeamLogo(game.away),
         homeDisplay: game.homeRecord || '',
         awayDisplay: game.awayRecord || ''
       });
