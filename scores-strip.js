@@ -38,7 +38,9 @@ function buildStripGames() {
   let latestScoredWeekIndex = -1;
 
   weeks.forEach((week, idx) => {
-    if (weekHasAnyScores(week)) latestScoredWeekIndex = idx;
+    if (weekHasAnyScores(week)) {
+      latestScoredWeekIndex = idx;
+    }
   });
 
   const output = [];
@@ -133,7 +135,9 @@ function renderScoreStrip(targetId = 'scoreRow') {
   if (scoreRow.children.length > 1) {
     setInterval(() => {
       const firstBox = scoreRow.firstElementChild;
-      if (firstBox) scoreRow.appendChild(firstBox);
+      if (firstBox) {
+        scoreRow.appendChild(firstBox);
+      }
     }, 5000);
   }
 }
