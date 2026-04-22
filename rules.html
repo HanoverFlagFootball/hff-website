@@ -284,15 +284,18 @@
   <script src="season-schedule.js?v=5"></script>
   <script src="scores-strip.js?v=14"></script>
 
-  <!-- shared hamburger nav (central file) -->
+    <!-- shared hamburger nav (central file) -->
   <script src="nav.js"></script>
+
+  <!-- IMPORTANT: load schedule BEFORE score strip -->
+  <script src="season-schedule.js?v=6"></script>
+  <script src="scores-strip.js?v=15"></script>
 
   <script>
     // =========================
     // PDF "CAROUSEL" (40 PDFs)
     // =========================
     const PDFS = [
-      // Replace with your real PDF filenames:
       "rules1.pdf",
       "rules2.pdf",
       "rules3.pdf",
@@ -322,8 +325,6 @@
       if (!PDFS.length || !viewer) return;
 
       pdfIndex = Math.max(0, Math.min(index, PDFS.length - 1));
-
-      // Try to start in a "fit page" type view (varies by browser)
       viewer.src = PDFS[pdfIndex] + "#view=Fit&toolbar=0&navpanes=0&scrollbar=0";
 
       if (prevBtn) prevBtn.disabled = (pdfIndex === 0);
