@@ -45,23 +45,6 @@ function formatStripTitle(week, game) {
   return `${month} ${day} - ${time}`;
 }
 
-  const date = new Date(game.dateText);
-
-  if (isNaN(date)) {
-    return game.datetime || '';
-  }
-
-  const month = date.toLocaleString('en-US', { month: 'short' });
-  const day = date.getDate();
-
-  let time = game.datetime || '';
-
-  // Clean up time (remove space before AM/PM)
-  time = time.replace(' AM', 'AM').replace(' PM', 'PM');
-
-  return `${month} ${day} - ${time}`;
-}
-
 function buildStripGames() {
   if (!window.HFF_SCHEDULE || typeof window.HFF_SCHEDULE.getAllWeeks !== 'function') {
     return [];
