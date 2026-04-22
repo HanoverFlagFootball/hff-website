@@ -1,11 +1,13 @@
-// scores-strip.js
+console.log("scores-strip.js loaded v13");
 
 function stripDivision(teamName) {
-  return String(teamName || '').replace(/\s*\((U\d+|Adult)\)\s*/i, '').trim();
+  return String(teamName || '')
+    .replace(/\s*\(.*?\)\s*/g, '')
+    .trim();
 }
 
 function getTeamLogo(teamName) {
-  const cleanName = stripDivision(teamName).replace(/\s+/g, '');
+  const cleanName = stripDivision(teamName).split(' ')[0].trim();
   return `${cleanName}.png`;
 }
 
@@ -18,31 +20,45 @@ function hasRealScore(value) {
 }
 
 function weekHasAnyScores(week) {
-  return (week.games || []).some(g => hasRealScore(g.homeScore) || hasRealScore(g.awayScore));
+  return (week.games || []).some(function (g) {
+    return hasRealScore(g.homeScore) || hasRealScore(g.awayScore);
+  });
+}
+
+function parseDisplayDate(dateSource) {
+  if (!dateSource) return null;
+
+  let date = new Date(dateSource);
+  if (!isNaN(date)) return date;
+
+  const match = String(dateSource).match(/([A-Za-z]+),?\s+([A-Za-z]+)\s+(\d{1,2}),\s*(\d{4})/);
+  if (match) {
+    date = new Date(`${match[2]} ${match[3]}, ${match[4]}`);
+    if (!isNaN(date)) return date;
+  }
+
+  return null;
 }
 
 function formatStripTitle(week, game) {
-  let dateSource = game.dateText || week.weekDate || '';
+  const dateSource = game.dateText || week.weekDate || '';
+  const parsedDate = parseDisplayDate(dateSource);
 
-  if (!dateSource) {
-    return game.datetime || '';
-  }
-
-  const date = new Date(dateSource);
-
-  if (isNaN(date)) {
-    return game.datetime || '';
-  }
-
-  const month = date.toLocaleString('en-US', { month: 'short' });
-  const day = date.getDate();
-
-  let time = game.datetime || '';
-
-  // Clean up spacing
+  let time = String(game.datetime || '').trim();
   time = time.replace(' AM', 'AM').replace(' PM', 'PM');
 
-  return `${month} ${day} - ${time}`;
+  if (!parsedDate) {
+    return time || '';
+  }
+
+  const month = parsedDate.toLocaleString('en-US', { month: 'short' });
+  const day = parsedDate.getDate();
+
+  if (time) {
+    return `${month} ${day} - ${time}`;
+  }
+
+  return `${month} ${day}`;
 }
 
 function buildStripGames() {
@@ -55,7 +71,7 @@ function buildStripGames() {
 
   let latestScoredWeekIndex = -1;
 
-  weeks.forEach((week, idx) => {
+  weeks.forEach(function (week, idx) {
     if (weekHasAnyScores(week)) {
       latestScoredWeekIndex = idx;
     }
@@ -66,7 +82,7 @@ function buildStripGames() {
   if (latestScoredWeekIndex >= 0) {
     const scoredWeek = weeks[latestScoredWeekIndex];
 
-    (scoredWeek.games || []).forEach(game => {
+    (scoredWeek.games || []).forEach(function (game) {
       output.push({
         title: formatStripTitle(scoredWeek, game),
         status: 'Final',
@@ -81,7 +97,7 @@ function buildStripGames() {
 
     const nextWeek = weeks[latestScoredWeekIndex + 1];
     if (nextWeek) {
-      (nextWeek.games || []).forEach(game => {
+      (nextWeek.games || []).forEach(function (game) {
         output.push({
           title: formatStripTitle(nextWeek, game),
           status: game.field ? `Field ${game.field}` : 'Upcoming',
@@ -97,7 +113,7 @@ function buildStripGames() {
   } else {
     const firstWeek = weeks[0];
 
-    (firstWeek.games || []).forEach(game => {
+    (firstWeek.games || []).forEach(function (game) {
       output.push({
         title: formatStripTitle(firstWeek, game),
         status: game.field ? `Field ${game.field}` : 'Upcoming',
@@ -114,14 +130,16 @@ function buildStripGames() {
   return output;
 }
 
-function renderScoreStrip(targetId = 'scoreRow') {
-  const scoreRow = document.getElementById(targetId);
-  if (!scoreRow) return;
+function renderScoreStrip(targetId) {
+  const scoreRow = document.getElementById(targetId || 'scoreRow');
+  if (!scoreRow) return false;
 
   const games = buildStripGames();
+  if (!games.length) return false;
+
   scoreRow.innerHTML = '';
 
-  games.forEach(game => {
+  games.forEach(function (game) {
     const box = document.createElement('a');
     box.className = 'score-box';
     box.href = 'scores&schedules.html';
@@ -150,16 +168,43 @@ function renderScoreStrip(targetId = 'scoreRow') {
     scoreRow.appendChild(box);
   });
 
-  if (scoreRow.children.length > 1) {
-    setInterval(() => {
+  if (scoreRow.children.length > 1 && !window.__hffScoreStripRotator) {
+    window.__hffScoreStripRotator = setInterval(function () {
       const firstBox = scoreRow.firstElementChild;
       if (firstBox) {
         scoreRow.appendChild(firstBox);
       }
     }, 5000);
   }
+
+  return true;
 }
 
-window.addEventListener('load', function () {
-  renderScoreStrip();
-});
+function waitForScheduleAndRender() {
+  let attempts = 0;
+  const maxAttempts = 100;
+
+  function tryRender() {
+    attempts += 1;
+
+    const rendered = renderScoreStrip('scoreRow');
+    if (rendered) {
+      console.log('score strip rendered');
+      return;
+    }
+
+    if (attempts < maxAttempts) {
+      setTimeout(tryRender, 100);
+    } else {
+      console.log('score strip failed to render after waiting');
+    }
+  }
+
+  tryRender();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', waitForScheduleAndRender);
+} else {
+  waitForScheduleAndRender();
+}
