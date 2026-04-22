@@ -196,7 +196,6 @@
       text-decoration: none;
       color: inherit;
       transition: box-shadow 0.15s ease, transform 0.15s ease;
-      cursor: default;
     }
     .team-card:hover {
       transform: translateY(-2px);
@@ -335,73 +334,6 @@
       color: #333;
     }
 
-    .import-box {
-      border: 1px solid #ddd;
-      border-radius: 0.7rem;
-      padding: 1rem;
-      background: #fafafa;
-      margin-bottom: 1rem;
-    }
-    .import-box h3 {
-      margin: 0 0 0.5rem;
-      font-size: 1rem;
-    }
-    .import-help {
-      font-size: 0.9rem;
-      color: #444;
-      margin-bottom: 0.6rem;
-      line-height: 1.35;
-    }
-    .schedule-input {
-      width: 100%;
-      min-height: 180px;
-      resize: vertical;
-      border: 1px solid #ccc;
-      border-radius: 0.5rem;
-      padding: 0.75rem;
-      font: inherit;
-      margin-bottom: 0.75rem;
-    }
-    .import-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.6rem;
-      align-items: center;
-    }
-    .import-btn,
-    .file-btn {
-      background: #000;
-      color: #fff;
-      border: 1px solid #000;
-      border-radius: 0.5rem;
-      padding: 0.55rem 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .secondary-btn {
-      background: #fff;
-      color: #000;
-      border: 1px solid #ccc;
-    }
-    .hidden-file-input {
-      display: none;
-    }
-    .import-status {
-      margin-top: 0.75rem;
-      font-size: 0.9rem;
-      font-weight: 600;
-    }
-    .import-status.error {
-      color: #b00020;
-    }
-    .import-status.success {
-      color: #146c2e;
-    }
-
     @media (max-width: 720px) {
       .week-game { flex-direction: column; }
       .week-divider { height: 1px; width: 100%; margin: 0.5rem 0; }
@@ -445,16 +377,14 @@
 
   <script src="scores-strip.js"></script>
   <script src="nav.js"></script>
+  <script src="season-schedule.js"></script>
   <script src="team-directory.js"></script>
 
   <script>
     const SHOW_SCHEDULE_COMING_SOON = false;
-    const LOCAL_STORAGE_KEY = 'hff_uploaded_schedule_csv';
 
     const tabButtons = document.querySelectorAll('.tab-btn');
     const tabPanels = document.querySelectorAll('.tab-panel');
-
-    let uploadedGames = [];
 
     tabButtons.forEach(btn => {
       btn.addEventListener('click', () => {
@@ -480,204 +410,6 @@
       `;
     }
 
-    function escapeHtml(value) {
-      return String(value ?? '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-    }
-
-    function normalizeHeader(value) {
-      return String(value || '')
-        .trim()
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '');
-    }
-
-    function splitDelimitedLine(line, delimiter) {
-      const result = [];
-      let current = '';
-      let inQuotes = false;
-
-      for (let i = 0; i < line.length; i++) {
-        const ch = line[i];
-        const next = line[i + 1];
-
-        if (ch === '"') {
-          if (inQuotes && next === '"') {
-            current += '"';
-            i++;
-          } else {
-            inQuotes = !inQuotes;
-          }
-        } else if (ch === delimiter && !inQuotes) {
-          result.push(current);
-          current = '';
-        } else {
-          current += ch;
-        }
-      }
-
-      result.push(current);
-      return result.map(v => v.trim());
-    }
-
-    function parseDelimitedText(text) {
-      const cleaned = String(text || '').replace(/\r/g, '').trim();
-      if (!cleaned) return [];
-
-      const lines = cleaned.split('\n').filter(line => line.trim() !== '');
-      if (lines.length < 2) return [];
-
-      const firstLine = lines[0];
-      const delimiter = firstLine.includes('\t') ? '\t' : ',';
-
-      const headers = splitDelimitedLine(firstLine, delimiter).map(normalizeHeader);
-
-      const rows = [];
-      for (let i = 1; i < lines.length; i++) {
-        const values = splitDelimitedLine(lines[i], delimiter);
-        const row = {};
-        headers.forEach((header, idx) => {
-          row[header] = (values[idx] || '').trim();
-        });
-        rows.push(row);
-      }
-
-      return rows;
-    }
-
-    function getRowValue(row, possibleHeaders) {
-      for (const key of possibleHeaders) {
-        if (row[key] !== undefined && row[key] !== null && String(row[key]).trim() !== '') {
-          return String(row[key]).trim();
-        }
-      }
-      return '';
-    }
-
-    function formatDateLabel(dateStr) {
-      if (!dateStr) return '';
-      const parts = dateStr.split('-');
-      if (parts.length !== 3) return dateStr;
-
-      const year = Number(parts[0]);
-      const month = Number(parts[1]) - 1;
-      const day = Number(parts[2]);
-      const d = new Date(year, month, day);
-
-      if (Number.isNaN(d.getTime())) return dateStr;
-
-      return d.toLocaleDateString('en-CA', {
-        weekday: 'long',
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric'
-      });
-    }
-
-    function formatTimeLabel(timeStr) {
-      if (!timeStr) return '';
-      const raw = String(timeStr).trim();
-
-      if (/^\d{1,2}:\d{2}(:\d{2})?$/.test(raw)) {
-        const parts = raw.split(':');
-        const hours = Number(parts[0]);
-        const minutes = Number(parts[1]);
-
-        if (!Number.isNaN(hours) && !Number.isNaN(minutes)) {
-          const d = new Date();
-          d.setHours(hours, minutes, 0, 0);
-          return d.toLocaleTimeString('en-CA', {
-            hour: 'numeric',
-            minute: '2-digit'
-          });
-        }
-      }
-
-      return raw;
-    }
-
-    function inferDivision(teamName) {
-      const match = String(teamName || '').match(/\((U\d+|Adult)\)/i);
-      return match ? match[1].replace('adult', 'Adult').toUpperCase().replace(/^ADULT$/, 'Adult') : '';
-    }
-
-    function teamLabelWithoutDivision(teamName) {
-      return String(teamName || '').replace(/\s*\((U\d+|Adult)\)\s*/i, '').trim();
-    }
-
-    function getTeamLogo(teamName) {
-      if (
-        window.HFF_TEAM_DIRECTORY &&
-        typeof window.HFF_TEAM_DIRECTORY.getAllTeams === 'function'
-      ) {
-        const teams = window.HFF_TEAM_DIRECTORY.getAllTeams() || [];
-        const exact = teams.find(t =>
-          String(t.teamLabel || '').trim().toLowerCase() === String(teamName || '').trim().toLowerCase()
-        );
-        if (exact && exact.teamLogo) return exact.teamLogo;
-
-        const stripped = teamLabelWithoutDivision(teamName).toLowerCase();
-        const loose = teams.find(t =>
-          String(t.cardTitle || t.teamLabel || '').trim().toLowerCase() === stripped
-        );
-        if (loose && loose.teamLogo) return loose.teamLogo;
-      }
-      return 'White Logo.jpg';
-    }
-
-    function buildGamesFromRows(rows) {
-      return rows
-        .map((row, index) => {
-          const date = getRowValue(row, ['date', 'gamedate']);
-          const time = getRowValue(row, ['time', 'gametime']);
-          const home = getRowValue(row, ['hometeam', 'home']);
-          const away = getRowValue(row, ['awayteam', 'away']);
-          const homeScore = getRowValue(row, ['hometeamscore', 'homescore']);
-          const awayScore = getRowValue(row, ['awayteamscore', 'awayscore']);
-          const field = getRowValue(row, ['field', 'location', 'venue']) || 'Field TBD';
-
-          if (!date || !time || !home || !away) return null;
-
-          return {
-            id: `${date}-${time}-${home}-${away}-${index}`,
-            rawDate: date,
-            rawTime: time,
-            home,
-            away,
-            homeScore,
-            awayScore,
-            field,
-            division: inferDivision(home) || inferDivision(away),
-            homeLogo: getTeamLogo(home),
-            awayLogo: getTeamLogo(away),
-            datetime: `${formatTimeLabel(time)}`,
-            sortKey: `${date}T${time}`
-          };
-        })
-        .filter(Boolean)
-        .sort((a, b) => a.sortKey.localeCompare(b.sortKey));
-    }
-
-    function groupGamesIntoWeeks(games) {
-      const byDate = new Map();
-
-      games.forEach(game => {
-        if (!byDate.has(game.rawDate)) byDate.set(game.rawDate, []);
-        byDate.get(game.rawDate).push(game);
-      });
-
-      const dates = Array.from(byDate.keys()).sort();
-      return dates.map((date, idx) => ({
-        weekTitle: `Week ${idx + 1}`,
-        weekDate: formatDateLabel(date),
-        games: byDate.get(date)
-      }));
-    }
-
     function createWeekGameBox(g) {
       const box = document.createElement('div');
       box.className = 'week-game';
@@ -685,125 +417,35 @@
         <div class="week-left">
           <div class="week-team-row">
             <div class="week-team-info">
-              <img src="${escapeHtml(g.awayLogo)}" alt="${escapeHtml(g.away)}" class="week-team-logo">
+              <img src="${g.awayLogo}" alt="${g.away}" class="week-team-logo">
               <div class="week-team-name-wrap">
-                <span class="week-team-name">${escapeHtml(g.away)}</span>
-                <span class="week-team-record"></span>
+                <span class="week-team-name">${g.away}</span>
+                <span class="week-team-record">${g.awayRecord || ''}</span>
               </div>
             </div>
-            <div class="week-score">${escapeHtml(g.awayScore || '0')}</div>
+            <div class="week-score">${g.awayScore || 'TBD'}</div>
           </div>
           <div class="week-team-row">
             <div class="week-team-info">
-              <img src="${escapeHtml(g.homeLogo)}" alt="${escapeHtml(g.home)}" class="week-team-logo">
+              <img src="${g.homeLogo}" alt="${g.home}" class="week-team-logo">
               <div class="week-team-name-wrap">
-                <span class="week-team-name">${escapeHtml(g.home)}</span>
-                <span class="week-team-record"></span>
+                <span class="week-team-name">${g.home}</span>
+                <span class="week-team-record">${g.homeRecord || ''}</span>
               </div>
             </div>
-            <div class="week-score">${escapeHtml(g.homeScore || '0')}</div>
+            <div class="week-score">${g.homeScore || 'TBD'}</div>
           </div>
         </div>
         <div class="week-divider"></div>
         <div class="week-right">
-          <div class="week-datetime">${escapeHtml(g.datetime)}</div>
-          <div class="week-field">${escapeHtml(g.field)}</div>
+          <div class="week-datetime">${g.datetime}</div>
+          <div class="week-field">${g.field}</div>
         </div>
       `;
       return box;
     }
 
-    function renderImportBox(statusText = '', statusClass = '') {
-      const savedText = localStorage.getItem(LOCAL_STORAGE_KEY) || '';
-      return `
-        <div class="import-box">
-          <h3>Upload or Paste Schedule Table</h3>
-          <div class="import-help">
-            Paste your table directly from Excel/Sheets, or upload a CSV file.<br>
-            Required columns: <strong>Date, Time, Home Team, Away Team</strong><br>
-            Optional columns: <strong>Home Team Score, Away Team Score, Field</strong>
-          </div>
-
-          <textarea
-            id="schedulePasteInput"
-            class="schedule-input"
-            placeholder="Paste rows here..."
-          >${escapeHtml(savedText)}</textarea>
-
-          <div class="import-actions">
-            <button class="import-btn" id="loadScheduleBtn" type="button">Load Schedule</button>
-
-            <label class="file-btn secondary-btn" for="scheduleFileInput">Upload CSV</label>
-            <input class="hidden-file-input" id="scheduleFileInput" type="file" accept=".csv,text/csv" />
-
-            <button class="import-btn secondary-btn" id="clearScheduleBtn" type="button">Clear Saved Schedule</button>
-          </div>
-
-          ${statusText ? `<div class="import-status ${statusClass}">${escapeHtml(statusText)}</div>` : ''}
-        </div>
-      `;
-    }
-
-    function attachImportHandlers() {
-      const loadBtn = document.getElementById('loadScheduleBtn');
-      const clearBtn = document.getElementById('clearScheduleBtn');
-      const fileInput = document.getElementById('scheduleFileInput');
-      const pasteInput = document.getElementById('schedulePasteInput');
-
-      if (loadBtn) {
-        loadBtn.addEventListener('click', () => {
-          const text = pasteInput ? pasteInput.value : '';
-          loadScheduleFromText(text);
-        });
-      }
-
-      if (clearBtn) {
-        clearBtn.addEventListener('click', () => {
-          localStorage.removeItem(LOCAL_STORAGE_KEY);
-          uploadedGames = [];
-          renderSeasonByWeekUI('Saved schedule cleared.', 'success');
-        });
-      }
-
-      if (fileInput) {
-        fileInput.addEventListener('change', async (event) => {
-          const file = event.target.files && event.target.files[0];
-          if (!file) return;
-
-          try {
-            const text = await file.text();
-            if (pasteInput) pasteInput.value = text;
-            loadScheduleFromText(text);
-          } catch (err) {
-            renderSeasonByWeekUI('Could not read that CSV file.', 'error');
-          }
-
-          fileInput.value = '';
-        });
-      }
-    }
-
-    function loadScheduleFromText(text) {
-      const rows = parseDelimitedText(text);
-
-      if (!rows.length) {
-        renderSeasonByWeekUI('No rows found. Paste the table including the header row.', 'error');
-        return;
-      }
-
-      const games = buildGamesFromRows(rows);
-
-      if (!games.length) {
-        renderSeasonByWeekUI('Could not build games. Check that your headers include Date, Time, Home Team, and Away Team.', 'error');
-        return;
-      }
-
-      localStorage.setItem(LOCAL_STORAGE_KEY, text);
-      uploadedGames = games;
-      renderSeasonByWeekUI(`Loaded ${games.length} games successfully.`, 'success');
-    }
-
-    function renderByTeamFromDirectory() {
+    (function renderByTeamFromDirectory() {
       const tabTeam = document.getElementById('tab-team');
       if (!tabTeam) return;
 
@@ -863,28 +505,29 @@
             return aa.localeCompare(bb);
           })
           .forEach(t => {
-            const card = document.createElement('div');
-            card.className = 'team-card';
+            const a = document.createElement('a');
+            a.className = 'team-card';
+            a.href = t.page || '#';
 
             const cardTitle = document.createElement('div');
             cardTitle.className = 'team-card-title';
             cardTitle.textContent = t.cardTitle || t.teamLabel || 'Team';
-            card.appendChild(cardTitle);
+            a.appendChild(cardTitle);
 
             const img = document.createElement('img');
-            img.src = t.teamLogo || 'White Logo.jpg';
+            img.src = t.teamLogo || '';
             img.alt = (t.cardTitle || t.teamLabel || 'Team') + ' logo';
-            card.appendChild(img);
+            a.appendChild(img);
 
-            row.appendChild(card);
+            row.appendChild(a);
           });
 
         section.appendChild(row);
         tabTeam.appendChild(section);
       });
-    }
+    })();
 
-    function renderSeasonByWeekUI(statusText = '', statusClass = '') {
+    (function renderSeasonByWeek() {
       const tabWeek = document.getElementById('tab-week');
       if (!tabWeek) return;
 
@@ -893,27 +536,18 @@
         return;
       }
 
-      tabWeek.innerHTML = renderImportBox(statusText, statusClass);
-
-      const text = localStorage.getItem(LOCAL_STORAGE_KEY) || '';
-      if (!uploadedGames.length && text.trim()) {
-        const rows = parseDelimitedText(text);
-        uploadedGames = buildGamesFromRows(rows);
-      }
-
-      if (!uploadedGames.length) {
-        const emptyState = document.createElement('div');
-        emptyState.className = 'temp-schedule-overlay';
-        emptyState.innerHTML = `
-          <h2>No Schedule Loaded Yet</h2>
-          <p>Paste your schedule table above or upload a CSV file.</p>
-        `;
-        tabWeek.appendChild(emptyState);
-        attachImportHandlers();
+      if (!window.HFF_SCHEDULE || typeof window.HFF_SCHEDULE.getAllWeeks !== 'function') {
+        tabWeek.innerHTML = '<p>Could not load schedule.</p>';
         return;
       }
 
-      const weeks = groupGamesIntoWeeks(uploadedGames);
+      const weeks = window.HFF_SCHEDULE.getAllWeeks();
+      if (!weeks || !weeks.length) {
+        tabWeek.innerHTML = '<p>No schedule found.</p>';
+        return;
+      }
+
+      tabWeek.innerHTML = '';
 
       weeks.forEach(week => {
         const section = document.createElement('div');
@@ -939,12 +573,7 @@
         section.appendChild(list);
         tabWeek.appendChild(section);
       });
-
-      attachImportHandlers();
-    }
-
-    renderByTeamFromDirectory();
-    renderSeasonByWeekUI();
+    })();
   </script>
 </body>
 </html>
