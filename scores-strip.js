@@ -22,9 +22,25 @@ function weekHasAnyScores(week) {
 }
 
 function formatStripTitle(week, game) {
-  const dateText = game.dateText || week.weekDate || '';
-  const timeText = game.datetime || '';
-  return [dateText, timeText].filter(Boolean).join(' • ');
+  if (!game.dateText) {
+    return game.datetime || '';
+  }
+
+  const date = new Date(game.dateText);
+
+  if (isNaN(date)) {
+    return game.datetime || '';
+  }
+
+  const month = date.toLocaleString('en-US', { month: 'short' });
+  const day = date.getDate();
+
+  let time = game.datetime || '';
+
+  // Clean up time (remove space before AM/PM)
+  time = time.replace(' AM', 'AM').replace(' PM', 'PM');
+
+  return `${month} ${day} - ${time}`;
 }
 
 function buildStripGames() {
