@@ -588,36 +588,33 @@
       return String(item.id);
     }
 
-    async function ensureTrackingRows(registrations) {
-      const uniqueMap = new Map();
+   async function ensureTrackingRows(registrations) {
+  const uniqueMap = new Map();
 
-      registrations.forEach(item => {
-        const registration_key = buildRegistrationKey(item);
-        if (!registration_key) return;
+  registrations.forEach(item => {
+    const registration_key = buildRegistrationKey(item);
+    if (!registration_key) return;
 
-        if (!uniqueMap.has(registration_key)) {
-          uniqueMap.set(registration_key, {
-            registration_key,
-            order_id: item.id,
-            team_name: "",
-            division: "",
-            processed: false,
-            stocked: false,
-            fulfilled: false,
-            refunded: false
-          });
-        }
+    if (!uniqueMap.has(registration_key)) {
+      uniqueMap.set(registration_key, {
+        registration_key,
+        order_id: item.id
       });
-
-      const payload = [...uniqueMap.values()];
-      if (!payload.length) return;
-
-      const { error } = await supabase
-        .from("registration_tracking_v1")
-        .upsert(payload, { onConflict: "registration_key" });
-
-      if (error) throw error;
     }
+  });
+
+  const payload = [...uniqueMap.values()];
+  if (!payload.length) return;
+
+  const { error } = await supabase
+    .from("registration_tracking_v1")
+    .upsert(payload, {
+      onConflict: "registration_key",
+      ignoreDuplicates: true
+    });
+
+  if (error) throw error;
+}
 
     async function loadRows() {
       clearStatus();
