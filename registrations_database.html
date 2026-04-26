@@ -486,7 +486,10 @@
         </select>
 
         <button class="btn btn-dark" id="applyBulkBtn">Apply</button>
+        <button class="btn btn-dark" id="uploadCsvBtn">Upload CSV</button>
+        <button class="btn btn-dark" id="exportCsvBtn">Export CSV</button>
         <button class="btn btn-red" id="refreshBtn">Refresh</button>
+        <input type="file" id="csvUploadInput" accept=".csv" style="display:none;" />
       </div>
     </section>
 
@@ -532,6 +535,9 @@
     const statusFilter = document.getElementById("statusFilter");
     const bulkAction = document.getElementById("bulkAction");
     const applyBulkBtn = document.getElementById("applyBulkBtn");
+    const uploadCsvBtn = document.getElementById("uploadCsvBtn");
+    const exportCsvBtn = document.getElementById("exportCsvBtn");
+    const csvUploadInput = document.getElementById("csvUploadInput");
     const refreshBtn = document.getElementById("refreshBtn");
 
     const processCount = document.getElementById("processCount");
@@ -565,6 +571,8 @@
       statusFilter.disabled = !enabled;
       bulkAction.disabled = !enabled;
       applyBulkBtn.disabled = !enabled;
+      uploadCsvBtn.disabled = !enabled;
+      exportCsvBtn.disabled = !enabled;
       refreshBtn.disabled = !enabled;
       logoutBtn.disabled = !enabled;
     }
@@ -588,33 +596,74 @@
       return String(item.id);
     }
 
-   async function ensureTrackingRows(registrations) {
-  const uniqueMap = new Map();
-
-  registrations.forEach(item => {
-    const registration_key = buildRegistrationKey(item);
-    if (!registration_key) return;
-
-    if (!uniqueMap.has(registration_key)) {
-      uniqueMap.set(registration_key, {
-        registration_key,
-        order_id: item.id
-      });
+    function normalizeName(value) {
+      return String(value || "")
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, " ");
     }
-  });
 
-  const payload = [...uniqueMap.values()];
-  if (!payload.length) return;
+    function parseCsvLine(line) {
+      const result = [];
+      let current = "";
+      let inQuotes = false;
 
-  const { error } = await supabase
-    .from("registration_tracking_v1")
-    .upsert(payload, {
-      onConflict: "registration_key",
-      ignoreDuplicates: true
-    });
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        const next = line[i + 1];
 
-  if (error) throw error;
-}
+        if (char === '"' && inQuotes && next === '"') {
+          current += '"';
+          i++;
+        } else if (char === '"') {
+          inQuotes = !inQuotes;
+        } else if (char === "," && !inQuotes) {
+          result.push(current.trim());
+          current = "";
+        } else {
+          current += char;
+        }
+      }
+
+      result.push(current.trim());
+      return result;
+    }
+
+    function csvEscape(value) {
+      const str = String(value ?? "");
+      if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    }
+
+    async function ensureTrackingRows(registrations) {
+      const uniqueMap = new Map();
+
+      registrations.forEach(item => {
+        const registration_key = buildRegistrationKey(item);
+        if (!registration_key) return;
+
+        if (!uniqueMap.has(registration_key)) {
+          uniqueMap.set(registration_key, {
+            registration_key,
+            order_id: item.id
+          });
+        }
+      });
+
+      const payload = [...uniqueMap.values()];
+      if (!payload.length) return;
+
+      const { error } = await supabase
+        .from("registration_tracking_v1")
+        .upsert(payload, {
+          onConflict: "registration_key",
+          ignoreDuplicates: true
+        });
+
+      if (error) throw error;
+    }
 
     async function loadRows() {
       clearStatus();
@@ -1091,6 +1140,134 @@
       }
     }
 
+    async function handleCsvUpload(file) {
+      if (!isAuthenticated) {
+        showStatus("You must log in to upload CSV changes.", "error");
+        return;
+      }
+
+      const text = await file.text();
+      const lines = text.split(/\r?\n/).filter(line => line.trim());
+
+      if (!lines.length) {
+        showStatus("CSV file is empty.", "error");
+        return;
+      }
+
+      const updates = [];
+      let matchedCount = 0;
+      let skippedCount = 0;
+
+      lines.forEach((line, index) => {
+        const cols = parseCsvLine(line);
+
+        const playerName = cols[0] || "";
+        const teamName = cols[1] || "";
+        const division = cols[2] || "";
+
+        if (!playerName) {
+          skippedCount++;
+          return;
+        }
+
+        if (
+          index === 0 &&
+          normalizeName(playerName).includes("player") &&
+          normalizeName(teamName).includes("team")
+        ) {
+          return;
+        }
+
+        const matches = rows.filter(row => normalizeName(row.player_name) === normalizeName(playerName));
+
+        if (matches.length !== 1) {
+          skippedCount++;
+          return;
+        }
+
+        const match = matches[0];
+
+        match.team_name = teamName.trim();
+        match.division = division.trim();
+
+        updates.push({
+          registration_key: match.registration_key,
+          order_id: match.order_id,
+          team_name: match.team_name,
+          division: match.division,
+          jersey_size: match.jersey_size,
+          processed: match.processed,
+          stocked: match.stocked,
+          fulfilled: match.fulfilled,
+          refunded: match.refunded
+        });
+
+        matchedCount++;
+      });
+
+      if (!updates.length) {
+        showStatus("No matching players found in the CSV. Make sure column 1 exactly matches Player Name.", "error");
+        return;
+      }
+
+      showStatus("Saving CSV updates...", "info");
+
+      const { error } = await supabase
+        .from("registration_tracking_v1")
+        .upsert(updates, { onConflict: "registration_key" });
+
+      if (error) {
+        showStatus("CSV upload failed: " + error.message, "error");
+        return;
+      }
+
+      renderTable();
+      showStatus(`CSV upload complete. Updated ${matchedCount} row(s). Skipped ${skippedCount} row(s).`, "success");
+    }
+
+    function exportCsv() {
+      const headers = [
+        "Date",
+        "Player Name",
+        "Team Name",
+        "Division",
+        "Jersey Size",
+        "Processed",
+        "Stocked",
+        "Fulfilled",
+        "Refunded"
+      ];
+
+      const lines = [headers.join(",")];
+
+      rows.forEach(row => {
+        lines.push([
+          formatDate(row.created_at),
+          row.player_name,
+          row.team_name,
+          row.division,
+          row.jersey_size,
+          row.processed ? "TRUE" : "FALSE",
+          row.stocked ? "TRUE" : "FALSE",
+          row.fulfilled ? "TRUE" : "FALSE",
+          row.refunded ? "TRUE" : "FALSE"
+        ].map(csvEscape).join(","));
+      });
+
+      const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "registrations_database_export.csv";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      URL.revokeObjectURL(url);
+      showStatus("CSV export downloaded.", "success");
+    }
+
     loginBtn.addEventListener("click", handleLogin);
     passwordInput.addEventListener("keydown", (e) => {
       if (e.key === "Enter") handleLogin();
@@ -1104,6 +1281,20 @@
     statusFilter.addEventListener("change", renderTable);
     applyBulkBtn.addEventListener("click", applyBulkAction);
     refreshBtn.addEventListener("click", loadRows);
+
+    uploadCsvBtn.addEventListener("click", () => {
+      csvUploadInput.click();
+    });
+
+    csvUploadInput.addEventListener("change", async (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      await handleCsvUpload(file);
+      csvUploadInput.value = "";
+    });
+
+    exportCsvBtn.addEventListener("click", exportCsv);
 
     supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session) {
