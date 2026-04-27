@@ -662,7 +662,280 @@ window.HFF_SCHEDULE = {
             field: "A"
           }
         ]
+              },
+      {
+        weekTitle: "Week 7 - Playoffs",
+        weekDate: "Saturday, June 27, 2026",
+        games: [
+          {
+            away: "Giants (U6)",
+            awayLogo: "Giants.png",
+            awayRecord: "0-0",
+            awayScore: "",
+            home: "Giants (U6)",
+            homeLogo: "Giants.png",
+            homeRecord: "0-0",
+            homeScore: "",
+            datetime: "9:15 AM",
+            dateText: "Saturday, June 27, 2026",
+            field: "B"
+          },
+          {
+            away: "#1 (U9)",
+            awayLogo: "White Logo.jpg",
+            awayRecord: "0-0",
+            awayScore: "",
+            home: "#3 (U9)",
+            homeLogo: "White Logo.jpg",
+            homeRecord: "0-0",
+            homeScore: "",
+            datetime: "9:30 AM",
+            dateText: "Saturday, June 27, 2026",
+            field: "A"
+          },
+          {
+            away: "#2 (U12)",
+            awayLogo: "White Logo.jpg",
+            awayRecord: "0-0",
+            awayScore: "",
+            home: "#4 (U12)",
+            homeLogo: "White Logo.jpg",
+            homeRecord: "0-0",
+            homeScore: "",
+            datetime: "10:00 AM",
+            dateText: "Saturday, June 27, 2026",
+            field: "C"
+          },
+          {
+            away: "#2 (U9)",
+            awayLogo: "White Logo.jpg",
+            awayRecord: "0-0",
+            awayScore: "",
+            home: "#3 (U9)",
+            homeLogo: "White Logo.jpg",
+            homeRecord: "0-0",
+            homeScore: "",
+            datetime: "10:30 AM",
+            dateText: "Saturday, June 27, 2026",
+            field: "A"
+          },
+          {
+            away: "#1 (U12)",
+            awayLogo: "White Logo.jpg",
+            awayRecord: "0-0",
+            awayScore: "",
+            home: "#3 (U12)",
+            homeLogo: "White Logo.jpg",
+            homeRecord: "0-0",
+            homeScore: "",
+            datetime: "11:00 AM",
+            dateText: "Saturday, June 27, 2026",
+            field: "C"
+          },
+          {
+            away: "Patriots (U16)",
+            awayLogo: "Patriots.png",
+            awayRecord: "0-0",
+            awayScore: "",
+            home: "Panthers (U16)",
+            homeLogo: "Panthers.png",
+            homeRecord: "0-0",
+            homeScore: "",
+            datetime: "11:30 AM",
+            dateText: "Saturday, June 27, 2026",
+            field: "A"
+          },
+          {
+            away: "Cowboys (U16)",
+            awayLogo: "Cowboys.png",
+            awayRecord: "0-0",
+            awayScore: "",
+            home: "Commanders (U16)",
+            homeLogo: "Commanders.png",
+            homeRecord: "0-0",
+            homeScore: "",
+            datetime: "12:00 PM",
+            dateText: "Saturday, June 27, 2026",
+            field: "C"
+          },
+          {
+            away: "Panthers (U16)",
+            awayLogo: "Panthers.png",
+            awayRecord: "0-0",
+            awayScore: "",
+            home: "Chiefs (U16)",
+            homeLogo: "Chiefs.png",
+            homeRecord: "0-0",
+            homeScore: "",
+            datetime: "12:30 PM",
+            dateText: "Saturday, June 27, 2026",
+            field: "A"
+          },
+          {
+            away: "Cowboys (U16)",
+            awayLogo: "Cowboys.png",
+            awayRecord: "0-0",
+            awayScore: "",
+            home: "Patriots (U16)",
+            homeLogo: "Patriots.png",
+            homeRecord: "0-0",
+            homeScore: "",
+            datetime: "1:00 PM",
+            dateText: "Saturday, June 27, 2026",
+            field: "C"
+          }
+        ]
+      },
+      {
+        weekTitle: "Week 8 - Championship Week",
+        weekDate: "Saturday, July 4, 2026",
+        games: [
+          {
+            away: "#2 (U12)",
+            awayLogo: "White Logo.jpg",
+            awayRecord: "0-0",
+            awayScore: "",
+            home: "#3 (U12)",
+            homeLogo: "White Logo.jpg",
+            homeRecord: "0-0",
+            homeScore: "",
+            datetime: "9:00 AM",
+            dateText: "Saturday, July 4, 2026",
+            field: "C"
+          },
+          {
+            away: "Giants (U6)",
+            awayLogo: "Giants.png",
+            awayRecord: "0-0",
+            awayScore: "",
+            home: "Giants (U6)",
+            homeLogo: "Giants.png",
+            homeRecord: "0-0",
+            homeScore: "",
+            datetime: "9:15 AM",
+            dateText: "Saturday, July 4, 2026",
+            field: "B"
+          },
+          {
+            away: "#2 (U9)",
+            awayLogo: "White Logo.jpg",
+            awayRecord: "0-0",
+            awayScore: "",
+            home: "#3 (U9)",
+            homeLogo: "White Logo.jpg",
+            homeRecord: "0-0",
+            homeScore: "",
+            datetime: "9:30 AM",
+            dateText: "Saturday, July 4, 2026",
+            field: "A"
+          },
+          {
+            away: "#1 (U12)",
+            awayLogo: "White Logo.jpg",
+            awayRecord: "0-0",
+            awayScore: "",
+            home: "#4 (U12)",
+            homeLogo: "White Logo.jpg",
+            homeRecord: "0-0",
+            homeScore: "",
+            datetime: "10:00 AM",
+            dateText: "Saturday, July 4, 2026",
+            field: "C"
+          },
+          {
+            away: "#1 (U9)",
+            awayLogo: "White Logo.jpg",
+            awayRecord: "0-0",
+            awayScore: "",
+            home: "Winner of 9:30am game",
+            homeLogo: "White Logo.jpg",
+            homeRecord: "0-0",
+            homeScore: "",
+            datetime: "10:30 AM",
+            dateText: "Saturday, July 4, 2026",
+            field: "A"
+          },
+          {
+            away: "#3 (U12)",
+            awayLogo: "White Logo.jpg",
+            awayRecord: "0-0",
+            awayScore: "",
+            home: "#4 (U12)",
+            homeLogo: "White Logo.jpg",
+            homeRecord: "0-0",
+            homeScore: "",
+            datetime: "11:00 AM",
+            dateText: "Saturday, July 4, 2026",
+            field: "C"
+          },
+          {
+            away: "#2 (U16)",
+            awayLogo: "White Logo.jpg",
+            awayRecord: "0-0",
+            awayScore: "",
+            home: "#5 (U16)",
+            homeLogo: "White Logo.jpg",
+            homeRecord: "0-0",
+            homeScore: "",
+            datetime: "11:30 AM",
+            dateText: "Saturday, July 4, 2026",
+            field: "A"
+          },
+          {
+            away: "#1 (U12)",
+            awayLogo: "White Logo.jpg",
+            awayRecord: "0-0",
+            awayScore: "",
+            home: "#2 (U12)",
+            homeLogo: "White Logo.jpg",
+            homeRecord: "0-0",
+            homeScore: "",
+            datetime: "12:00 PM",
+            dateText: "Saturday, July 4, 2026",
+            field: "C"
+          },
+          {
+            away: "#3 (U16)",
+            awayLogo: "White Logo.jpg",
+            awayRecord: "0-0",
+            awayScore: "",
+            home: "#4 (U16)",
+            homeLogo: "White Logo.jpg",
+            homeRecord: "0-0",
+            homeScore: "",
+            datetime: "12:30 PM",
+            dateText: "Saturday, July 4, 2026",
+            field: "A"
+          },
+          {
+            away: "#1 (U16)",
+            awayLogo: "White Logo.jpg",
+            awayRecord: "0-0",
+            awayScore: "",
+            home: "#2 (U16)",
+            homeLogo: "White Logo.jpg",
+            homeRecord: "0-0",
+            homeScore: "",
+            datetime: "1:30 PM",
+            dateText: "Saturday, July 4, 2026",
+            field: "A"
+          },
+          {
+            away: "#3 (U16)",
+            awayLogo: "White Logo.jpg",
+            awayRecord: "0-0",
+            awayScore: "",
+            home: "#4 (U16)",
+            homeLogo: "White Logo.jpg",
+            homeRecord: "0-0",
+            homeScore: "",
+            datetime: "1:30 PM",
+            dateText: "Saturday, July 4, 2026",
+            field: "C"
+          }
+        ]
       }
+      
     ];
   }
 };
