@@ -1,941 +1,251 @@
-console.log("season-schedule.js loaded v6");
+console.log("season-schedule.js loaded v9");
 
-window.HFF_SCHEDULE = {
-  getAllWeeks: function () {
-    return [
-      {
-        weekTitle: "Week 1",
-        weekDate: "Saturday, May 16, 2026",
-        games: [
-          {
-            away: "Giants (U6)",
-            awayLogo: "Giants.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Giants (U6)",
-            homeLogo: "Giants.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "9:15 AM",
-            dateText: "Saturday, May 16, 2026",
-            field: "B"
-          },
-          {
-            away: "Packers (U9)",
-            awayLogo: "Packers.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Saints (U9)",
-            homeLogo: "Saints.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "9:30 AM",
-            dateText: "Saturday, May 16, 2026",
-            field: "A"
-          },
-          {
-            away: "Browns (U12)",
-            awayLogo: "Browns.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Jets (U12)",
-            homeLogo: "Jets.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "10:00 AM",
-            dateText: "Saturday, May 16, 2026",
-            field: "C"
-          },
-          {
-            away: "Bears (U9)",
-            awayLogo: "Bears.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Saints (U9)",
-            homeLogo: "Saints.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "10:30 AM",
-            dateText: "Saturday, May 16, 2026",
-            field: "A"
-          },
-          {
-            away: "Bills (U12)",
-            awayLogo: "Bills.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Ravens (U12)",
-            homeLogo: "Ravens.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "11:00 AM",
-            dateText: "Saturday, May 16, 2026",
-            field: "C"
-          },
-          {
-            away: "Chiefs (U16)",
-            awayLogo: "Chiefs.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Cowboys (U16)",
-            homeLogo: "Cowboys.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "11:30 AM",
-            dateText: "Saturday, May 16, 2026",
-            field: "A"
-          },
-          {
-            away: "Panthers (U16)",
-            awayLogo: "Panthers.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Patriots (U16)",
-            homeLogo: "Patriots.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "12:00 PM",
-            dateText: "Saturday, May 16, 2026",
-            field: "C"
-          },
-          {
-            away: "Cowboys (U16)",
-            awayLogo: "Cowboys.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Commanders (U16)",
-            homeLogo: "Commanders.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "12:30 PM",
-            dateText: "Saturday, May 16, 2026",
-            field: "A"
-          }
-        ]
-      },
-      {
-        weekTitle: "Week 2",
-        weekDate: "Saturday, May 23, 2026",
-        games: [
-          {
-            away: "Giants (U6)",
-            awayLogo: "Giants.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Giants (U6)",
-            homeLogo: "Giants.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "9:15 AM",
-            dateText: "Saturday, May 23, 2026",
-            field: "B"
-          },
-          {
-            away: "Bears (U9)",
-            awayLogo: "Bears.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Packers (U9)",
-            homeLogo: "Packers.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "9:30 AM",
-            dateText: "Saturday, May 23, 2026",
-            field: "A"
-          },
-          {
-            away: "Jets (U12)",
-            awayLogo: "Jets.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Bills (U12)",
-            homeLogo: "Bills.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "10:00 AM",
-            dateText: "Saturday, May 23, 2026",
-            field: "C"
-          },
-          {
-            away: "Saints (U9)",
-            awayLogo: "Saints.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Packers (U9)",
-            homeLogo: "Packers.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "10:30 AM",
-            dateText: "Saturday, May 23, 2026",
-            field: "A"
-          },
-          {
-            away: "Ravens (U12)",
-            awayLogo: "Ravens.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Browns (U12)",
-            homeLogo: "Browns.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "11:00 AM",
-            dateText: "Saturday, May 23, 2026",
-            field: "C"
-          },
-          {
-            away: "Panthers (U16)",
-            awayLogo: "Panthers.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Chiefs (U16)",
-            homeLogo: "Chiefs.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "11:30 AM",
-            dateText: "Saturday, May 23, 2026",
-            field: "A"
-          },
-          {
-            away: "Patriots (U16)",
-            awayLogo: "Patriots.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Cowboys (U16)",
-            homeLogo: "Cowboys.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "12:00 PM",
-            dateText: "Saturday, May 23, 2026",
-            field: "C"
-          },
-          {
-            away: "Chiefs (U16)",
-            awayLogo: "Chiefs.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Commanders (U16)",
-            homeLogo: "Commanders.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "12:30 PM",
-            dateText: "Saturday, May 23, 2026",
-            field: "A"
-          }
-        ]
-      },
-      {
-        weekTitle: "Week 3",
-        weekDate: "Saturday, May 30, 2026",
-        games: [
-          {
-            away: "Giants (U6)",
-            awayLogo: "Giants.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Giants (U6)",
-            homeLogo: "Giants.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "9:15 AM",
-            dateText: "Saturday, May 30, 2026",
-            field: "B"
-          },
-          {
-            away: "Saints (U9)",
-            awayLogo: "Saints.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Bears (U9)",
-            homeLogo: "Bears.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "9:30 AM",
-            dateText: "Saturday, May 30, 2026",
-            field: "A"
-          },
-          {
-            away: "Bills (U12)",
-            awayLogo: "Bills.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Browns (U12)",
-            homeLogo: "Browns.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "10:00 AM",
-            dateText: "Saturday, May 30, 2026",
-            field: "C"
-          },
-          {
-            away: "Packers (U9)",
-            awayLogo: "Packers.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Bears (U9)",
-            homeLogo: "Bears.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "10:30 AM",
-            dateText: "Saturday, May 30, 2026",
-            field: "A"
-          },
-          {
-            away: "Jets (U12)",
-            awayLogo: "Jets.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Ravens (U12)",
-            homeLogo: "Ravens.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "11:00 AM",
-            dateText: "Saturday, May 30, 2026",
-            field: "C"
-          },
-          {
-            away: "Panthers (U16)",
-            awayLogo: "Panthers.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Chiefs (U16)",
-            homeLogo: "Chiefs.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "11:30 AM",
-            dateText: "Saturday, May 30, 2026",
-            field: "A"
-          },
-          {
-            away: "Cowboys (U16)",
-            awayLogo: "Cowboys.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Patriots (U16)",
-            homeLogo: "Patriots.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "12:00 PM",
-            dateText: "Saturday, May 30, 2026",
-            field: "C"
-          },
-          {
-            away: "Commanders (U16)",
-            awayLogo: "Commanders.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Panthers (U16)",
-            homeLogo: "Panthers.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "12:30 PM",
-            dateText: "Saturday, May 30, 2026",
-            field: "A"
-          }
-        ]
-      },
-      {
-        weekTitle: "Week 4",
-        weekDate: "Saturday, June 6, 2026",
-        games: [
-          {
-            away: "Giants (U6)",
-            awayLogo: "Giants.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Giants (U6)",
-            homeLogo: "Giants.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "9:15 AM",
-            dateText: "Saturday, June 6, 2026",
-            field: "B"
-          },
-          {
-            away: "Saints (U9)",
-            awayLogo: "Saints.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Packers (U9)",
-            homeLogo: "Packers.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "9:30 AM",
-            dateText: "Saturday, June 6, 2026",
-            field: "A"
-          },
-          {
-            away: "Ravens (U12)",
-            awayLogo: "Ravens.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Bills (U12)",
-            homeLogo: "Bills.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "10:00 AM",
-            dateText: "Saturday, June 6, 2026",
-            field: "C"
-          },
-          {
-            away: "Saints (U9)",
-            awayLogo: "Saints.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Bears (U9)",
-            homeLogo: "Bears.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "10:30 AM",
-            dateText: "Saturday, June 6, 2026",
-            field: "A"
-          },
-          {
-            away: "Browns (U12)",
-            awayLogo: "Browns.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Jets (U12)",
-            homeLogo: "Jets.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "11:00 AM",
-            dateText: "Saturday, June 6, 2026",
-            field: "C"
-          },
-          {
-            away: "Commanders (U16)",
-            awayLogo: "Commanders.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Chiefs (U16)",
-            homeLogo: "Chiefs.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "11:30 AM",
-            dateText: "Saturday, June 6, 2026",
-            field: "A"
-          },
-          {
-            away: "Panthers (U16)",
-            awayLogo: "Panthers.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Cowboys (U16)",
-            homeLogo: "Cowboys.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "12:00 PM",
-            dateText: "Saturday, June 6, 2026",
-            field: "C"
-          },
-          {
-            away: "Commanders (U16)",
-            awayLogo: "Commanders.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Patriots (U16)",
-            homeLogo: "Patriots.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "12:30 PM",
-            dateText: "Saturday, June 6, 2026",
-            field: "A"
-          }
-        ]
-      },
-      {
-        weekTitle: "Week 5",
-        weekDate: "Saturday, June 13, 2026",
-        games: [
-          {
-            away: "Giants (U6)",
-            awayLogo: "Giants.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Giants (U6)",
-            homeLogo: "Giants.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "9:15 AM",
-            dateText: "Saturday, June 13, 2026",
-            field: "B"
-          },
-          {
-            away: "Packers (U9)",
-            awayLogo: "Packers.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Bears (U9)",
-            homeLogo: "Bears.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "9:30 AM",
-            dateText: "Saturday, June 13, 2026",
-            field: "A"
-          },
-          {
-            away: "Ravens (U12)",
-            awayLogo: "Ravens.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Browns (U12)",
-            homeLogo: "Browns.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "10:00 AM",
-            dateText: "Saturday, June 13, 2026",
-            field: "C"
-          },
-          {
-            away: "Packers (U9)",
-            awayLogo: "Packers.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Saints (U9)",
-            homeLogo: "Saints.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "10:30 AM",
-            dateText: "Saturday, June 13, 2026",
-            field: "A"
-          },
-          {
-            away: "Bills (U12)",
-            awayLogo: "Bills.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Jets (U12)",
-            homeLogo: "Jets.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "11:00 AM",
-            dateText: "Saturday, June 13, 2026",
-            field: "C"
-          },
-          {
-            away: "Chiefs (U16)",
-            awayLogo: "Chiefs.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Patriots (U16)",
-            homeLogo: "Patriots.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "11:30 AM",
-            dateText: "Saturday, June 13, 2026",
-            field: "A"
-          },
-          {
-            away: "Commanders (U16)",
-            awayLogo: "Commanders.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Cowboys (U16)",
-            homeLogo: "Cowboys.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "12:00 PM",
-            dateText: "Saturday, June 13, 2026",
-            field: "C"
-          },
-          {
-            away: "Patriots (U16)",
-            awayLogo: "Patriots.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Panthers (U16)",
-            homeLogo: "Panthers.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "12:30 PM",
-            dateText: "Saturday, June 13, 2026",
-            field: "A"
-          }
-        ]
-      },
-      {
-        weekTitle: "Week 6",
-        weekDate: "Saturday, June 20, 2026",
-        games: [
-          {
-            away: "Giants (U6)",
-            awayLogo: "Giants.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Giants (U6)",
-            homeLogo: "Giants.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "9:15 AM",
-            dateText: "Saturday, June 20, 2026",
-            field: "B"
-          },
-          {
-            away: "Bears (U9)",
-            awayLogo: "Bears.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Saints (U9)",
-            homeLogo: "Saints.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "9:30 AM",
-            dateText: "Saturday, June 20, 2026",
-            field: "A"
-          },
-          {
-            away: "Jets (U12)",
-            awayLogo: "Jets.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Ravens (U12)",
-            homeLogo: "Ravens.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "10:00 AM",
-            dateText: "Saturday, June 20, 2026",
-            field: "C"
-          },
-          {
-            away: "Bears (U9)",
-            awayLogo: "Bears.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Packers (U9)",
-            homeLogo: "Packers.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "10:30 AM",
-            dateText: "Saturday, June 20, 2026",
-            field: "A"
-          },
-          {
-            away: "Browns (U12)",
-            awayLogo: "Browns.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Bills (U12)",
-            homeLogo: "Bills.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "11:00 AM",
-            dateText: "Saturday, June 20, 2026",
-            field: "C"
-          },
-          {
-            away: "Chiefs (U16)",
-            awayLogo: "Chiefs.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Cowboys (U16)",
-            homeLogo: "Cowboys.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "11:30 AM",
-            dateText: "Saturday, June 20, 2026",
-            field: "A"
-          },
-          {
-            away: "Patriots (U16)",
-            awayLogo: "Patriots.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Commanders (U16)",
-            homeLogo: "Commanders.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "12:00 PM",
-            dateText: "Saturday, June 20, 2026",
-            field: "C"
-          },
-          {
-            away: "Cowboys (U16)",
-            awayLogo: "Cowboys.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Panthers (U16)",
-            homeLogo: "Panthers.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "12:30 PM",
-            dateText: "Saturday, June 20, 2026",
-            field: "A"
-          }
-        ]
-              },
-      {
-        weekTitle: "Week 7 - Playoffs",
-        weekDate: "Saturday, June 27, 2026",
-        games: [
-          {
-            away: "Giants (U6)",
-            awayLogo: "Giants.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Giants (U6)",
-            homeLogo: "Giants.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "9:15 AM",
-            dateText: "Saturday, June 27, 2026",
-            field: "B"
-          },
-          {
-            away: "#1 (U9)",
-            awayLogo: "Logo.jpg",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "#3 (U9)",
-            homeLogo: "Logo.jpg",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "9:30 AM",
-            dateText: "Saturday, June 27, 2026",
-            field: "A"
-          },
-          {
-            away: "#2 (U12)",
-            awayLogo: "Logo.jpg",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "#4 (U12)",
-            homeLogo: "Logo.jpg",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "10:00 AM",
-            dateText: "Saturday, June 27, 2026",
-            field: "C"
-          },
-          {
-            away: "#2 (U9)",
-            awayLogo: "Logo.jpg",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "#3 (U9)",
-            homeLogo: "Logo.jpg",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "10:30 AM",
-            dateText: "Saturday, June 27, 2026",
-            field: "A"
-          },
-          {
-            away: "#1 (U12)",
-            awayLogo: "Logo.jpg",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "#3 (U12)",
-            homeLogo: "Logo.jpg",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "11:00 AM",
-            dateText: "Saturday, June 27, 2026",
-            field: "C"
-          },
-          {
-            away: "Patriots (U16)",
-            awayLogo: "Patriots.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Panthers (U16)",
-            homeLogo: "Panthers.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "11:30 AM",
-            dateText: "Saturday, June 27, 2026",
-            field: "A"
-          },
-          {
-            away: "Cowboys (U16)",
-            awayLogo: "Cowboys.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Commanders (U16)",
-            homeLogo: "Commanders.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "12:00 PM",
-            dateText: "Saturday, June 27, 2026",
-            field: "C"
-          },
-          {
-            away: "Panthers (U16)",
-            awayLogo: "Panthers.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Chiefs (U16)",
-            homeLogo: "Chiefs.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "12:30 PM",
-            dateText: "Saturday, June 27, 2026",
-            field: "A"
-          },
-          {
-            away: "Cowboys (U16)",
-            awayLogo: "Cowboys.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Patriots (U16)",
-            homeLogo: "Patriots.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "1:00 PM",
-            dateText: "Saturday, June 27, 2026",
-            field: "C"
-          }
-        ]
-      },
-      {
-        weekTitle: "Week 8 - Championship Week",
-        weekDate: "Saturday, July 4, 2026",
-        games: [
-          {
-            away: "#2 (U12)",
-            awayLogo: "Logo.jpg",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "#3 (U12)",
-            homeLogo: "Logo.jpg",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "9:00 AM",
-            dateText: "Saturday, July 4, 2026",
-            field: "C"
-          },
-          {
-            away: "Giants (U6)",
-            awayLogo: "Giants.png",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Giants (U6)",
-            homeLogo: "Giants.png",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "9:15 AM",
-            dateText: "Saturday, July 4, 2026",
-            field: "B"
-          },
-          {
-            away: "#2 (U9)",
-            awayLogo: "Logo.jpg",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "#3 (U9)",
-            homeLogo: "Logo.jpg",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "9:30 AM",
-            dateText: "Saturday, July 4, 2026",
-            field: "A"
-          },
-          {
-            away: "#1 (U12)",
-            awayLogo: "Logo.jpg",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "#4 (U12)",
-            homeLogo: "Logo.jpg",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "10:00 AM",
-            dateText: "Saturday, July 4, 2026",
-            field: "C"
-          },
-          {
-            away: "#1 (U9)",
-            awayLogo: "Logo.jpg",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "Winner of 9:30am game",
-            homeLogo: "Logo.jpg",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "10:30 AM",
-            dateText: "Saturday, July 4, 2026",
-            field: "A"
-          },
-          {
-            away: "#3 (U12)",
-            awayLogo: "Logo.jpg",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "#4 (U12)",
-            homeLogo: "Logo.jpg",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "11:00 AM",
-            dateText: "Saturday, July 4, 2026",
-            field: "C"
-          },
-          {
-            away: "#2 (U16)",
-            awayLogo: "Logo.jpg",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "#5 (U16)",
-            homeLogo: "Logo.jpg",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "11:30 AM",
-            dateText: "Saturday, July 4, 2026",
-            field: "A"
-          },
-          {
-            away: "#1 (U12)",
-            awayLogo: "Logo.jpg",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "#2 (U12)",
-            homeLogo: "Logo.jpg",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "12:00 PM",
-            dateText: "Saturday, July 4, 2026",
-            field: "C"
-          },
-          {
-            away: "#3 (U16)",
-            awayLogo: "Logo.jpg",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "#4 (U16)",
-            homeLogo: "Logo.jpg",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "12:30 PM",
-            dateText: "Saturday, July 4, 2026",
-            field: "A"
-          },
-          {
-            away: "#1 (U16)",
-            awayLogo: "Logo.jpg",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "#2 (U16)",
-            homeLogo: "Logo.jpg",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "1:30 PM",
-            dateText: "Saturday, July 4, 2026",
-            field: "A"
-          },
-          {
-            away: "#3 (U16)",
-            awayLogo: "Logo.jpg",
-            awayRecord: "0-0",
-            awayScore: "",
-            home: "#4 (U16)",
-            homeLogo: "Logo.jpg",
-            homeRecord: "0-0",
-            homeScore: "",
-            datetime: "1:30 PM",
-            dateText: "Saturday, July 4, 2026",
-            field: "C"
-          }
-        ]
-      }
-      
-    ];
+window.HFF_SCHEDULE = (function () {
+  const scheduleRows = [
+    ["2026-05-16", "09:00", "A", "Practice", "", "", "Packers (U9)", "", "", "0-0", "0-0"],
+    ["2026-05-16", "09:15", "B", "Game", "Giants (U6)", "Giants (U6)", "", "", "", "0-0", "0-0"],
+    ["2026-05-16", "09:30", "C", "Practice", "", "", "Jets (U12)", "", "", "0-0", "0-0"],
+    ["2026-05-16", "09:30", "C", "Practice", "", "", "Browns (U12)", "", "", "0-0", "0-0"],
+    ["2026-05-16", "09:30", "A", "Game", "Saints (U9)", "Packers (U9)", "", "", "", "0-0", "0-0"],
+    ["2026-05-16", "10:00", "B", "Practice", "", "", "Bears (U9)", "", "", "0-0", "0-0"],
+    ["2026-05-16", "10:00", "C", "Game", "Jets (U12)", "Browns (U12)", "", "", "", "0-0", "0-0"],
+    ["2026-05-16", "10:30", "B", "Practice", "", "", "Ravens (U12)", "", "", "0-0", "0-0"],
+    ["2026-05-16", "10:30", "B", "Practice", "", "", "Bills (U12)", "", "", "0-0", "0-0"],
+    ["2026-05-16", "10:30", "A", "Game", "Saints (U9)", "Bears (U9)", "", "", "", "0-0", "0-0"],
+    ["2026-05-16", "11:00", "B", "Practice", "", "", "Chiefs (U16)", "", "", "0-0", "0-0"],
+    ["2026-05-16", "11:00", "C", "Game", "Ravens (U12)", "Bills (U12)", "", "", "", "0-0", "0-0"],
+    ["2026-05-16", "11:30", "B", "Practice", "", "", "Patriots (U16)", "", "", "0-0", "0-0"],
+    ["2026-05-16", "11:30", "B", "Practice", "", "", "Panthers (U16)", "", "", "0-0", "0-0"],
+    ["2026-05-16", "11:30", "A", "Game", "Cowboys (U16)", "Chiefs (U16)", "", "", "", "0-0", "0-0"],
+    ["2026-05-16", "12:00", "B", "Practice", "", "", "Commanders (U16)", "", "", "0-0", "0-0"],
+    ["2026-05-16", "12:00", "C", "Game", "Patriots (U16)", "Panthers (U16)", "", "", "", "0-0", "0-0"],
+    ["2026-05-16", "12:30", "A", "Game", "Commanders (U16)", "Cowboys (U16)", "", "", "", "0-0", "0-0"],
+
+    ["2026-05-23", "09:00", "A", "Practice", "", "", "Bears (U9)", "", "", "0-0", "0-0"],
+    ["2026-05-23", "09:15", "B", "Game", "Giants (U6)", "Giants (U6)", "", "", "", "0-0", "0-0"],
+    ["2026-05-23", "09:30", "C", "Practice", "", "", "Bills (U12)", "", "", "0-0", "0-0"],
+    ["2026-05-23", "09:30", "C", "Practice", "", "", "Jets (U12)", "", "", "0-0", "0-0"],
+    ["2026-05-23", "09:30", "A", "Game", "Packers (U9)", "Bears (U9)", "", "", "", "0-0", "0-0"],
+    ["2026-05-23", "10:00", "B", "Practice", "", "", "Saints (U9)", "", "", "0-0", "0-0"],
+    ["2026-05-23", "10:00", "C", "Game", "Bills (U12)", "Jets (U12)", "", "", "", "0-0", "0-0"],
+    ["2026-05-23", "10:30", "B", "Practice", "", "", "Browns (U12)", "", "", "0-0", "0-0"],
+    ["2026-05-23", "10:30", "B", "Practice", "", "", "Ravens (U12)", "", "", "0-0", "0-0"],
+    ["2026-05-23", "10:30", "A", "Game", "Packers (U9)", "Saints (U9)", "", "", "", "0-0", "0-0"],
+    ["2026-05-23", "11:00", "B", "Practice", "", "", "Panthers (U16)", "", "", "0-0", "0-0"],
+    ["2026-05-23", "11:00", "C", "Game", "Browns (U12)", "Ravens (U12)", "", "", "", "0-0", "0-0"],
+    ["2026-05-23", "11:30", "B", "Practice", "", "", "Cowboys (U16)", "", "", "0-0", "0-0"],
+    ["2026-05-23", "11:30", "B", "Practice", "", "", "Patriots (U16)", "", "", "0-0", "0-0"],
+    ["2026-05-23", "11:30", "A", "Game", "Chiefs (U16)", "Panthers (U16)", "", "", "", "0-0", "0-0"],
+    ["2026-05-23", "12:00", "B", "Practice", "", "", "Commanders (U16)", "", "", "0-0", "0-0"],
+    ["2026-05-23", "12:00", "C", "Game", "Cowboys (U16)", "Patriots (U16)", "", "", "", "0-0", "0-0"],
+    ["2026-05-23", "12:30", "A", "Game", "Commanders (U16)", "Chiefs (U16)", "", "", "", "0-0", "0-0"],
+
+    ["2026-05-30", "09:00", "A", "Practice", "", "", "Saints (U9)", "", "", "0-0", "0-0"],
+    ["2026-05-30", "09:15", "B", "Game", "Giants (U6)", "Giants (U6)", "", "", "", "0-0", "0-0"],
+    ["2026-05-30", "09:30", "C", "Practice", "", "", "Browns (U12)", "", "", "0-0", "0-0"],
+    ["2026-05-30", "09:30", "C", "Practice", "", "", "Bills (U12)", "", "", "0-0", "0-0"],
+    ["2026-05-30", "09:30", "A", "Game", "Bears (U9)", "Saints (U9)", "", "", "", "0-0", "0-0"],
+    ["2026-05-30", "10:00", "B", "Practice", "", "", "Packers (U9)", "", "", "0-0", "0-0"],
+    ["2026-05-30", "10:00", "C", "Game", "Browns (U12)", "Bills (U12)", "", "", "", "0-0", "0-0"],
+    ["2026-05-30", "10:30", "B", "Practice", "", "", "Ravens (U12)", "", "", "0-0", "0-0"],
+    ["2026-05-30", "10:30", "B", "Practice", "", "", "Jets (U12)", "", "", "0-0", "0-0"],
+    ["2026-05-30", "10:30", "A", "Game", "Bears (U9)", "Packers (U9)", "", "", "", "0-0", "0-0"],
+    ["2026-05-30", "11:00", "B", "Practice", "", "", "Chiefs (U16)", "", "", "0-0", "0-0"],
+    ["2026-05-30", "11:00", "C", "Game", "Ravens (U12)", "Jets (U12)", "", "", "", "0-0", "0-0"],
+    ["2026-05-30", "11:30", "B", "Practice", "", "", "Patriots (U16)", "", "", "0-0", "0-0"],
+    ["2026-05-30", "11:30", "B", "Practice", "", "", "Cowboys (U16)", "", "", "0-0", "0-0"],
+    ["2026-05-30", "11:30", "A", "Game", "Chiefs (U16)", "Panthers (U16)", "", "", "", "0-0", "0-0"],
+    ["2026-05-30", "12:00", "B", "Practice", "", "", "Commanders (U16)", "", "", "0-0", "0-0"],
+    ["2026-05-30", "12:00", "C", "Game", "Patriots (U16)", "Cowboys (U16)", "", "", "", "0-0", "0-0"],
+    ["2026-05-30", "12:30", "A", "Game", "Panthers (U16)", "Commanders (U16)", "", "", "", "0-0", "0-0"],
+
+    ["2026-06-06", "09:00", "A", "Practice", "", "", "Packers (U9)", "", "", "0-0", "0-0"],
+    ["2026-06-06", "09:15", "B", "Game", "Giants (U6)", "Giants (U6)", "", "", "", "0-0", "0-0"],
+    ["2026-06-06", "09:30", "C", "Practice", "", "", "Bills (U12)", "", "", "0-0", "0-0"],
+    ["2026-06-06", "09:30", "C", "Practice", "", "", "Ravens (U12)", "", "", "0-0", "0-0"],
+    ["2026-06-06", "09:30", "A", "Game", "Packers (U9)", "Saints (U9)", "", "", "", "0-0", "0-0"],
+    ["2026-06-06", "10:00", "B", "Practice", "", "", "Bears (U9)", "", "", "0-0", "0-0"],
+    ["2026-06-06", "10:00", "C", "Game", "Bills (U12)", "Ravens (U12)", "", "", "", "0-0", "0-0"],
+    ["2026-06-06", "10:30", "B", "Practice", "", "", "Jets (U12)", "", "", "0-0", "0-0"],
+    ["2026-06-06", "10:30", "B", "Practice", "", "", "Browns (U12)", "", "", "0-0", "0-0"],
+    ["2026-06-06", "10:30", "A", "Game", "Bears (U9)", "Saints (U9)", "", "", "", "0-0", "0-0"],
+    ["2026-06-06", "11:00", "B", "Practice", "", "", "Chiefs (U16)", "", "", "0-0", "0-0"],
+    ["2026-06-06", "11:00", "C", "Game", "Jets (U12)", "Browns (U12)", "", "", "", "0-0", "0-0"],
+    ["2026-06-06", "11:30", "B", "Practice", "", "", "Cowboys (U16)", "", "", "0-0", "0-0"],
+    ["2026-06-06", "11:30", "B", "Practice", "", "", "Panthers (U16)", "", "", "0-0", "0-0"],
+    ["2026-06-06", "11:30", "A", "Game", "Chiefs (U16)", "Commanders (U16)", "", "", "", "0-0", "0-0"],
+    ["2026-06-06", "12:00", "B", "Practice", "", "", "Patriots (U16)", "", "", "0-0", "0-0"],
+    ["2026-06-06", "12:00", "C", "Game", "Cowboys (U16)", "Panthers (U16)", "", "", "", "0-0", "0-0"],
+    ["2026-06-06", "12:30", "A", "Game", "Patriots (U16)", "Commanders (U16)", "", "", "", "0-0", "0-0"],
+
+    ["2026-06-13", "09:00", "A", "Practice", "", "", "Bears (U9)", "", "", "0-0", "0-0"],
+    ["2026-06-13", "09:15", "B", "Game", "Giants (U6)", "Giants (U6)", "", "", "", "0-0", "0-0"],
+    ["2026-06-13", "09:30", "C", "Practice", "", "", "Browns (U12)", "", "", "0-0", "0-0"],
+    ["2026-06-13", "09:30", "C", "Practice", "", "", "Ravens (U12)", "", "", "0-0", "0-0"],
+    ["2026-06-13", "09:30", "A", "Game", "Bears (U9)", "Packers (U9)", "", "", "", "0-0", "0-0"],
+    ["2026-06-13", "10:00", "B", "Practice", "", "", "Saints (U9)", "", "", "0-0", "0-0"],
+    ["2026-06-13", "10:00", "C", "Game", "Browns (U12)", "Ravens (U12)", "", "", "", "0-0", "0-0"],
+    ["2026-06-13", "10:30", "B", "Practice", "", "", "Jets (U12)", "", "", "0-0", "0-0"],
+    ["2026-06-13", "10:30", "B", "Practice", "", "", "Bills (U12)", "", "", "0-0", "0-0"],
+    ["2026-06-13", "10:30", "A", "Game", "Saints (U9)", "Packers (U9)", "", "", "", "0-0", "0-0"],
+    ["2026-06-13", "11:00", "B", "Practice", "", "", "Chiefs (U16)", "", "", "0-0", "0-0"],
+    ["2026-06-13", "11:00", "C", "Game", "Jets (U12)", "Bills (U12)", "", "", "", "0-0", "0-0"],
+    ["2026-06-13", "11:30", "B", "Practice", "", "", "Cowboys (U16)", "", "", "0-0", "0-0"],
+    ["2026-06-13", "11:30", "B", "Practice", "", "", "Commanders (U16)", "", "", "0-0", "0-0"],
+    ["2026-06-13", "11:30", "A", "Game", "Patriots (U16)", "Chiefs (U16)", "", "", "", "0-0", "0-0"],
+    ["2026-06-13", "12:00", "B", "Practice", "", "", "Panthers (U16)", "", "", "0-0", "0-0"],
+    ["2026-06-13", "12:00", "C", "Game", "Cowboys (U16)", "Commanders (U16)", "", "", "", "0-0", "0-0"],
+    ["2026-06-13", "12:30", "A", "Game", "Panthers (U16)", "Patriots (U16)", "", "", "", "0-0", "0-0"],
+
+    ["2026-06-20", "09:00", "A", "Practice", "", "", "Saints (U9)", "", "", "0-0", "0-0"],
+    ["2026-06-20", "09:15", "B", "Game", "Giants (U6)", "Giants (U6)", "", "", "", "0-0", "0-0"],
+    ["2026-06-20", "09:30", "C", "Practice", "", "", "Jets (U12)", "", "", "0-0", "0-0"],
+    ["2026-06-20", "09:30", "C", "Practice", "", "", "Ravens (U12)", "", "", "0-0", "0-0"],
+    ["2026-06-20", "09:30", "A", "Game", "Saints (U9)", "Bears (U9)", "", "", "", "0-0", "0-0"],
+    ["2026-06-20", "10:00", "B", "Practice", "", "", "Packers (U9)", "", "", "0-0", "0-0"],
+    ["2026-06-20", "10:00", "C", "Game", "Ravens (U12)", "Jets (U12)", "", "", "", "0-0", "0-0"],
+    ["2026-06-20", "10:30", "B", "Practice", "", "", "Bills (U12)", "", "", "0-0", "0-0"],
+    ["2026-06-20", "10:30", "B", "Practice", "", "", "Browns (U12)", "", "", "0-0", "0-0"],
+    ["2026-06-20", "10:30", "A", "Game", "Packers (U9)", "Bears (U9)", "", "", "", "0-0", "0-0"],
+    ["2026-06-20", "11:00", "C", "Game", "Bills (U12)", "Browns (U12)", "", "", "", "0-0", "0-0"],
+    ["2026-06-20", "11:30", "A", "Game", "Cowboys (U16)", "Chiefs (U16)", "", "", "", "0-0", "0-0"],
+    ["2026-06-20", "12:00", "C", "Game", "Commanders (U16)", "Patriots (U16)", "", "", "", "0-0", "0-0"],
+    ["2026-06-20", "12:30", "A", "Game", "Panthers (U16)", "Cowboys (U16)", "", "", "", "0-0", "0-0"],
+
+    ["2026-06-27", "09:15", "B", "Game", "Giants (U6)", "Giants (U6)", "", "", "", "0-0", "0-0"],
+    ["2026-06-27", "09:30", "A", "Game", "#3 (U9)", "#1 (U9)", "", "", "", "0-0", "0-0"],
+    ["2026-06-27", "10:00", "C", "Game", "#4 (U12)", "#2 (U12)", "", "", "", "0-0", "0-0"],
+    ["2026-06-27", "10:30", "A", "Game", "#3 (U9)", "#2 (U9)", "", "", "", "0-0", "0-0"],
+    ["2026-06-27", "11:00", "C", "Game", "#3 (U12)", "#1 (U12)", "", "", "", "0-0", "0-0"],
+    ["2026-06-27", "11:30", "A", "Game", "Panthers (U16)", "Patriots (U16)", "", "", "", "0-0", "0-0"],
+    ["2026-06-27", "12:00", "C", "Game", "Commanders (U16)", "Cowboys (U16)", "", "", "", "0-0", "0-0"],
+    ["2026-06-27", "12:30", "A", "Game", "Chiefs (U16)", "Panthers (U16)", "", "", "", "0-0", "0-0"],
+    ["2026-06-27", "13:00", "C", "Game", "Patriots (U16)", "Cowboys (U16)", "", "", "", "0-0", "0-0"],
+
+    ["2026-07-04", "09:00", "C", "Game", "#3 (U12)", "#2 (U12)", "", "", "", "0-0", "0-0"],
+    ["2026-07-04", "09:15", "B", "Game", "Giants (U6)", "Giants (U6)", "", "", "", "0-0", "0-0"],
+    ["2026-07-04", "09:30", "A", "Game", "#3 (U9)", "#2 (U9)", "", "", "", "0-0", "0-0"],
+    ["2026-07-04", "10:00", "C", "Game", "#4 (U12)", "#1 (U12)", "", "", "", "0-0", "0-0"],
+    ["2026-07-04", "10:30", "A", "Game", "Winner of 9:30am game", "#1 U(9)", "", "", "", "0-0", "0-0"],
+    ["2026-07-04", "11:00", "C", "Game", "#4 (U12)", "#3 (U12)", "", "", "", "0-0", "0-0"],
+    ["2026-07-04", "11:30", "A", "Game", "#5 (U16)", "#2 (U16)", "", "", "", "0-0", "0-0"],
+    ["2026-07-04", "12:00", "C", "Game", "#2 (U12)", "#1 (U12)", "", "", "", "0-0", "0-0"],
+    ["2026-07-04", "12:30", "A", "Game", "#4 (U16)", "#3 (U16)", "", "", "", "0-0", "0-0"],
+    ["2026-07-04", "13:30", "A", "Game", "#2 (U16)", "#1 (U16)", "", "", "", "0-0", "0-0"],
+    ["2026-07-04", "13:30", "C", "Game", "#4 (U16)", "#3 (U16)", "", "", "", "0-0", "0-0"]
+  ];
+
+  function formatDate(dateString) {
+    const parts = String(dateString || '').split('-').map(Number);
+    const date = new Date(parts[0], parts[1] - 1, parts[2]);
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    });
   }
-};
+
+  function formatTime(timeString) {
+    const parts = String(timeString || '').split(':');
+    let hour = Number(parts[0]);
+    const minute = parts[1] || '00';
+    const suffix = hour >= 12 ? 'PM' : 'AM';
+    hour = hour % 12 || 12;
+    return `${hour}:${minute} ${suffix}`;
+  }
+
+  function logoFor(teamName) {
+    const clean = String(teamName || '').trim();
+
+    if (!clean) return '';
+    if (clean.startsWith('#')) return 'Logo.jpg';
+    if (clean.toLowerCase().startsWith('winner')) return 'Logo.jpg';
+
+    const base = clean
+      .replace(/\s*\(.*?\)/g, '')
+      .trim()
+      .split(' ')[0];
+
+    return base ? `${base}.png` : 'Logo.jpg';
+  }
+
+  function weekTitle(index) {
+    if (index === 6) return 'Week 7 - Playoffs';
+    if (index === 7) return 'Week 8 - Championship Week';
+    return `Week ${index + 1}`;
+  }
+
+  function buildWeeks() {
+    const grouped = {};
+
+    scheduleRows.forEach(row => {
+      const date = row[0];
+      if (!grouped[date]) grouped[date] = [];
+      grouped[date].push(row);
+    });
+
+    return Object.keys(grouped).map((date, index) => {
+      const weekDate = formatDate(date);
+      const games = [];
+      const practices = [];
+
+      grouped[date].forEach(row => {
+        const [
+          dateValue,
+          timeValue,
+          field,
+          type,
+          homeTeam,
+          awayTeam,
+          practiceTeam,
+          homeScore,
+          awayScore,
+          homeRecord,
+          awayRecord
+        ] = row;
+
+        const base = {
+          type,
+          datetime: formatTime(timeValue),
+          dateText: weekDate,
+          field
+        };
+
+        if (type === 'Practice') {
+          practices.push({
+            ...base,
+            practiceTeam,
+            teamLogo: logoFor(practiceTeam)
+          });
+          return;
+        }
+
+        games.push({
+          ...base,
+          away: awayTeam,
+          awayLogo: logoFor(awayTeam),
+          awayRecord: awayRecord || '0-0',
+          awayScore: awayScore || '',
+          home: homeTeam,
+          homeLogo: logoFor(homeTeam),
+          homeRecord: homeRecord || '0-0',
+          homeScore: homeScore || ''
+        });
+      });
+
+      return {
+        weekTitle: weekTitle(index),
+        weekDate,
+        games,
+        practices
+      };
+    });
+  }
+
+  return {
+    getAllWeeks: function () {
+      return buildWeeks();
+    }
+  };
+})();

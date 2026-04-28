@@ -1,0 +1,49 @@
+[
+  {
+    "date": "2026-05-16",
+    "events": [
+      { "time": "09:00", "type": "Practice", "team": "Packers (U9)", "field": "A" },
+      { "time": "09:15", "type": "Game", "home": "Giants (U6)", "away": "Giants (U6)", "field": "B" },
+      { "time": "09:30", "type": "Practice", "team": "Jets (U12)", "field": "C" },
+      { "time": "09:30", "type": "Practice", "team": "Browns (U12)", "field": "C" },
+      { "time": "09:30", "type": "Game", "home": "Saints (U9)", "away": "Packers (U9)", "field": "A" },
+      { "time": "10:00", "type": "Practice", "team": "Bears (U9)", "field": "B" },
+      { "time": "10:00", "type": "Game", "home": "Jets (U12)", "away": "Browns (U12)", "field": "C" },
+      { "time": "10:30", "type": "Practice", "team": "Ravens (U12)", "field": "B" },
+      { "time": "10:30", "type": "Practice", "team": "Bills (U12)", "field": "B" },
+      { "time": "10:30", "type": "Game", "home": "Saints (U9)", "away": "Bears (U9)", "field": "A" },
+      { "time": "11:00", "type": "Practice", "team": "Chiefs (U16)", "field": "B" },
+      { "time": "11:00", "type": "Game", "home": "Ravens (U12)", "away": "Bills (U12)", "field": "C" },
+      { "time": "11:30", "type": "Practice", "team": "Patriots (U16)", "field": "B" },
+      { "time": "11:30", "type": "Practice", "team": "Panthers (U16)", "field": "B" },
+      { "time": "11:30", "type": "Game", "home": "Cowboys (U16)", "away": "Chiefs (U16)", "field": "A" },
+      { "time": "12:00", "type": "Practice", "team": "Commanders (U16)", "field": "B" },
+      { "time": "12:00", "type": "Game", "home": "Patriots (U16)", "away": "Panthers (U16)", "field": "C" },
+      { "time": "12:30", "type": "Game", "home": "Commanders (U16)", "away": "Cowboys (U16)", "field": "A" }
+    ]
+  },
+
+  {
+    "date": "2026-05-23",
+    "events": [
+      { "time": "09:00", "type": "Practice", "team": "Bears (U9)", "field": "A" },
+      { "time": "09:15", "type": "Game", "home": "Giants (U6)", "away": "Giants (U6)", "field": "B" },
+      { "time": "09:30", "type": "Practice", "team": "Bills (U12)", "field": "C" },
+      { "time": "09:30", "type": "Practice", "team": "Jets (U12)", "field": "C" },
+      { "time": "09:30", "type": "Game", "home": "Packers (U9)", "away": "Bears (U9)", "field": "A" },
+      { "time": "10:00", "type": "Practice", "team": "Saints (U9)", "field": "B" },
+      { "time": "10:00", "type": "Game", "home": "Bills (U12)", "away": "Jets (U12)", "field": "C" },
+      { "time": "10:30", "type": "Practice", "team": "Browns (U12)", "field": "B" },
+      { "time": "10:30", "type": "Practice", "team": "Ravens (U12)", "field": "B" },
+      { "time": "10:30", "type": "Game", "home": "Packers (U9)", "away": "Saints (U9)", "field": "A" },
+      { "time": "11:00", "type": "Practice", "team": "Panthers (U16)", "field": "B" },
+      { "time": "11:00", "type": "Game", "home": "Browns (U12)", "away": "Ravens (U12)", "field": "C" },
+      { "time": "11:30", "type": "Practice", "team": "Cowboys (U16)", "field": "B" },
+      { "time": "11:30", "type": "Practice", "team": "Patriots (U16)", "field": "B" },
+      { "time": "11:30", "type": "Game", "home": "Chiefs (U16)", "away": "Panthers (U16)", "field": "A" },
+      { "time": "12:00", "type": "Practice", "team": "Commanders (U16)", "field": "B" },
+      { "time": "12:00", "type": "Game", "home": "Cowboys (U16)", "away": "Patriots (U16)", "field": "C" },
+      { "time": "12:30", "type": "Game", "home": "Commanders (U16)", "away": "Chiefs (U16)", "field": "A" }
+    ]
+  }
+]
