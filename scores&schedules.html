@@ -398,7 +398,7 @@
     </div>
   </div>
 
-<script src="season-schedule.js?v=8"></script>
+<script src="season-schedule.js?v=10"></script>
 <script src="scores-strip.js?v=14"></script>
 <script src="nav.js"></script>
 <script src="team-directory.js"></script>
@@ -574,63 +574,103 @@
     }
 
     function renderSelectedTeamSchedule(selectedTeam) {
-      const tabTeam = document.getElementById('tab-team');
-      if (!tabTeam) return;
+  const tabTeam = document.getElementById('tab-team');
+  if (!tabTeam) return;
 
-      if (!window.HFF_SCHEDULE || typeof window.HFF_SCHEDULE.getAllWeeks !== 'function') {
-        tabTeam.innerHTML = '<p>Could not load team schedule.</p>';
-        return;
+  if (!window.HFF_SCHEDULE || typeof window.HFF_SCHEDULE.getAllWeeks !== 'function') {
+    tabTeam.innerHTML = '<p>Could not load team schedule.</p>';
+    return;
+  }
+
+  const weeks = window.HFF_SCHEDULE.getAllWeeks() || [];
+  const selectedTeamNormalized = normalizeTeamName(selectedTeam);
+
+  const matchingWeeks = weeks.map(week => {
+
+    const games = (week.games || []).filter(g =>
+      normalizeTeamName(g.home) === selectedTeamNormalized ||
+      normalizeTeamName(g.away) === selectedTeamNormalized
+    );
+
+    const practices = (week.practices || []).filter(p =>
+      normalizeTeamName(p.practiceTeam) === selectedTeamNormalized
+    );
+
+    const combined = [...games, ...practices].sort((a, b) => {
+      return new Date(`1970/01/01 ${a.datetime}`) - new Date(`1970/01/01 ${b.datetime}`);
+    });
+
+    return { ...week, combined };
+
+  }).filter(week => week.combined.length > 0);
+
+  tabTeam.innerHTML = `
+    <div class="team-page-header">
+      <h2 class="team-page-title">${selectedTeam} Schedule</h2>
+      <a class="back-link" href="${PAGE_URL}">Back to all teams</a>
+    </div>
+  `;
+
+  if (!matchingWeeks.length) {
+    tabTeam.innerHTML += '<p>No schedule found for this team.</p>';
+    return;
+  }
+
+  matchingWeeks.forEach(week => {
+    const section = document.createElement('div');
+    section.className = 'season-week';
+
+    const title = document.createElement('div');
+    title.className = 'weekly-title';
+    title.textContent = week.weekTitle || '';
+    section.appendChild(title);
+
+    const date = document.createElement('div');
+    date.className = 'weekly-date';
+    date.textContent = week.weekDate || '';
+    section.appendChild(date);
+
+    const list = document.createElement('div');
+    list.className = 'week-list';
+
+    week.combined.forEach(item => {
+
+      if (item.type === "Practice") {
+        const logo = getScheduleTeamLogo(item.practiceTeam);
+
+        const box = document.createElement('div');
+        box.className = 'week-game';
+        box.innerHTML = `
+          <div class="week-left">
+            <div class="week-team-row">
+              <div class="week-team-info">
+                <img src="${logo}" class="week-team-logo">
+                <div class="week-team-name-wrap">
+                  <span class="week-team-name">${item.practiceTeam}</span>
+                  <span class="week-team-record">Practice</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="week-divider"></div>
+          <div class="week-right">
+            <div class="week-datetime">${item.datetime}</div>
+            <div class="week-field">Field ${item.field}</div>
+          </div>
+        `;
+        list.appendChild(box);
+      } else {
+        list.appendChild(createWeekGameBox(item));
       }
 
-      const weeks = window.HFF_SCHEDULE.getAllWeeks() || [];
-      const selectedTeamNormalized = normalizeTeamName(selectedTeam);
+    });
 
-      const matchingWeeks = weeks.map(week => {
-        const games = (week.games || []).filter(g => {
-          return normalizeTeamName(g.home) === selectedTeamNormalized || normalizeTeamName(g.away) === selectedTeamNormalized;
-        });
-        return { ...week, games };
-      }).filter(week => week.games.length > 0);
+    section.appendChild(list);
+    tabTeam.appendChild(section);
+  });
 
-      tabTeam.innerHTML = `
-        <div class="team-page-header">
-          <h2 class="team-page-title">${selectedTeam} Schedule</h2>
-          <a class="back-link" href="${PAGE_URL}">Back to all teams</a>
-        </div>
-      `;
-
-      if (!matchingWeeks.length) {
-        tabTeam.innerHTML += '<p>No games found for this team.</p>';
-        return;
-      }
-
-      matchingWeeks.forEach(week => {
-        const section = document.createElement('div');
-        section.className = 'season-week';
-
-        const title = document.createElement('div');
-        title.className = 'weekly-title';
-        title.textContent = week.weekTitle || 'Weekly Scores & Schedule';
-        section.appendChild(title);
-
-        const date = document.createElement('div');
-        date.className = 'weekly-date';
-        date.textContent = week.weekDate || '';
-        section.appendChild(date);
-
-        const list = document.createElement('div');
-        list.className = 'week-list';
-
-        week.games.forEach(g => {
-          list.appendChild(createWeekGameBox(g));
-        });
-
-        section.appendChild(list);
-        tabTeam.appendChild(section);
-      });
-
-      setActiveTab('tab-team');
-    }
+  setActiveTab('tab-team');
+}
 
     (function renderByTeam() {
       const tabTeam = document.getElementById('tab-team');
