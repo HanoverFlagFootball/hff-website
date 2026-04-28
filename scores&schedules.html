@@ -438,11 +438,19 @@
     }
 
     function getScheduleTeamLogo(teamName) {
-      let name = String(teamName || '').trim();
-      name = name.replace(/\s*\(.*?\)/g, '');
-      name = name.split(' ')[0];
-      return `${name}.png`;
-    }
+  let name = String(teamName || '').trim();
+
+  // fallback cases FIRST
+  if (!name) return 'Logo.jpg';
+  if (name.startsWith('#')) return 'Logo.jpg';
+  if (name.toLowerCase().includes('winner')) return 'Logo.jpg';
+
+  // normal teams
+  name = name.replace(/\s*\(.*?\)/g, '');
+  name = name.split(' ')[0];
+
+  return `${name}.png`;
+}
 
     function normalizeTeamName(teamName) {
       return String(teamName || '').trim().toLowerCase();
