@@ -939,3 +939,122 @@ window.HFF_SCHEDULE = {
     ];
   }
 };
+// =========================
+// PRACTICES ADDED TO SCHEDULE
+// Based on uploaded schedule table
+// =========================
+
+(function addPracticesToSchedule() {
+  if (!window.HFF_SCHEDULE || typeof window.HFF_SCHEDULE.getAllWeeks !== "function") return;
+
+  const originalGetAllWeeks = window.HFF_SCHEDULE.getAllWeeks;
+
+  function logoFor(teamName) {
+    return String(teamName || "").replace(/\s*\(.*?\)/g, "").trim().split(" ")[0] + ".png";
+  }
+
+  function practice(team, time, field, dateText) {
+    return {
+      type: "Practice",
+      practiceTeam: team,
+      teamLogo: logoFor(team),
+      datetime: time,
+      dateText: dateText,
+      field: field
+    };
+  }
+
+  window.HFF_SCHEDULE.getAllWeeks = function () {
+    const weeks = originalGetAllWeeks.call(window.HFF_SCHEDULE);
+
+    weeks.forEach(function (week) {
+      if (week.weekDate === "Saturday, May 16, 2026") {
+        week.practices = [
+          practice("Packers (U9)", "9:00 AM", "A", week.weekDate),
+          practice("Jets (U12)", "9:30 AM", "C", week.weekDate),
+          practice("Browns (U12)", "9:30 AM", "C", week.weekDate),
+          practice("Bears (U9)", "10:00 AM", "B", week.weekDate),
+          practice("Ravens (U12)", "10:30 AM", "B", week.weekDate),
+          practice("Bills (U12)", "10:30 AM", "B", week.weekDate),
+          practice("Chiefs (U16)", "11:00 AM", "B", week.weekDate),
+          practice("Patriots (U16)", "11:30 AM", "B", week.weekDate),
+          practice("Panthers (U16)", "11:30 AM", "B", week.weekDate),
+          practice("Commanders (U16)", "12:00 PM", "B", week.weekDate)
+        ];
+      }
+
+      if (week.weekDate === "Saturday, May 23, 2026") {
+        week.practices = [
+          practice("Bears (U9)", "9:00 AM", "A", week.weekDate),
+          practice("Bills (U12)", "9:30 AM", "C", week.weekDate),
+          practice("Jets (U12)", "9:30 AM", "C", week.weekDate),
+          practice("Saints (U9)", "10:00 AM", "B", week.weekDate),
+          practice("Browns (U12)", "10:30 AM", "B", week.weekDate),
+          practice("Ravens (U12)", "10:30 AM", "B", week.weekDate),
+          practice("Panthers (U16)", "11:00 AM", "B", week.weekDate),
+          practice("Cowboys (U16)", "11:30 AM", "B", week.weekDate),
+          practice("Patriots (U16)", "11:30 AM", "B", week.weekDate),
+          practice("Commanders (U16)", "12:00 PM", "B", week.weekDate)
+        ];
+      }
+
+      if (week.weekDate === "Saturday, May 30, 2026") {
+        week.practices = [
+          practice("Saints (U9)", "9:00 AM", "A", week.weekDate),
+          practice("Browns (U12)", "9:30 AM", "C", week.weekDate),
+          practice("Bills (U12)", "9:30 AM", "C", week.weekDate),
+          practice("Packers (U9)", "10:00 AM", "B", week.weekDate),
+          practice("Ravens (U12)", "10:30 AM", "B", week.weekDate),
+          practice("Jets (U12)", "10:30 AM", "B", week.weekDate),
+          practice("Chiefs (U16)", "11:00 AM", "B", week.weekDate),
+          practice("Patriots (U16)", "11:30 AM", "B", week.weekDate),
+          practice("Cowboys (U16)", "11:30 AM", "B", week.weekDate),
+          practice("Commanders (U16)", "12:00 PM", "B", week.weekDate)
+        ];
+      }
+
+      if (week.weekDate === "Saturday, June 6, 2026") {
+        week.practices = [
+          practice("Packers (U9)", "9:00 AM", "A", week.weekDate),
+          practice("Bills (U12)", "9:30 AM", "C", week.weekDate),
+          practice("Ravens (U12)", "9:30 AM", "C", week.weekDate),
+          practice("Bears (U9)", "10:00 AM", "B", week.weekDate),
+          practice("Jets (U12)", "10:30 AM", "B", week.weekDate),
+          practice("Browns (U12)", "10:30 AM", "B", week.weekDate),
+          practice("Chiefs (U16)", "11:00 AM", "B", week.weekDate),
+          practice("Cowboys (U16)", "11:30 AM", "B", week.weekDate),
+          practice("Panthers (U16)", "11:30 AM", "B", week.weekDate),
+          practice("Patriots (U16)", "12:00 PM", "B", week.weekDate)
+        ];
+      }
+
+      if (week.weekDate === "Saturday, June 13, 2026") {
+        week.practices = [
+          practice("Bears (U9)", "9:00 AM", "A", week.weekDate),
+          practice("Browns (U12)", "9:30 AM", "C", week.weekDate),
+          practice("Ravens (U12)", "9:30 AM", "C", week.weekDate),
+          practice("Saints (U9)", "10:00 AM", "B", week.weekDate),
+          practice("Jets (U12)", "10:30 AM", "B", week.weekDate),
+          practice("Bills (U12)", "10:30 AM", "B", week.weekDate),
+          practice("Chiefs (U16)", "11:00 AM", "B", week.weekDate),
+          practice("Cowboys (U16)", "11:30 AM", "B", week.weekDate),
+          practice("Commanders (U16)", "11:30 AM", "B", week.weekDate),
+          practice("Panthers (U16)", "12:00 PM", "B", week.weekDate)
+        ];
+      }
+
+      if (week.weekDate === "Saturday, June 20, 2026") {
+        week.practices = [
+          practice("Saints (U9)", "9:00 AM", "A", week.weekDate),
+          practice("Jets (U12)", "9:30 AM", "C", week.weekDate),
+          practice("Ravens (U12)", "9:30 AM", "C", week.weekDate),
+          practice("Packers (U9)", "10:00 AM", "B", week.weekDate),
+          practice("Bills (U12)", "10:30 AM", "B", week.weekDate),
+          practice("Browns (U12)", "10:30 AM", "B", week.weekDate)
+        ];
+      }
+    });
+
+    return weeks;
+  };
+})();

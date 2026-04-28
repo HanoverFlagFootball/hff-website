@@ -398,7 +398,7 @@
     </div>
   </div>
 
-<script src="season-schedule.js?v=7"></script>
+<script src="season-schedule.js?v=8"></script>
 <script src="scores-strip.js?v=14"></script>
 <script src="nav.js"></script>
 <script src="team-directory.js"></script>
@@ -454,6 +454,32 @@
     }
 
     function createWeekGameBox(g) {
+      function createPracticeBox(p) {
+  const logo = p.teamLogo || getScheduleTeamLogo(p.practiceTeam);
+
+  const box = document.createElement('div');
+  box.className = 'week-game';
+  box.innerHTML = `
+    <div class="week-left">
+      <div class="week-team-row">
+        <div class="week-team-info">
+          <img src="${logo}" alt="${p.practiceTeam}" class="week-team-logo">
+          <div class="week-team-name-wrap">
+            <span class="week-team-name">${p.practiceTeam}</span>
+            <span class="week-team-record">Practice</span>
+          </div>
+        </div>
+        <div class="week-score"></div>
+      </div>
+    </div>
+    <div class="week-divider"></div>
+    <div class="week-right">
+      <div class="week-datetime">${p.datetime || ''}</div>
+      <div class="week-field">Field ${p.field || ''}</div>
+    </div>
+  `;
+  return box;
+}
       const awayRecordText = g.awayRecord ? `(${g.awayRecord})` : '(0-0)';
       const homeRecordText = g.homeRecord ? `(${g.homeRecord})` : '(0-0)';
 
@@ -622,8 +648,16 @@
         list.className = 'week-list';
 
         week.games.forEach(g => {
-          list.appendChild(createWeekGameBox(g));
-        });
+  list.appendChild(createWeekGameBox(g));
+});
+
+if (week.practices) {
+  week.practices.forEach(p => {
+    if (normalizeTeamName(p.practiceTeam) === selectedTeamNormalized) {
+      list.appendChild(createPracticeBox(p));
+    }
+  });
+}
 
         section.appendChild(list);
         tabTeam.appendChild(section);
@@ -689,8 +723,14 @@
         list.className = 'week-list';
 
         (week.games || []).forEach(g => {
-          list.appendChild(createWeekGameBox(g));
-        });
+  list.appendChild(createWeekGameBox(g));
+});
+
+if (week.practices && week.practices.length) {
+  week.practices.forEach(p => {
+    list.appendChild(createPracticeBox(p));
+  });
+}
 
         section.appendChild(list);
         tabWeek.appendChild(section);
