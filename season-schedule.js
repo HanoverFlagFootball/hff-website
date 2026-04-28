@@ -1,13 +1,44 @@
-console.log("season-schedule.js loaded csv version");
+console.log("season-schedule.js loaded csv version 2");
 
 window.HFF_SCHEDULE_READY = false;
+
+function hffClean(text) {
+  return String(text || "").replace(/^\uFEFF/, "").trim();
+}
+
+function hffSplitRows(text) {
+  return String(text || "").trim().split(/\r?\n/);
+}
+
+function hffDetectDelimiter(headerLine) {
+  if (headerLine.includes("\t")) return "\t";
+  if (headerLine.includes(";")) return ";";
+  return ",";
+}
+
+function hffParseScheduleCSV(text) {
+  const lines = hffSplitRows(text);
+  if (!lines.length) return [];
+
+  const delimiter = hffDetectDelimiter(lines[0]);
+  const headers = lines.shift().split(delimiter).map(hffClean);
+
+  return lines.map(line => {
+    const values = line.split(delimiter).map(hffClean);
+    const row = {};
+    headers.forEach((h, i) => {
+      row[h] = values[i] || "";
+    });
+    return row;
+  });
+}
 
 function hffStripDivision(teamLabel) {
   return String(teamLabel || "").replace(/\s*\(.*?\)\s*/g, "").trim();
 }
 
 function hffLogoForTeam(teamLabel) {
-  const team = String(teamLabel || "").trim();
+  const team = hffClean(teamLabel);
 
   if (!team || team.startsWith("#") || team.toLowerCase().startsWith("winner")) {
     return "Logo.jpg";
@@ -57,58 +88,12 @@ function hffWeekTitleForDate(dateText) {
   return titles[dateText] || hffFormatDate(dateText);
 }
 
-function hffParseCSV(text) {
-  const rows = [];
-  let current = "";
-  let row = [];
-  let inQuotes = false;
-
-  for (let i = 0; i < text.length; i++) {
-    const char = text[i];
-    const next = text[i + 1];
-
-    if (char === '"' && inQuotes && next === '"') {
-      current += '"';
-      i++;
-    } else if (char === '"') {
-      inQuotes = !inQuotes;
-    } else if (char === "," && !inQuotes) {
-      row.push(current);
-      current = "";
-    } else if ((char === "\n" || char === "\r") && !inQuotes) {
-      if (char === "\r" && next === "\n") i++;
-      row.push(current);
-      if (row.some(cell => String(cell).trim() !== "")) rows.push(row);
-      row = [];
-      current = "";
-    } else {
-      current += char;
-    }
-  }
-
-  row.push(current);
-  if (row.some(cell => String(cell).trim() !== "")) rows.push(row);
-
-  return rows;
-}
-
-function hffBuildScheduleFromCSV(csvText) {
-  const parsed = hffParseCSV(csvText);
-  const header = parsed.shift().map(h => String(h || "").trim());
-
-  const rows = parsed.map(values => {
-    const obj = {};
-    header.forEach((key, index) => {
-      obj[key] = String(values[index] || "").trim();
-    });
-    return obj;
-  });
-
+function hffBuildScheduleFromRows(rows) {
   const grouped = {};
   const order = [];
 
   rows.forEach(row => {
-    const date = row["Date"];
+    const date = hffClean(row["Date"]);
     if (!date) return;
 
     if (!grouped[date]) {
@@ -116,37 +101,37 @@ function hffBuildScheduleFromCSV(csvText) {
       order.push(date);
     }
 
-    const type = String(row["Type"] || "Game").trim().toLowerCase();
+    const type = hffClean(row["Type"] || "Game").toLowerCase();
 
     if (type === "practice") {
-      const team = row["Practice Team"];
+      const team = hffClean(row["Practice Team"]);
 
       grouped[date].push({
         type: "practice",
         team: team,
         teamLogo: hffLogoForTeam(team),
-        teamRecord: row["Home Record"] || row["Away Record"] || "0-0",
+        teamRecord: hffClean(row["Home Record"] || row["Away Record"] || "0-0"),
         datetime: hffFormatTime(row["Time"]),
         dateText: hffFormatDate(date),
-        field: row["Field"] || ""
+        field: hffClean(row["Field"])
       });
     } else {
-      const home = row["Home Team"];
-      const away = row["Away Team"];
+      const home = hffClean(row["Home Team"]);
+      const away = hffClean(row["Away Team"]);
 
       grouped[date].push({
         type: "game",
         away: away,
         awayLogo: hffLogoForTeam(away),
-        awayRecord: row["Away Record"] || "0-0",
-        awayScore: row["Away Team Score"] || "",
+        awayRecord: hffClean(row["Away Record"] || "0-0"),
+        awayScore: hffClean(row["Away Team Score"]),
         home: home,
         homeLogo: hffLogoForTeam(home),
-        homeRecord: row["Home Record"] || "0-0",
-        homeScore: row["Home Team Score"] || "",
+        homeRecord: hffClean(row["Home Record"] || "0-0"),
+        homeScore: hffClean(row["Home Team Score"]),
         datetime: hffFormatTime(row["Time"]),
         dateText: hffFormatDate(date),
-        field: row["Field"] || ""
+        field: hffClean(row["Field"])
       });
     }
   });
@@ -181,61 +166,42 @@ window.HFF_SCHEDULE = {
     }));
   },
 
-  getItemsForTeam: function (teamLabel) {
-    const t = String(teamLabel || "").trim().toLowerCase();
-
-    return this.getAllItems().filter(item => {
-      const type = item.type || "game";
-
-      if (type === "practice") {
-        return String(item.team || "").trim().toLowerCase() === t;
-      }
-
-      return (
-        String(item.away || "").trim().toLowerCase() === t ||
-        String(item.home || "").trim().toLowerCase() === t
-      );
-    });
-  },
-
   getWeeksForTeam: function (teamLabel) {
-    const t = String(teamLabel || "").trim().toLowerCase();
+    const t = hffClean(teamLabel).toLowerCase();
 
     return this.getAllWeeks().map(week => {
       const games = (week.games || []).filter(item => {
-        const type = item.type || "game";
-
-        if (type === "practice") {
-          return String(item.team || "").trim().toLowerCase() === t;
+        if ((item.type || "game") === "practice") {
+          return hffClean(item.team).toLowerCase() === t;
         }
 
         return (
-          String(item.away || "").trim().toLowerCase() === t ||
-          String(item.home || "").trim().toLowerCase() === t
+          hffClean(item.home).toLowerCase() === t ||
+          hffClean(item.away).toLowerCase() === t
         );
       });
 
       return {
         weekTitle: week.weekTitle,
         weekDate: week.weekDate,
-        games: games
+        games
       };
     }).filter(week => week.games.length > 0);
   }
 };
 
-window.HFF_SCHEDULE_LOADED = fetch("schedule.csv")
+window.HFF_SCHEDULE_LOADED = fetch("schedule.csv?v=2")
   .then(response => {
     if (!response.ok) throw new Error("Could not load schedule.csv");
     return response.text();
   })
-  .then(csvText => {
-    window.HFF_SCHEDULE.weeks = hffBuildScheduleFromCSV(csvText);
+  .then(text => {
+    const rows = hffParseScheduleCSV(text);
+    window.HFF_SCHEDULE.weeks = hffBuildScheduleFromRows(rows);
     window.HFF_SCHEDULE_READY = true;
-    console.log("schedule.csv loaded", window.HFF_SCHEDULE.weeks);
-    return window.HFF_SCHEDULE;
+    console.log("schedule.csv rows:", rows.length);
+    console.log("schedule weeks:", window.HFF_SCHEDULE.weeks);
   })
   .catch(error => {
     console.error("Schedule CSV error:", error);
-    window.HFF_SCHEDULE_READY = false;
   });
