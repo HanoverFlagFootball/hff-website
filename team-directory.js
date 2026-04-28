@@ -31,7 +31,7 @@
     // U16
     { division: 'U16', teamLabel: 'Cowboys (U16)', cardTitle: 'Cowboys', teamLogo: 'Cowboys.png', page: 'scheduleD1.html' },
     { division: 'U16', teamLabel: 'Chiefs (U16)', cardTitle: 'Chiefs', teamLogo: 'Chiefs.png', page: 'scheduleD2.html' },
-    { division: 'U16', teamLabel: 'Patriots (U16)', cardTitle: 'Patriots', teamLogo: 'Patriots.png', page: 'scheduleD3.html' },
+    { division: 'U16', teamLabel: 'Vikings (U16)', cardTitle: 'Vikings', teamLogo: 'Vikings.png', page: 'scheduleD3.html' },
     { division: 'U16', teamLabel: 'Panthers (U16)', cardTitle: 'Panthers', teamLogo: 'Panthers.png', page: 'scheduleD4.html' },
     { division: 'U16', teamLabel: 'Commanders (U16)', cardTitle: 'Commanders', teamLogo: 'Commanders.png', page: 'scheduleD5.html' }
   ];
