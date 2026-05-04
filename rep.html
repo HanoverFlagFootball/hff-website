@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Rep Team Signup - Hanover Flag Football</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    :root { --ink:#fff; --line:#333; --black:#000; }
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #000;
+      color: var(--ink);
+    }
+
+    .closed-message {
+      display: none;
+      margin: 1rem 0 1.5rem;
+      padding: 1rem 1.2rem;
+      border: 2px solid #0b5ed7;
+      background: #f0f6ff;
+      color: #000;
+      text-align: center;
+      font-size: 1.05rem;
+      font-weight: 700;
+      border-radius: 0.4rem;
+    }
+
+    .registration-closed .closed-message {
+      display: block;
+    }
+
+    .registration-closed #repSignupForm {
+      display: none;
+    }
+
+    .scores-strip {
+      width:100%;
+      background:#000;
+      padding:0.35rem 1rem;
+      overflow:hidden;
+    }
+
+    .score-row {
+      display:flex;
+      gap:0.5rem;
+      align-items:stretch;
+      min-height:70px;
+    }
+
+    .top-banner {
+      width: 100%;
+      background: #000;
+      aspect-ratio: 8 / 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 56px;
+      position: relative;
+    }
+
+    .top-banner img {
+      height: 82%;
+      width: auto;
+      max-width: 90vw;
+      object-fit: contain;
+      display: block;
+    }
+
+    .mobile-nav {
+      position:absolute;
+      bottom:6px;
+      left:10px;
+      display:flex;
+      align-items:center;
+    }
+
+    .mobile-nav-btn {
+      width:34px;
+      height:28px;
+      border:1px solid #fff;
+      background:rgba(0,0,0,0.3);
+      display:inline-flex;
+      flex-direction:column;
+      justify-content:center;
+      gap:4px;
+      cursor:pointer;
+    }
+
+    .mobile-nav-btn span {
+      display:block;
+      height:2px;
+      background:#fff;
+    }
+
+    .mobile-nav-menu {
+      position:absolute;
+      top:calc(100% + 4px);
+      left:10px;
+      background:#111;
+      border:1px solid #333;
+      border-radius:0.5rem;
+      display:none;
+      flex-direction:column;
+      z-index:999;
+      min-width:180px;
+    }
+
+    .mobile-nav-menu a {
+      color:#fff;
+      text-decoration:none;
+      padding:0.6rem 0.8rem;
+      border-bottom:1px solid #222;
+      font-size:0.9rem;
+    }
+
+    .mobile-nav-menu a:last-child {
+      border-bottom:none;
+    }
+
+    .mobile-nav-menu.show {
+      display:flex;
+    }
+
+    @media (min-width:701px) {
+      .mobile-nav {
+        bottom:38px;
+        left:44px;
+      }
+
+      .mobile-nav-btn {
+        width:65px;
+        height:50px;
+        gap:5px;
+        border-width:2px;
+      }
+
+      .mobile-nav-btn span {
+        height:3px;
+      }
+    }
+
+    .register-page {
+      background:#000;
+      padding:1.5rem 1rem 3rem;
+      display:flex;
+      justify-content:center;
+    }
+
+    .register-wrapper {
+      width:100%;
+      max-width:900px;
+      background:#fff;
+      color:#000;
+      border:1px solid #333;
+      padding:1.5rem 1.5rem 2rem;
+    }
+
+    .register-wrapper h1 {
+      margin:0 0 0.5rem;
+      font-size:clamp(1.4rem, 2.4vw, 1.9rem);
+      text-align:center;
+    }
+
+    .register-intro,
+    .register-details {
+      font-size:0.95rem;
+      color:#333;
+      text-align:center;
+    }
+
+    .register-details {
+      margin-bottom:1.2rem;
+    }
+
+    .private-banner {
+      background:#f8f9fa;
+      border:1px solid #ccc;
+      color:#000;
+      padding:0.7rem 0.9rem;
+      border-radius:0.4rem;
+      font-size:0.9rem;
+      margin-bottom:1rem;
+      text-align:center;
+      font-weight:600;
+    }
+
+    .form-section {
+      margin-bottom:1.4rem;
+      border-top:1px solid #ddd;
+      padding-top:1rem;
+    }
+
+    .form-section:first-of-type {
+      border-top:none;
+      padding-top:0;
+    }
+
+    .form-section h2 {
+      margin:0 0 0.6rem;
+      font-size:1rem;
+    }
+
+    .info-note {
+      font-size:0.8rem;
+      color:#555;
+      margin-bottom:0.6rem;
+    }
+
+    .form-grid {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:0.75rem 1rem;
+    }
+
+    .form-row {
+      margin-bottom:0.75rem;
+    }
+
+    label {
+      display:block;
+      font-size:0.85rem;
+      margin-bottom:0.25rem;
+      color:#333;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="date"],
+    select {
+      width:100%;
+      padding:0.45rem 0.5rem;
+      font-size:0.9rem;
+      border-radius:4px;
+      border:1px solid #ccc;
+      font-family:inherit;
+    }
+
+    .radio-group,
+    .checkbox-group {
+      display:flex;
+      gap:1rem;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+
+    .radio-group label,
+    .checkbox-group label {
+      display:flex;
+      align-items:center;
+      gap:0.35rem;
+      margin-bottom:0;
+      font-size:0.85rem;
+    }
+
+    .required {
+      color:#c00;
+      margin-left:0.1rem;
+    }
+
+    .submit-row {
+      text-align:center;
+      margin-top:1.5rem;
+    }
+
+    .submit-btn {
+      padding:0.6rem 1.6rem;
+      border-radius:999px;
+      border:none;
+      background:#0b5ed7;
+      color:#fff;
+      font-size:0.95rem;
+      font-weight:600;
+      cursor:pointer;
+    }
+
+    .submit-btn:hover {
+      opacity:0.9;
+    }
+
+    .submit-btn:disabled {
+      opacity:0.65;
+      cursor:not-allowed;
+    }
+
+    .small-note {
+      font-size:0.8rem;
+      color:#555;
+      margin-top:0.4rem;
+      text-align:center;
+    }
+
+    .success-message {
+      display:none;
+      background:#e9f7ef;
+      border:1px solid #198754;
+      color:#000;
+      padding:1rem;
+      border-radius:0.4rem;
+      text-align:center;
+      font-weight:700;
+      margin-top:1rem;
+    }
+
+    .error-message {
+      display:none;
+      background:#fff3cd;
+      border:1px solid #ffc107;
+      color:#000;
+      padding:1rem;
+      border-radius:0.4rem;
+      text-align:center;
+      font-weight:700;
+      margin-top:1rem;
+    }
+
+    @media (max-width:800px) {
+      .register-wrapper {
+        padding:1.1rem 1rem 1.6rem;
+      }
+
+      .form-grid {
+        grid-template-columns:1fr;
+      }
+    }
+
+    .sponsor-strip {
+      background:#000;
+      color:#fff;
+      padding:1.5vw 2vw 3vw;
+      text-align:center;
+    }
+
+    .sponsor-strip h2 {
+      margin:0 0 1vw;
+      font-size:clamp(1rem, 2.2vw, 1.2rem);
+      letter-spacing:0.08em;
+    }
+
+    .sponsor-track-wrapper {
+      overflow:hidden;
+      width:100%;
+      display:flex;
+      justify-content:center;
+    }
+
+    .sponsor-track {
+      display:flex;
+      justify-content:space-around;
+      gap:2.5vw;
+      width:100%;
+      transition:transform 0.4s ease;
+    }
+
+    .sponsor-logo {
+      flex:0 0 auto;
+      width:clamp(80px, 10vw, 130px);
+      aspect-ratio:1/1;
+      border-radius:1vw;
+      overflow:hidden;
+      background:#fff;
+    }
+
+    .sponsor-logo img {
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+
+    @media (max-width:600px) {
+      .sponsor-track { gap:4vw; }
+      .sponsor-logo { width:22vw; }
+    }
+  </style>
+</head>
+
+<body>
+  <script>
+    const REGISTRATION_OPEN = true;
+    const REQUIRED_ACCESS_KEY = "";
+  </script>
+
+  <div class="scores-strip">
+    <div class="score-row" id="scoreRow"></div>
+  </div>
+
+  <div class="top-banner">
+    <a href="index.html" style="display:flex; align-items:center; justify-content:center; height:100%; width:100%;">
+      <img src="White Logo.jpg" alt="League Logo">
+    </a>
+
+    <div class="mobile-nav">
+      <button id="mobileMenuBtn" class="mobile-nav-btn" aria-label="Open menu" type="button">
+        <span></span><span></span><span></span>
+      </button>
+
+      <div class="mobile-nav-menu" id="mobileMenu">
+        <a href="scores&schedules.html">Scores &amp; Schedules</a>
+        <a href="shop.html">Shop</a>
+        <a href="index.html">Home</a>
+        <a href="AboutUs.html">About Us</a>
+      </div>
+    </div>
+  </div>
+
+  <section class="register-page" id="register">
+    <div class="register-wrapper">
+      <h1>Rep Team Signup</h1>
+
+      <p class="register-intro">
+        Sign up for Hanover Flag Football rep team tryouts.
+      </p>
+
+      <p class="register-details">
+        Cost: <strong>Free</strong>
+      </p>
+
+      <div class="private-banner">
+        Rep Team Signup Form
+      </div>
+
+      <div class="closed-message" id="closedMessage">
+        This signup link is currently unavailable.
+      </div>
+
+      <form id="repSignupForm" novalidate>
+        <div class="form-section">
+          <h2>Player Information</h2>
+
+          <div class="form-grid">
+            <div class="form-row">
+              <label for="firstName">First Name<span class="required">*</span></label>
+              <input type="text" id="firstName" name="firstName" required />
+            </div>
+
+            <div class="form-row">
+              <label for="lastName">Last Name<span class="required">*</span></label>
+              <input type="text" id="lastName" name="lastName" required />
+            </div>
+
+            <div class="form-row">
+              <label for="dateOfBirth">Date of Birth<span class="required">*</span></label>
+              <input type="date" id="dateOfBirth" name="dateOfBirth" required />
+            </div>
+
+            <div class="form-row">
+              <label>Sex<span class="required">*</span></label>
+              <div class="radio-group">
+                <label><input type="radio" name="sex" value="Male" /> Male</label>
+                <label><input type="radio" name="sex" value="Female" /> Female</label>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label for="email">Email<span class="required">*</span></label>
+              <input type="email" id="email" name="email" required />
+            </div>
+
+            <div class="form-row">
+              <label for="phone">Phone Number<span class="required">*</span></label>
+              <input type="tel" id="phone" name="phone" required />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h2>Position Interest</h2>
+          <p class="info-note">Select any positions the player is interested in.</p>
+
+          <div class="checkbox-group">
+            <label><input type="checkbox" name="positionInterest" value="Quarterback" /> Quarterback</label>
+            <label><input type="checkbox" name="positionInterest" value="Runningback" /> Runningback</label>
+            <label><input type="checkbox" name="positionInterest" value="Receiver" /> Receiver</label>
+            <label><input type="checkbox" name="positionInterest" value="Cornerback" /> Cornerback</label>
+            <label><input type="checkbox" name="positionInterest" value="Rusher" /> Rusher</label>
+          </div>
+        </div>
+
+        <div class="submit-row">
+          <button type="submit" class="submit-btn" id="submitBtn">Submit Rep Team Signup</button>
+          <div class="small-note">This signup is free. No payment is required.</div>
+        </div>
+
+        <div class="success-message" id="successMessage">
+          Thank you! Your rep team signup has been submitted.
+        </div>
+
+        <div class="error-message" id="errorMessage">
+          Something went wrong. Please try again.
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <div class="sponsor-strip">
+    <h2>SPONSORED BY</h2>
+
+    <div class="sponsor-track-wrapper">
+      <div class="sponsor-track" id="sponsorTrack">
+        <div class="sponsor-logo"><img src="DC Cab.png" alt="Sponsor 1"></div>
+        <div class="sponsor-logo"><img src="YourAdHere.png" alt="Sponsor 2"></div>
+        <div class="sponsor-logo"><img src="SponsorFun.png" alt="Sponsor 3"></div>
+        <div class="sponsor-logo"><img src="ThankYouSponsors.png" alt="Sponsor 4"></div>
+        <div class="sponsor-logo"><img src="YourAdHere.png" alt="Sponsor 5"></div>
+        <div class="sponsor-logo"><img src="SponsorFun.png" alt="Sponsor 6"></div>
+        <div class="sponsor-logo"><img src="ThankYouSponsors.png" alt="Sponsor 7"></div>
+        <div class="sponsor-logo"><img src="YourAdHere.png" alt="Sponsor 8"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script>
+    const SUPABASE_URL = "https://wnhzgxnwlmohfldnhhyt.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_x5Xkl7tfpUwhz_ENftiaqQ_am915vqY";
+
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // registration open/closed toggle + optional access key
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+      const access = params.get('access');
+
+      let allowed = REGISTRATION_OPEN;
+
+      if (REQUIRED_ACCESS_KEY && access !== REQUIRED_ACCESS_KEY) {
+        allowed = false;
+      }
+
+      if (!allowed) {
+        document.body.classList.add('registration-closed');
+      }
+    })();
+
+    // sponsor rotation
+    const sponsorTrack = document.getElementById('sponsorTrack');
+
+    if (sponsorTrack) {
+      setInterval(() => {
+        const firstLogo = sponsorTrack.firstElementChild;
+        if (firstLogo) sponsorTrack.appendChild(firstLogo);
+      }, 5000);
+    }
+
+    // hamburger toggle
+    const mobileBtn = document.getElementById('mobileMenuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+
+    if (mobileBtn && mobileMenu) {
+      mobileBtn.addEventListener('click', () => {
+        mobileMenu.classList.toggle('show');
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('repSignupForm');
+      const submitBtn = document.getElementById('submitBtn');
+      const successMessage = document.getElementById('successMessage');
+      const errorMessage = document.getElementById('errorMessage');
+
+      if (!form) return;
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        successMessage.style.display = 'none';
+        errorMessage.style.display = 'none';
+
+        const firstName = document.getElementById('firstName').value.trim();
+        const lastName = document.getElementById('lastName').value.trim();
+        const dateOfBirth = document.getElementById('dateOfBirth').value;
+        const sexInput = document.querySelector('input[name="sex"]:checked');
+        const email = document.getElementById('email').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+
+        const positionInterest = Array.from(
+          document.querySelectorAll('input[name="positionInterest"]:checked')
+        ).map(input => input.value);
+
+        if (!firstName || !lastName || !dateOfBirth || !email || !phone) {
+          alert('Please complete all required fields.');
+          return;
+        }
+
+        if (!sexInput) {
+          alert('Please select male or female.');
+          return;
+        }
+
+        if (!positionInterest.length) {
+          alert('Please select at least one position interest.');
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting...';
+
+        const { error } = await supabaseClient
+          .from('rep_team_signups')
+          .insert([
+            {
+              first_name: firstName,
+              last_name: lastName,
+              date_of_birth: dateOfBirth,
+              sex: sexInput.value,
+              email: email,
+              phone: phone,
+              position_interest: positionInterest
+            }
+          ]);
+
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit Rep Team Signup';
+
+        if (error) {
+          console.error('Supabase insert error:', error);
+          errorMessage.textContent = 'Something went wrong. Please try again.';
+          errorMessage.style.display = 'block';
+          return;
+        }
+
+        form.reset();
+        successMessage.style.display = 'block';
+      });
+    });
+  </script>
+
+  <script src="scores-strip.js"></script>
+</body>
+</html>
