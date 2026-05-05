@@ -619,11 +619,15 @@
         submitBtn.textContent = 'Submit Rep Team Signup';
 
         if (error) {
-          console.error('Supabase insert error:', error);
-          errorMessage.textContent = 'Something went wrong. Please try again.';
-          errorMessage.style.display = 'block';
-          return;
-        }
+  console.error('Supabase insert error:', error);
+
+  errorMessage.textContent =
+    'Supabase error: ' +
+    (error.message || JSON.stringify(error));
+
+  errorMessage.style.display = 'block';
+  return;
+}
 
         form.reset();
         successMessage.style.display = 'block';
