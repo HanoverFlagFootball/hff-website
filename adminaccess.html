@@ -607,7 +607,7 @@ const supabaseClient = createClient(
 
       if (!payload.length) return;
 
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from("order_item_tracking_v2")
         .upsert(payload, { onConflict: "item_key" });
 
@@ -634,7 +634,7 @@ const supabaseClient = createClient(
 
       showStatus("Loading shop items...", "info");
 
-      const { data: shopItems, error: itemsError } = await supabase
+      const { data: shopItems, error: itemsError } = await supabaseClient
         .from("order_items")
         .select(`
           line_key,
@@ -674,7 +674,7 @@ const supabaseClient = createClient(
       let trackingMap = new Map();
 
       if (itemKeys.length) {
-        const { data: trackingRows, error: trackingError } = await supabase
+        const { data: trackingRows, error: trackingError } = await supabaseClient
           .from("order_item_tracking_v2")
           .select("item_key, line_key, ordered, processed, stocked, fulfilled, refunded")
           .in("item_key", itemKeys);
@@ -909,7 +909,7 @@ const supabaseClient = createClient(
         refunded: row.refunded
       };
 
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from("order_item_tracking_v2")
         .upsert(payload, { onConflict: "item_key" });
 
