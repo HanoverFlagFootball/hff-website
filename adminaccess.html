@@ -499,10 +499,13 @@
   <script type="module">
     import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-    const SUPABASE_URL = "https://wnhzgxnwlmohfldnhhyt.supabase.co";
-    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_x5Xkl7tfpUwhz_ENftiaqQ_am915vqY";
+const SUPABASE_URL = "https://wnhzgxnwlmohfldnhhyt.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_x5Xkl7tfpUwhz_ENftiaqQ_am915vqY";
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+const supabaseClient = createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
 
     const loginOverlay = document.getElementById("loginOverlay");
     const emailInput = document.getElementById("emailInput");
@@ -614,7 +617,7 @@
     async function loadRows() {
       clearStatus();
 
-      const { data: sessionData } = await supabase.auth.getSession();
+      const { data: sessionData } = await supabaseClient.auth.getSession();
       if (!sessionData.session) {
         isAuthenticated = false;
         loginOverlay.style.display = "flex";
@@ -728,7 +731,7 @@
       loginBtn.disabled = true;
       loginBtn.textContent = "Signing In...";
 
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
       loginBtn.disabled = false;
       loginBtn.textContent = "Sign In";
@@ -747,7 +750,7 @@
     }
 
     async function handleLogout() {
-      const { error } = await supabase.auth.signOut();
+      const { error } = await supabaseClient.auth.signOut();
 
       if (error) {
         showStatus("Could not log out: " + error.message, "error");
@@ -1048,7 +1051,7 @@
     applyBulkBtn.addEventListener("click", applyBulkAction);
     refreshBtn.addEventListener("click", loadRows);
 
-    supabase.auth.onAuthStateChange(async (_event, session) => {
+    supabaseClient.auth.onAuthStateChange(async (_event, session) => {
       if (session) {
         isAuthenticated = true;
         loginOverlay.style.display = "none";
@@ -1063,7 +1066,7 @@
     async function init() {
       setControlsEnabled(false);
 
-      const { data } = await supabase.auth.getSession();
+      const { data } = await supabaseClient.auth.getSession();
 
       if (data.session) {
         isAuthenticated = true;

@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz Maker | Hanover Flag Football</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --navy: #071b34;
+      --blue: #0b5ed7;
+      --gold: #f5b301;
+      --light: #f5f7fb;
+      --card: #ffffff;
+      --text: #18212f;
+      --muted: #6b7280;
+      --border: #d9dee8;
+      --danger: #b91c1c;
+      --success: #15803d;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--light);
+      color: var(--text);
+    }
+
+    header {
+      background: var(--navy);
+      color: white;
+      padding: 18px 20px;
+      text-align: center;
+      border-bottom: 5px solid var(--gold);
+    }
+
+    header img {
+      max-width: 90px;
+      display: block;
+      margin: 0 auto 8px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.9rem;
+    }
+
+    header p {
+      margin: 6px 0 0;
+      color: #dbeafe;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 24px auto;
+      padding: 0 16px 40px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+      margin-bottom: 18px;
+    }
+
+    .login-card {
+      max-width: 480px;
+      margin: 40px auto;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin: 12px 0 6px;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      padding: 11px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      font-size: 1rem;
+      font-family: inherit;
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    button {
+      border: none;
+      border-radius: 9px;
+      padding: 11px 15px;
+      font-size: 0.95rem;
+      font-weight: bold;
+      cursor: pointer;
+      background: var(--blue);
+      color: white;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    .btn-secondary {
+      background: var(--navy);
+    }
+
+    .btn-gold {
+      background: var(--gold);
+      color: #111827;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+    }
+
+    .btn-light {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .scenario-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .scenario-title h2 {
+      margin: 0;
+      color: var(--navy);
+    }
+
+    .question-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 16px;
+      background: #fbfdff;
+    }
+
+    .question-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .question-header h3 {
+      margin: 0;
+    }
+
+    .option-row {
+      display: grid;
+      grid-template-columns: 36px 1fr 42px;
+      gap: 8px;
+      align-items: center;
+      margin-top: 8px;
+    }
+
+    .option-row input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+    }
+
+    .status {
+      padding: 12px;
+      border-radius: 9px;
+      margin-top: 14px;
+      font-weight: bold;
+    }
+
+    .status.success {
+      background: #dcfce7;
+      color: var(--success);
+    }
+
+    .status.error {
+      background: #fee2e2;
+      color: var(--danger);
+    }
+
+    .top-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      display: inline-block;
+      background: #e0ecff;
+      color: var(--navy);
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-weight: bold;
+      font-size: 0.85rem;
+    }
+
+    .small-note {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-top: 6px;
+    }
+
+    @media (max-width: 700px) {
+      .scenario-title,
+      .question-header,
+      .top-actions {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <img src="Logo.jpg" alt="Hanover Flag Football Logo" />
+    <h1>Referee Quiz Maker</h1>
+    <p>Create scenario-based quizzes for Hanover Flag Football referees.</p>
+  </header>
+
+  <main>
+    <section id="loginSection" class="card login-card">
+      <h2>Quiz Maker Login</h2>
+      <p class="small-note">Enter the quiz-maker password.</p>
+
+      <label for="adminPassword">Password</label>
+      <input type="password" id="adminPassword" placeholder="Enter password" />
+
+      <div class="button-row">
+        <button onclick="login()">Login</button>
+      </div>
+
+      <div id="loginStatus"></div>
+    </section>
+
+    <section id="makerSection" class="hidden">
+      <div class="card">
+        <div class="top-actions">
+          <div>
+            <h2 style="margin:0;">Build Quiz</h2>
+            <p class="small-note">Add scenarios, questions, answers, and explanations.</p>
+          </div>
+          <span class="pill" id="scenarioCountPill">1 Scenario</span>
+        </div>
+
+        <label for="quizTitle">Quiz Title</label>
+        <input id="quizTitle" value="Referee Rules Quiz" />
+      </div>
+
+      <div id="scenariosContainer"></div>
+
+      <div class="card">
+        <div class="button-row">
+          <button class="btn-secondary" onclick="addScenario(false)">+ New Blank Scenario</button>
+          <button class="btn-light" onclick="addScenario(true)">Duplicate Current Scenario</button>
+          <button class="btn-gold" onclick="saveQuiz('draft')">Save Draft</button>
+          <button onclick="saveQuiz('launched')">Launch Quiz</button>
+        </div>
+
+        <div id="saveStatus"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const SUPABASE_URL = "YOUR_SUPABASE_URL";
+    const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+    const ADMIN_PASSWORD = "change-this-password";
+
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let scenarios = [
+      {
+        scenarioText: "",
+        questions: [
+          {
+            callName: "",
+            questionText: "",
+            questionType: "multiple_choice",
+            options: ["", ""],
+            correctAnswers: [],
+            shortAnswer: "",
+            listOptions: "",
+            listAnswer: "",
+            explanation: ""
+          }
+        ]
+      }
+    ];
+
+    let currentScenarioIndex = 0;
+
+    function login() {
+      const entered = document.getElementById("adminPassword").value;
+      const status = document.getElementById("loginStatus");
+
+      if (entered === ADMIN_PASSWORD) {
+        sessionStorage.setItem("quizMakerLoggedIn", "true");
+        document.getElementById("loginSection").classList.add("hidden");
+        document.getElementById("makerSection").classList.remove("hidden");
+        renderScenarios();
+      } else {
+        status.innerHTML = `<div class="status error">Incorrect password.</div>`;
+      }
+    }
+
+    function checkLogin() {
+      if (sessionStorage.getItem("quizMakerLoggedIn") === "true") {
+        document.getElementById("loginSection").classList.add("hidden");
+        document.getElementById("makerSection").classList.remove("hidden");
+        renderScenarios();
+      }
+    }
+
+    function renderScenarios() {
+      const container = document.getElementById("scenariosContainer");
+      container.innerHTML = "";
+
+      document.getElementById("scenarioCountPill").textContent =
+        `${scenarios.length} Scenario${scenarios.length === 1 ? "" : "s"}`;
+
+      scenarios.forEach((scenario, scenarioIndex) => {
+        const card = document.createElement("div");
+        card.className = "card";
+
+        card.innerHTML = `
+          <div class="scenario-title">
+            <h2>Scenario ${scenarioIndex + 1}</h2>
+            <div class="button-row" style="margin-top:0;">
+              <button class="btn-light" onclick="setCurrentScenario(${scenarioIndex})">Use as Current</button>
+              ${scenarios.length > 1 ? `<button class="btn-danger" onclick="deleteScenario(${scenarioIndex})">Delete Scenario</button>` : ""}
+            </div>
+          </div>
+
+          <label>Scenario</label>
+          <textarea 
+            placeholder="Example: 1st down on the opponent's 19 yard line..."
+            oninput="updateScenarioText(${scenarioIndex}, this.value)"
+          >${escapeHtml(scenario.scenarioText)}</textarea>
+
+          <div id="questions-${scenarioIndex}"></div>
+
+          <div class="button-row">
+            <button class="btn-secondary" onclick="addQuestion(${scenarioIndex})">+ Add Question</button>
+          </div>
+        `;
+
+        container.appendChild(card);
+        renderQuestions(scenarioIndex);
+      });
+    }
+
+    function renderQuestions(scenarioIndex) {
+      const questionContainer = document.getElementById(`questions-${scenarioIndex}`);
+      const scenario = scenarios[scenarioIndex];
+
+      questionContainer.innerHTML = "";
+
+      scenario.questions.forEach((question, questionIndex) => {
+        const qCard = document.createElement("div");
+        qCard.className = "question-card";
+
+        qCard.innerHTML = `
+          <div class="question-header">
+            <h3>Question ${questionIndex + 1}</h3>
+            ${scenario.questions.length > 1 ? `<button class="btn-danger" onclick="deleteQuestion(${scenarioIndex}, ${questionIndex})">Delete Question</button>` : ""}
+          </div>
+
+          <label>Call / Rule Name</label>
+          <input
+            placeholder="Example: Flag Guarding, Illegal Rush, Defensive Pass Interference"
+            value="${escapeAttr(question.callName)}"
+            oninput="updateQuestion(${scenarioIndex}, ${questionIndex}, 'callName', this.value)"
+          />
+
+          <label>Question Text</label>
+          <input
+            placeholder="Example: What penalty should be called?"
+            value="${escapeAttr(question.questionText)}"
+            oninput="updateQuestion(${scenarioIndex}, ${questionIndex}, 'questionText', this.value)"
+          />
+
+          <label>Question Type</label>
+          <select onchange="changeQuestionType(${scenarioIndex}, ${questionIndex}, this.value)">
+            <option value="multiple_choice" ${question.questionType === "multiple_choice" ? "selected" : ""}>Multiple Choice</option>
+            <option value="short_answer" ${question.questionType === "short_answer" ? "selected" : ""}>Short Answer / Number</option>
+            <option value="list" ${question.questionType === "list" ? "selected" : ""}>Pick From List</option>
+          </select>
+
+          <div id="answer-area-${scenarioIndex}-${questionIndex}"></div>
+
+          <label>Explanation</label>
+          <textarea
+            placeholder="Explain the rule. This appears after an incorrect attempt."
+            oninput="updateQuestion(${scenarioIndex}, ${questionIndex}, 'explanation', this.value)"
+          >${escapeHtml(question.explanation)}</textarea>
+        `;
+
+        questionContainer.appendChild(qCard);
+        renderAnswerArea(scenarioIndex, questionIndex);
+      });
+    }
+
+    function renderAnswerArea(scenarioIndex, questionIndex) {
+      const area = document.getElementById(`answer-area-${scenarioIndex}-${questionIndex}`);
+      const question = scenarios[scenarioIndex].questions[questionIndex];
+
+      if (question.questionType === "multiple_choice") {
+        area.innerHTML = `
+          <label>Multiple Choice Options</label>
+          <p class="small-note">Check the correct answer. You can add more options.</p>
+          <div id="options-${scenarioIndex}-${questionIndex}"></div>
+          <div class="button-row">
+            <button class="btn-light" onclick="addOption(${scenarioIndex}, ${questionIndex})">+ Add Option</button>
+          </div>
+        `;
+        renderOptions(scenarioIndex, questionIndex);
+      }
+
+      if (question.questionType === "short_answer") {
+        area.innerHTML = `
+          <label>Correct Short Answer</label>
+          <input
+            placeholder="Example: 5"
+            value="${escapeAttr(question.shortAnswer)}"
+            oninput="updateQuestion(${scenarioIndex}, ${questionIndex}, 'shortAnswer', this.value)"
+          />
+        `;
+      }
+
+      if (question.questionType === "list") {
+        area.innerHTML = `
+          <label>List Options</label>
+          <p class="small-note">Put each option on its own line.</p>
+          <textarea
+            placeholder="Flag Guarding&#10;Illegal Rush&#10;Defensive Pass Interference"
+            oninput="updateQuestion(${scenarioIndex}, ${questionIndex}, 'listOptions', this.value)"
+          >${escapeHtml(question.listOptions)}</textarea>
+
+          <label>Correct List Answer</label>
+          <input
+            placeholder="Type the exact correct option"
+            value="${escapeAttr(question.listAnswer)}"
+            oninput="updateQuestion(${scenarioIndex}, ${questionIndex}, 'listAnswer', this.value)"
+          />
+        `;
+      }
+    }
+
+    function renderOptions(scenarioIndex, questionIndex) {
+      const optionBox = document.getElementById(`options-${scenarioIndex}-${questionIndex}`);
+      const question = scenarios[scenarioIndex].questions[questionIndex];
+
+      optionBox.innerHTML = "";
+
+      question.options.forEach((option, optionIndex) => {
+        const row = document.createElement("div");
+        row.className = "option-row";
+
+        row.innerHTML = `
+          <input
+            type="checkbox"
+            ${question.correctAnswers.includes(optionIndex) ? "checked" : ""}
+            onchange="toggleCorrectAnswer(${scenarioIndex}, ${questionIndex}, ${optionIndex}, this.checked)"
+          />
+
+          <input
+            placeholder="Option ${optionIndex + 1}"
+            value="${escapeAttr(option)}"
+            oninput="updateOption(${scenarioIndex}, ${questionIndex}, ${optionIndex}, this.value)"
+          />
+
+          ${question.options.length > 2 ? `<button class="btn-danger" onclick="deleteOption(${scenarioIndex}, ${questionIndex}, ${optionIndex})">×</button>` : ""}
+        `;
+
+        optionBox.appendChild(row);
+      });
+    }
+
+    function updateScenarioText(scenarioIndex, value) {
+      scenarios[scenarioIndex].scenarioText = value;
+      saveLocalDraft();
+    }
+
+    function updateQuestion(scenarioIndex, questionIndex, field, value) {
+      scenarios[scenarioIndex].questions[questionIndex][field] = value;
+      saveLocalDraft();
+    }
+
+    function changeQuestionType(scenarioIndex, questionIndex, type) {
+      scenarios[scenarioIndex].questions[questionIndex].questionType = type;
+      saveLocalDraft();
+      renderScenarios();
+    }
+
+    function addQuestion(scenarioIndex) {
+      scenarios[scenarioIndex].questions.push({
+        callName: "",
+        questionText: "",
+        questionType: "multiple_choice",
+        options: ["", ""],
+        correctAnswers: [],
+        shortAnswer: "",
+        listOptions: "",
+        listAnswer: "",
+        explanation: ""
+      });
+
+      saveLocalDraft();
+      renderScenarios();
+    }
+
+    function deleteQuestion(scenarioIndex, questionIndex) {
+      scenarios[scenarioIndex].questions.splice(questionIndex, 1);
+      saveLocalDraft();
+      renderScenarios();
+    }
+
+    function addOption(scenarioIndex, questionIndex) {
+      scenarios[scenarioIndex].questions[questionIndex].options.push("");
+      saveLocalDraft();
+      renderScenarios();
+    }
+
+    function updateOption(scenarioIndex, questionIndex, optionIndex, value) {
+      scenarios[scenarioIndex].questions[questionIndex].options[optionIndex] = value;
+      saveLocalDraft();
+    }
+
+    function deleteOption(scenarioIndex, questionIndex, optionIndex) {
+      const question = scenarios[scenarioIndex].questions[questionIndex];
+
+      question.options.splice(optionIndex, 1);
+      question.correctAnswers = question.correctAnswers
+        .filter(index => index !== optionIndex)
+        .map(index => index > optionIndex ? index - 1 : index);
+
+      saveLocalDraft();
+      renderScenarios();
+    }
+
+    function toggleCorrectAnswer(scenarioIndex, questionIndex, optionIndex, checked) {
+      const question = scenarios[scenarioIndex].questions[questionIndex];
+
+      if (checked) {
+        question.correctAnswers = [optionIndex];
+      } else {
+        question.correctAnswers = question.correctAnswers.filter(index => index !== optionIndex);
+      }
+
+      saveLocalDraft();
+      renderScenarios();
+    }
+
+    function setCurrentScenario(index) {
+      currentScenarioIndex = index;
+      showStatus("saveStatus", `Scenario ${index + 1} is now the current scenario for duplication.`, "success");
+    }
+
+    function addScenario(duplicateCurrent) {
+      let newScenario;
+
+      if (duplicateCurrent) {
+        newScenario = JSON.parse(JSON.stringify(scenarios[currentScenarioIndex]));
+      } else {
+        newScenario = {
+          scenarioText: "",
+          questions: [
+            {
+              callName: "",
+              questionText: "",
+              questionType: "multiple_choice",
+              options: ["", ""],
+              correctAnswers: [],
+              shortAnswer: "",
+              listOptions: "",
+              listAnswer: "",
+              explanation: ""
+            }
+          ]
+        };
+      }
+
+      scenarios.push(newScenario);
+      currentScenarioIndex = scenarios.length - 1;
+      saveLocalDraft();
+      renderScenarios();
+    }
+
+    function deleteScenario(index) {
+      scenarios.splice(index, 1);
+      currentScenarioIndex = Math.max(0, scenarios.length - 1);
+      saveLocalDraft();
+      renderScenarios();
+    }
+
+    function validateQuiz() {
+      const errors = [];
+
+      scenarios.forEach((scenario, sIndex) => {
+        if (!scenario.scenarioText.trim()) {
+          errors.push(`Scenario ${sIndex + 1} needs scenario text.`);
+        }
+
+        scenario.questions.forEach((question, qIndex) => {
+          const label = `Scenario ${sIndex + 1}, Question ${qIndex + 1}`;
+
+          if (!question.callName.trim()) errors.push(`${label} needs a call/rule name.`);
+          if (!question.questionText.trim()) errors.push(`${label} needs question text.`);
+          if (!question.explanation.trim()) errors.push(`${label} needs an explanation.`);
+
+          if (question.questionType === "multiple_choice") {
+            const filledOptions = question.options.filter(option => option.trim());
+            if (filledOptions.length < 2) errors.push(`${label} needs at least 2 options.`);
+            if (question.correctAnswers.length !== 1) errors.push(`${label} needs exactly 1 correct checked answer.`);
+          }
+
+          if (question.questionType === "short_answer" && !question.shortAnswer.trim()) {
+            errors.push(`${label} needs a correct short answer.`);
+          }
+
+          if (question.questionType === "list") {
+            if (!question.listOptions.trim()) errors.push(`${label} needs list options.`);
+            if (!question.listAnswer.trim()) errors.push(`${label} needs a correct list answer.`);
+          }
+        });
+      });
+
+      return errors;
+    }
+
+    async function saveQuiz(status) {
+      const title = document.getElementById("quizTitle").value.trim() || "Referee Rules Quiz";
+      const errors = validateQuiz();
+
+      if (errors.length > 0) {
+        showStatus("saveStatus", errors.join("<br>"), "error");
+        return;
+      }
+
+      const quizData = {
+        title,
+        status,
+        scenarios,
+        launchedAt: status === "launched" ? new Date().toISOString() : null
+      };
+
+      const { error } = await supabaseClient
+        .from("ref_quizzes")
+        .insert({
+          title,
+          status,
+          quiz_data: quizData
+        });
+
+      if (error) {
+        showStatus("saveStatus", `Supabase error: ${error.message}`, "error");
+        return;
+      }
+
+      localStorage.removeItem("refQuizMakerDraft");
+
+      showStatus(
+        "saveStatus",
+        status === "launched"
+          ? "Quiz launched successfully."
+          : "Draft saved successfully.",
+        "success"
+      );
+    }
+
+    function saveLocalDraft() {
+      const title = document.getElementById("quizTitle")?.value || "Referee Rules Quiz";
+      localStorage.setItem("refQuizMakerDraft", JSON.stringify({ title, scenarios }));
+    }
+
+    function loadLocalDraft() {
+      const saved = localStorage.getItem("refQuizMakerDraft");
+      if (!saved) return;
+
+      try {
+        const draft = JSON.parse(saved);
+        if (draft.title) document.getElementById("quizTitle").value = draft.title;
+        if (Array.isArray(draft.scenarios)) scenarios = draft.scenarios;
+      } catch (e) {
+        console.warn("Could not load draft.");
+      }
+    }
+
+    function showStatus(elementId, message, type) {
+      const el = document.getElementById(elementId);
+      el.innerHTML = `<div class="status ${type}">${message}</div>`;
+    }
+
+    function escapeHtml(str) {
+      return String(str || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;");
+    }
+
+    function escapeAttr(str) {
+      return String(str || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;");
+    }
+
+    window.addEventListener("load", () => {
+      loadLocalDraft();
+      checkLogin();
+
+      document.getElementById("quizTitle").addEventListener("input", saveLocalDraft);
+    });
+  </script>
+</body>
+</html>
