@@ -253,10 +253,13 @@
   <main>
     <section id="loginSection" class="card login-card">
       <h2>Quiz Maker Login</h2>
-      <p class="small-note">Enter the quiz-maker password.</p>
+      <p class="small-note">Sign in with your admin email and password.</p>
 
-      <label for="adminPassword">Password</label>
-      <input type="password" id="adminPassword" placeholder="Enter password" />
+<label for="adminEmail">Email</label>
+<input type="email" id="adminEmail" placeholder="Email address" autocomplete="username" />
+
+<label for="adminPassword">Password</label>
+<input type="password" id="adminPassword" placeholder="Password" autocomplete="current-password" />
 
       <div class="button-row">
         <button onclick="login()">Login</button>
@@ -268,12 +271,16 @@
     <section id="makerSection" class="hidden">
       <div class="card">
         <div class="top-actions">
-          <div>
-            <h2 style="margin:0;">Build Quiz</h2>
-            <p class="small-note">Add scenarios, questions, answers, and explanations.</p>
-          </div>
-          <span class="pill" id="scenarioCountPill">1 Scenario</span>
-        </div>
+  <div>
+    <h2 style="margin:0;">Build Quiz</h2>
+    <p class="small-note">Add scenarios, questions, answers, and explanations.</p>
+  </div>
+
+  <div class="button-row" style="margin-top:0;">
+    <span class="pill" id="scenarioCountPill">1 Scenario</span>
+    <button class="btn-light" onclick="logout()">Logout</button>
+  </div>
+</div>
 
         <label for="quizTitle">Quiz Title</label>
         <input id="quizTitle" value="Referee Rules Quiz" />
@@ -295,11 +302,13 @@
   </main>
 
   <script>
-    const SUPABASE_URL = "YOUR_SUPABASE_URL";
-    const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
-    const ADMIN_PASSWORD = "change-this-password";
+    const SUPABASE_URL = "https://wnhzgxnwlmohfldnhhyt.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_x5Xkl7tfpUwhz_ENftiaqQ_am915vqY";
 
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
 
     let scenarios = [
       {
@@ -322,28 +331,68 @@
 
     let currentScenarioIndex = 0;
 
-    function login() {
-      const entered = document.getElementById("adminPassword").value;
-      const status = document.getElementById("loginStatus");
+   async function login() {
+  const email = document.getElementById("adminEmail").value.trim();
+  const password = document.getElementById("adminPassword").value;
+  const status = document.getElementById("loginStatus");
 
-      if (entered === ADMIN_PASSWORD) {
-        sessionStorage.setItem("quizMakerLoggedIn", "true");
-        document.getElementById("loginSection").classList.add("hidden");
-        document.getElementById("makerSection").classList.remove("hidden");
-        renderScenarios();
-      } else {
-        status.innerHTML = `<div class="status error">Incorrect password.</div>`;
-      }
+  if (!email || !password) {
+    status.innerHTML = `<div class="status error">Enter your email and password.</div>`;
+    return;
+  }
+
+  const { error } = await supabaseClient.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if (error) {
+    status.innerHTML = `<div class="status error">${error.message}</div>`;
+    return;
+  }
+
+  document.getElementById("loginSection").classList.add("hidden");
+  document.getElementById("makerSection").classList.remove("hidden");
+  renderScenarios();
+}
+
+async function checkLogin() {
+  const { data } = await supabaseClient.auth.getSession();
+
+  if (data.session) {
+    document.getElementById("loginSection").classList.add("hidden");
+    document.getElementById("makerSection").classList.remove("hidden");
+    renderScenarios();
+  }
+}
+
+async function logout() {
+  await supabaseClient.auth.signOut();
+  location.reload();
+}
+
+supabaseClient.auth.onAuthStateChange(
+  async (_event, session) => {
+
+    if (session) {
+      document.getElementById("loginSection")
+        .classList.add("hidden");
+
+      document.getElementById("makerSection")
+        .classList.remove("hidden");
+
+      renderScenarios();
+
+    } else {
+
+      document.getElementById("loginSection")
+        .classList.remove("hidden");
+
+      document.getElementById("makerSection")
+        .classList.add("hidden");
     }
-
-    function checkLogin() {
-      if (sessionStorage.getItem("quizMakerLoggedIn") === "true") {
-        document.getElementById("loginSection").classList.add("hidden");
-        document.getElementById("makerSection").classList.remove("hidden");
-        renderScenarios();
-      }
-    }
-
+  }
+);
     function renderScenarios() {
       const container = document.getElementById("scenariosContainer");
       container.innerHTML = "";
