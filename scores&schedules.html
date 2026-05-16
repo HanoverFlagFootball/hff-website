@@ -32,8 +32,8 @@
   display: flex;
   gap: 0.5rem;
   align-items: stretch;
-  overflow-x: auto;
-  padding-bottom: 0.25rem;
+  justify-content: center;
+  overflow: hidden;
 }
     .score-box {
   background: #fff;
@@ -41,11 +41,15 @@
   border: 1px solid #ccc;
   border-radius: 0.5rem;
   padding: 0.35rem 0.45rem;
-  flex: 0 0 180px;
+  flex: 0 0 calc((100% - 4.5rem) / 10);
   min-height: 74px;
   display: flex;
   flex-direction: column;
   justify-content: center;
+}
+
+.score-box:nth-child(n + 11) {
+  display: none;
 }
     .score-title {
       font-size: 0.65rem;
