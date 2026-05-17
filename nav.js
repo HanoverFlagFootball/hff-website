@@ -2,6 +2,7 @@
   const NAV_ITEMS = [
     { label: "Home", href: "index.html" },
     { label: "Scores & Schedules", href: "scores&schedules.html" },
+    { label: "Standings", href: "standings.html" },
     { label: "Register", href: "register.html" },
     { label: "Shop", href: "shop.html" },
     { label: "Rules & Info", href: "rules.html" },

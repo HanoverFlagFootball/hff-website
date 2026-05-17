@@ -2,58 +2,231 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Standings | Hanover Flag Football</title>
-
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
-    .standings-wrap {
-      max-width: 1100px;
-      margin: 40px auto;
-      padding: 0 20px;
+    :root {
+      --ink: #fff;
+      --line: #333;
+      --black: #000;
     }
 
-    .standings-title {
-      text-align: center;
-      margin-bottom: 30px;
+    * {
+      box-sizing: border-box;
     }
 
-    .division-standings {
-      margin-bottom: 40px;
-      background: #fff;
-      border-radius: 14px;
-      overflow: hidden;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-    }
-
-    .division-standings h2 {
+    body {
       margin: 0;
-      padding: 16px 20px;
-      background: #111827;
-      color: white;
-      font-size: 1.4rem;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #000;
+      color: var(--ink);
     }
 
-    table {
+    /* =========================
+       SCORES STRIP
+       ========================= */
+    .scores-strip {
+      width: 100%;
+      background: #000;
+      padding: 0.35rem 1rem;
+      overflow: hidden;
+    }
+
+    .score-row {
+      display: flex;
+      gap: 0.5rem;
+      align-items: stretch;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .score-box {
+      background: #fff;
+      color: #000;
+      border: 1px solid #ccc;
+      border-radius: 0.5rem;
+      padding: 0.35rem 0.45rem;
+      flex: 0 0 calc((100% - 4.5rem) / 8);
+      min-height: 74px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .score-box:nth-child(n + 11) {
+      display: none;
+    }
+
+    .score-title {
+      font-size: 0.65rem;
+      text-align: center;
+      border-bottom: 1px solid #ddd;
+      margin-bottom: 0.15rem;
+      padding-bottom: 0.15rem;
+    }
+
+    .team-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.15rem;
+      line-height: 1.05;
+    }
+
+    .team-left {
+      display: flex;
+      align-items: center;
+      gap: 0.2rem;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .team-logo {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+      background: #fff;
+      border-radius: 4px;
+      padding: 1px;
+    }
+
+    .team-name {
+      flex: 1;
+      font-size: 0.68rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .team-score {
+      width: 1.9rem;
+      text-align: right;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+
+    .score-status {
+      font-size: 0.58rem;
+      text-align: center;
+      margin-top: 0.2rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    @media (max-width: 700px) {
+      .scores-strip {
+        overflow: hidden;
+      }
+
+      .score-row {
+        justify-content: center;
+      }
+
+      .score-box {
+        flex: 0 0 calc((100% - 0.6rem) / 2);
+      }
+
+      .score-box:nth-child(n + 3) {
+        display: none;
+      }
+    }
+
+    /* =========================
+       TOP BANNER
+       ========================= */
+    .top-banner {
+      width: 100%;
+      background: #000;
+      aspect-ratio: 8 / 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 56px;
+      position: relative;
+    }
+
+    .top-banner img {
+      height: 82%;
+      width: auto;
+      max-width: 90vw;
+      object-fit: contain;
+      display: block;
+    }
+
+    /* =========================
+       PAGE LAYOUT
+       ========================= */
+    .standings-page {
+      background: #000;
+      padding: 1.2vw 2vw 2vw;
+    }
+
+    .standings-card {
+      background: #fff;
+      color: #000;
+      border: 1px solid #333;
+      padding: clamp(16px, 2vw, 28px);
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .standings-card h1 {
+      margin: 0 0 0.4rem;
+      text-align: center;
+      color: #000;
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+    }
+
+    .standings-intro {
+      text-align: center;
+      margin: 0 0 1.5rem;
+      color: #000;
+      font-size: clamp(0.9rem, 1.7vw, 1rem);
+    }
+
+    .division-block {
+      margin-top: 1.6rem;
+      border: 1px solid #333;
+      background: #fff;
+    }
+
+    .division-title {
+      margin: 0;
+      padding: 0.75rem 1rem;
+      background: #000;
+      color: #fff;
+      font-size: clamp(1rem, 2vw, 1.3rem);
+    }
+
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    .standings-table {
       width: 100%;
       border-collapse: collapse;
+      min-width: 650px;
     }
 
-    th, td {
-      padding: 12px;
+    .standings-table th,
+    .standings-table td {
+      padding: 0.75rem;
       text-align: center;
-      border-bottom: 1px solid #e5e7eb;
+      border-bottom: 1px solid #ddd;
+      color: #000;
     }
 
-    th {
-      background: #f3f4f6;
-      font-weight: 700;
+    .standings-table th {
+      background: #f2f2f2;
+      font-weight: 800;
     }
 
-    td.team-name {
+    .standings-table td.team-cell {
       text-align: left;
-      font-weight: 700;
+      font-weight: 800;
+      white-space: nowrap;
     }
 
     .team-logo-small {
@@ -62,44 +235,60 @@
       object-fit: contain;
       vertical-align: middle;
       margin-right: 8px;
+      background: #fff;
     }
 
     .empty-message {
-      padding: 20px;
+      padding: 1rem;
+      color: #000;
       text-align: center;
-      color: #666;
+      font-weight: 700;
+    }
+
+    @media (max-width: 700px) {
+      .standings-page {
+        padding: 0;
+      }
+
+      .standings-card {
+        border-left: 0;
+        border-right: 0;
+      }
     }
   </style>
 </head>
 
 <body>
 
-  <!-- HEADER / NAV -->
-  <header>
-    <div class="logo">
-      <a href="index.html">
-        <img src="Logo.jpg" alt="Hanover Flag Football Logo">
-      </a>
-    </div>
+  <!-- SCORE STRIP -->
+  <div class="scores-strip">
+    <div class="score-row" id="scoreRow"></div>
+  </div>
 
-    <nav>
-      <a href="index.html">Home</a>
-      <a href="scores&schedules.html">Scores &amp; Schedules</a>
-      <a href="standings.html">Standings</a>
-      <a href="rules.html">Rules &amp; Info</a>
-    </nav>
-  </header>
+  <!-- BANNER with SHARED NAV -->
+  <div class="top-banner">
+    <img src="White Logo.jpg" alt="League Logo">
+    <div id="site-nav"></div>
+  </div>
 
-  <main class="standings-wrap">
-    <div class="standings-title">
+  <!-- STANDINGS CONTENT -->
+  <main class="standings-page">
+    <section class="standings-card">
       <h1>Standings</h1>
-      <p>Updated automatically from the season schedule.</p>
-    </div>
+      <p class="standings-intro">
+        Standings are updated automatically from the season schedule.
+      </p>
 
-    <div id="standings-container"></div>
+      <div id="standings-container"></div>
+    </section>
   </main>
 
-  <script src="season-schedule.js?v=1"></script>
+  <!-- Shared hamburger nav -->
+  <script src="nav.js"></script>
+
+  <!-- Schedule and scores -->
+  <script src="season-schedule.js?v=20"></script>
+  <script src="scores-strip.js?v=20"></script>
 
   <script>
     const DIVISIONS_TO_SHOW = ["U9", "U12", "U16"];
@@ -118,23 +307,77 @@
       return clean ? `${clean}.png` : "Logo.jpg";
     }
 
-    function isRealGame(game) {
-      const home = game.homeTeam || game.home || game.home_team || "";
-      const away = game.awayTeam || game.away || game.away_team || "";
+    function createTeamRecord(teamName) {
+      return {
+        teamName,
+        wins: 0,
+        losses: 0,
+        ties: 0,
+        pointsFor: 0,
+        pointsAgainst: 0
+      };
+    }
 
-      if (!home || !away) return false;
-      if (home.toLowerCase().includes("practice")) return false;
-      if (away.toLowerCase().includes("practice")) return false;
+    function isPracticeGame(game) {
+      const type = String(game.type || game.gameType || "").toLowerCase();
+      const home = String(game.homeTeam || game.home || game.home_team || "").toLowerCase();
+      const away = String(game.awayTeam || game.away || game.away_team || "").toLowerCase();
 
-      return true;
+      return (
+        type.includes("practice") ||
+        home.includes("practice") ||
+        away.includes("practice")
+      );
+    }
+
+    function getHomeTeam(game) {
+      return game.homeTeam || game.home || game.home_team || "";
+    }
+
+    function getAwayTeam(game) {
+      return game.awayTeam || game.away || game.away_team || "";
+    }
+
+    function getHomeScore(game) {
+      return getScoreValue(
+        game.homeScore ??
+        game.homeTeamScore ??
+        game.home_team_score ??
+        game["Home Team Score"]
+      );
+    }
+
+    function getAwayScore(game) {
+      return getScoreValue(
+        game.awayScore ??
+        game.awayTeamScore ??
+        game.away_team_score ??
+        game["Away Team Score"]
+      );
     }
 
     function getScoreValue(value) {
       if (value === null || value === undefined || value === "") return null;
-      if (String(value).toUpperCase() === "TBD") return null;
 
-      const number = Number(value);
+      const text = String(value).trim();
+
+      if (!text || text.toUpperCase() === "TBD") return null;
+
+      const number = Number(text);
       return Number.isFinite(number) ? number : null;
+    }
+
+    function isRealCompletedGame(game) {
+      const homeTeam = getHomeTeam(game);
+      const awayTeam = getAwayTeam(game);
+
+      if (!homeTeam || !awayTeam) return false;
+      if (isPracticeGame(game)) return false;
+
+      const homeScore = getHomeScore(game);
+      const awayScore = getAwayScore(game);
+
+      return homeScore !== null && awayScore !== null;
     }
 
     function buildStandings() {
@@ -145,9 +388,7 @@
       };
 
       if (!window.HFF_SCHEDULE || typeof window.HFF_SCHEDULE.getAllWeeks !== "function") {
-        document.getElementById("standings-container").innerHTML =
-          `<div class="empty-message">Could not load standings. Make sure season-schedule.js is linked correctly.</div>`;
-        return standings;
+        return null;
       }
 
       const weeks = window.HFF_SCHEDULE.getAllWeeks();
@@ -156,12 +397,13 @@
         const games = week.games || [];
 
         games.forEach(game => {
-          if (!isRealGame(game)) return;
+          if (!isRealCompletedGame(game)) return;
 
-          const homeTeam = game.homeTeam || game.home || game.home_team || "";
-          const awayTeam = game.awayTeam || game.away || game.away_team || "";
+          const homeTeam = getHomeTeam(game);
+          const awayTeam = getAwayTeam(game);
 
           const division = getDivision(homeTeam) || getDivision(awayTeam);
+
           if (!DIVISIONS_TO_SHOW.includes(division)) return;
 
           if (!standings[division][homeTeam]) {
@@ -172,16 +414,8 @@
             standings[division][awayTeam] = createTeamRecord(awayTeam);
           }
 
-          const homeScore = getScoreValue(
-            game.homeScore ?? game.homeTeamScore ?? game.home_team_score
-          );
-
-          const awayScore = getScoreValue(
-            game.awayScore ?? game.awayTeamScore ?? game.away_team_score
-          );
-
-          // Count only completed games with actual scores
-          if (homeScore === null || awayScore === null) return;
+          const homeScore = getHomeScore(game);
+          const awayScore = getAwayScore(game);
 
           standings[division][homeTeam].pointsFor += homeScore;
           standings[division][homeTeam].pointsAgainst += awayScore;
@@ -205,19 +439,11 @@
       return standings;
     }
 
-    function createTeamRecord(teamName) {
-      return {
-        teamName,
-        wins: 0,
-        losses: 0,
-        ties: 0,
-        pointsFor: 0,
-        pointsAgainst: 0
-      };
-    }
-
     function sortTeams(teams) {
       return teams.sort((a, b) => {
+        const aGamesPlayed = a.wins + a.losses + a.ties;
+        const bGamesPlayed = b.wins + b.losses + b.ties;
+
         const aPoints = a.wins * 2 + a.ties;
         const bPoints = b.wins * 2 + b.ties;
 
@@ -229,6 +455,7 @@
           b.wins - a.wins ||
           bDiff - aDiff ||
           b.pointsFor - a.pointsFor ||
+          aGamesPlayed - bGamesPlayed ||
           cleanTeamName(a.teamName).localeCompare(cleanTeamName(b.teamName))
         );
       });
@@ -238,64 +465,83 @@
       const container = document.getElementById("standings-container");
       const standings = buildStandings();
 
+      if (!standings) {
+        container.innerHTML = `
+          <div class="empty-message">
+            Could not load standings. Make sure season-schedule.js is linked correctly.
+          </div>
+        `;
+        return;
+      }
+
       container.innerHTML = "";
 
       DIVISIONS_TO_SHOW.forEach(division => {
-        const teams = sortTeams(Object.values(standings[division]));
+        const teams = sortTeams(
+          Object.values(standings[division]).filter(team => {
+            return team.wins + team.losses + team.ties > 0;
+          })
+        );
 
         const section = document.createElement("section");
-        section.className = "division-standings";
+        section.className = "division-block";
 
-        section.innerHTML = `
-          <h2>${division} Standings</h2>
-          ${
-            teams.length === 0
-              ? `<div class="empty-message">No completed games yet.</div>`
-              : `
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Team</th>
-                      <th>W</th>
-                      <th>L</th>
-                      <th>T</th>
-                      <th>PF</th>
-                      <th>PA</th>
-                      <th>+/-</th>
-                      <th>Pts</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    ${teams.map(team => {
-                      const diff = team.pointsFor - team.pointsAgainst;
-                      const points = team.wins * 2 + team.ties;
+        if (teams.length === 0) {
+          section.innerHTML = `
+            <h2 class="division-title">${division} Standings</h2>
+            <div class="empty-message">No completed games yet.</div>
+          `;
+        } else {
+          section.innerHTML = `
+            <h2 class="division-title">${division} Standings</h2>
+            <div class="table-wrap">
+              <table class="standings-table">
+                <thead>
+                  <tr>
+                    <th>Team</th>
+                    <th>GP</th>
+                    <th>W</th>
+                    <th>L</th>
+                    <th>T</th>
+                    <th>PF</th>
+                    <th>PA</th>
+                    <th>+/-</th>
+                    <th>Pts</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${teams.map(team => {
+                    const gamesPlayed = team.wins + team.losses + team.ties;
+                    const diff = team.pointsFor - team.pointsAgainst;
+                    const points = team.wins * 2 + team.ties;
 
-                      return `
-                        <tr>
-                          <td class="team-name">
-                            <img 
-                              class="team-logo-small" 
-                              src="${getLogo(team.teamName)}" 
-                              alt="${cleanTeamName(team.teamName)} Logo"
-                              onerror="this.src='Logo.jpg'"
-                            >
-                            ${cleanTeamName(team.teamName)}
-                          </td>
-                          <td>${team.wins}</td>
-                          <td>${team.losses}</td>
-                          <td>${team.ties}</td>
-                          <td>${team.pointsFor}</td>
-                          <td>${team.pointsAgainst}</td>
-                          <td>${diff > 0 ? "+" + diff : diff}</td>
-                          <td>${points}</td>
-                        </tr>
-                      `;
-                    }).join("")}
-                  </tbody>
-                </table>
-              `
-          }
-        `;
+                    return `
+                      <tr>
+                        <td class="team-cell">
+                          <img
+                            class="team-logo-small"
+                            src="${getLogo(team.teamName)}"
+                            alt="${cleanTeamName(team.teamName)} Logo"
+                            onerror="this.src='Logo.jpg'"
+                          >
+                          ${cleanTeamName(team.teamName)}
+                        </td>
+                        <td>${gamesPlayed}</td>
+                        <td>${team.wins}</td>
+                        <td>${team.losses}</td>
+                        <td>${team.ties}</td>
+                        <td>${team.pointsFor}</td>
+                        <td>${team.pointsAgainst}</td>
+                        <td>${diff > 0 ? "+" + diff : diff}</td>
+                        <td>${points}</td>
+                      </tr>
+                    `;
+                  }).join("")}
+                </tbody>
+              </table>
+            </div>
+          `;
+        }
 
         container.appendChild(section);
       });
