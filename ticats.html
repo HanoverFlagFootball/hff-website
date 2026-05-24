@@ -88,21 +88,9 @@
     .mobile-nav-menu.show { display: flex; }
 
     @media (min-width:701px) {
-      .mobile-nav {
-        bottom: 38px;
-        left: 44px;
-      }
-
-      .mobile-nav-btn {
-        width: 65px;
-        height: 50px;
-        gap: 5px;
-        border-width: 2px;
-      }
-
-      .mobile-nav-btn span {
-        height: 3px;
-      }
+      .mobile-nav { bottom: 38px; left: 44px; }
+      .mobile-nav-btn { width: 65px; height: 50px; gap: 5px; border-width: 2px; }
+      .mobile-nav-btn span { height: 3px; }
     }
 
     .page-wrap {
@@ -141,6 +129,7 @@
       margin-bottom: 1.5rem;
       font-size: 0.92rem;
       line-height: 1.5;
+      text-align: center;
     }
 
     .form-section {
@@ -166,9 +155,7 @@
     }
 
     @media (max-width:700px) {
-      .form-grid {
-        grid-template-columns: 1fr;
-      }
+      .form-grid { grid-template-columns: 1fr; }
     }
 
     .form-row {
@@ -305,8 +292,6 @@
       </div>
 
       <div class="notice-box">
-        Tickets requested through this form are reserved for Hanover Flag Football families.
-        <br><br>
         Participation in the on-field scrimmage is limited and is <strong>not guaranteed.</strong>
       </div>
 
@@ -374,139 +359,137 @@
       SUPABASE_ANON_KEY
     );
 
-    const mobileBtn = document.getElementById('mobileMenuBtn');
-    const mobileMenu = document.getElementById('mobileMenu');
+    document.addEventListener('DOMContentLoaded', function () {
+      const mobileBtn = document.getElementById('mobileMenuBtn');
+      const mobileMenu = document.getElementById('mobileMenu');
 
-    if (mobileBtn && mobileMenu) {
-      mobileBtn.addEventListener('click', () => {
-        mobileMenu.classList.toggle('show');
-      });
-    }
-
-    const form = document.getElementById('ticatsForm');
-    const message = document.getElementById('formMessage');
-    const submitBtn = document.getElementById('submitBtn');
-    const playersContainer = document.getElementById('playersContainer');
-    const addPlayerBtn = document.getElementById('addPlayerBtn');
-
-    function createPlayerEntry(showRemoveButton) {
-      const playerEntry = document.createElement('div');
-      playerEntry.className = 'player-entry';
-
-      playerEntry.innerHTML = `
-        <div class="form-grid">
-          <div class="form-row">
-            <label>Player Name</label>
-            <input type="text" class="player-name">
-          </div>
-
-          <div class="form-row">
-            <label>Interested in On-Field Scrimmage?</label>
-            <select class="player-scrimmage-interest">
-              <option value="false">No</option>
-              <option value="true">Yes</option>
-            </select>
-          </div>
-        </div>
-
-        ${
-          showRemoveButton
-            ? '<button type="button" class="remove-player-btn">Remove Player</button>'
-            : ''
-        }
-      `;
-
-      if (showRemoveButton) {
-        const removeBtn = playerEntry.querySelector('.remove-player-btn');
-        removeBtn.addEventListener('click', () => {
-          playerEntry.remove();
+      if (mobileBtn && mobileMenu) {
+        mobileBtn.addEventListener('click', function () {
+          mobileMenu.classList.toggle('show');
         });
       }
 
-      return playerEntry;
-    }
+      const form = document.getElementById('ticatsForm');
+      const message = document.getElementById('formMessage');
+      const submitBtn = document.getElementById('submitBtn');
+      const playersContainer = document.getElementById('playersContainer');
+      const addPlayerBtn = document.getElementById('addPlayerBtn');
 
-    function resetPlayers() {
-      playersContainer.innerHTML = '';
-      playersContainer.appendChild(createPlayerEntry(false));
-    }
+      function createPlayerEntry(showRemoveButton) {
+        const playerEntry = document.createElement('div');
+        playerEntry.className = 'player-entry';
 
-    resetPlayers();
+        playerEntry.innerHTML =
+          '<div class="form-grid">' +
+            '<div class="form-row">' +
+              '<label>Player Name</label>' +
+              '<input type="text" class="player-name">' +
+            '</div>' +
 
-    addPlayerBtn.addEventListener('click', () => {
-      playersContainer.appendChild(createPlayerEntry(true));
-    });
+            '<div class="form-row">' +
+              '<label>Interested in On-Field Scrimmage?</label>' +
+              '<select class="player-scrimmage-interest">' +
+                '<option value="false">No</option>' +
+                '<option value="true">Yes</option>' +
+              '</select>' +
+            '</div>' +
+          '</div>' +
+          (showRemoveButton
+            ? '<button type="button" class="remove-player-btn">Remove Player</button>'
+            : '');
 
-    function showMessage(type, text) {
-      message.className = type ? 'message ' + type : 'message';
-      message.textContent = text || '';
-    }
+        if (showRemoveButton) {
+          const removeBtn = playerEntry.querySelector('.remove-player-btn');
+          removeBtn.addEventListener('click', function () {
+            playerEntry.remove();
+          });
+        }
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      showMessage('', '');
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Submitting...';
-
-      const parentName = document.getElementById('parentName').value.trim();
-      const email = document.getElementById('email').value.trim();
-      const phone = document.getElementById('phone').value.trim();
-      const ticketsRequested = Number(document.getElementById('ticketsRequested').value);
-      const notes = document.getElementById('notes').value.trim();
-
-      const playerEntries = document.querySelectorAll('.player-entry');
-
-      let rowsToInsert = Array.from(playerEntries).map(entry => {
-        return {
-          parent_name: parentName,
-          email: email,
-          phone: phone,
-          tickets_requested: ticketsRequested,
-          player_name: entry.querySelector('.player-name').value.trim(),
-          player_team: '',
-          scrimmage_interest: entry.querySelector('.player-scrimmage-interest').value === 'true',
-          notes: notes
-        };
-      });
-
-      rowsToInsert = rowsToInsert.filter(row => {
-        return row.player_name || row.scrimmage_interest;
-      });
-
-      if (rowsToInsert.length === 0) {
-        rowsToInsert = [{
-          parent_name: parentName,
-          email: email,
-          phone: phone,
-          tickets_requested: ticketsRequested,
-          player_name: '',
-          player_team: '',
-          scrimmage_interest: false,
-          notes: notes
-        }];
+        return playerEntry;
       }
 
-      const { error } = await supabaseClient
-        .from('ticats_game_requests')
-        .insert(rowsToInsert);
+      function resetPlayers() {
+        playersContainer.innerHTML = '';
+        playersContainer.appendChild(createPlayerEntry(false));
+      }
 
-      if (error) {
-        console.error(error);
-        showMessage('error', 'Something went wrong. Please try again.');
+      resetPlayers();
+
+      addPlayerBtn.addEventListener('click', function () {
+        playersContainer.appendChild(createPlayerEntry(true));
+      });
+
+      function showMessage(type, text) {
+        message.className = type ? 'message ' + type : 'message';
+        message.textContent = text || '';
+      }
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        showMessage('', '');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting...';
+
+        const parentName = document.getElementById('parentName').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+        const ticketsRequested = Number(document.getElementById('ticketsRequested').value);
+        const notes = document.getElementById('notes').value.trim();
+
+        const playerEntries = document.querySelectorAll('.player-entry');
+
+        let rowsToInsert = Array.from(playerEntries).map(function (entry) {
+          return {
+            parent_name: parentName,
+            email: email,
+            phone: phone,
+            tickets_requested: ticketsRequested,
+            player_name: entry.querySelector('.player-name').value.trim(),
+            player_team: '',
+            scrimmage_interest: entry.querySelector('.player-scrimmage-interest').value === 'true',
+            notes: notes
+          };
+        });
+
+        rowsToInsert = rowsToInsert.filter(function (row) {
+          return row.player_name || row.scrimmage_interest;
+        });
+
+        if (rowsToInsert.length === 0) {
+          rowsToInsert = [{
+            parent_name: parentName,
+            email: email,
+            phone: phone,
+            tickets_requested: ticketsRequested,
+            player_name: '',
+            player_team: '',
+            scrimmage_interest: false,
+            notes: notes
+          }];
+        }
+
+        const result = await supabaseClient
+          .from('ticats_game_requests')
+          .insert(rowsToInsert);
+
+        if (result.error) {
+          console.error(result.error);
+          showMessage('error', 'Something went wrong. Please try again.');
+
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit Request';
+          return;
+        }
+
+        form.reset();
+        resetPlayers();
+
+        showMessage('success', 'Thank you! Your request has been submitted.');
 
         submitBtn.disabled = false;
         submitBtn.textContent = 'Submit Request';
-        return;
-      }
-
-      form.reset();
-      resetPlayers();
-
-      showMessage('success', 'Thank you! Your request has been submitted.');
-
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Submit Request';
+      });
     });
   </script>
 
