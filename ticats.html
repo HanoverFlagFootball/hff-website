@@ -355,9 +355,17 @@
             <div class="player-entry">
               <div class="form-grid">
                 <div class="form-row">
-                  <label>Player Name</label>
-                  <input type="text" class="player-name">
-                </div>
+  <label>Player Team</label>
+  <input type="text" class="player-team">
+</div>
+
+<div class="form-row">
+  <label>Interested in On-Field Scrimmage?</label>
+  <select class="player-scrimmage-interest">
+    <option value="false">No</option>
+    <option value="true">Yes</option>
+  </select>
+</div>
 
                 <div class="form-row">
                   <label>Player Team</label>
@@ -371,13 +379,7 @@
             + Add Another Player
           </button>
 
-          <div class="checkbox-row">
-            <label>
-              <input type="checkbox" id="scrimmageInterest">
-              One or more of my players are interested in participating in the on-field scrimmage experience at the August 1st Ticats game.
-            </label>
           </div>
-        </div>
 
         <div class="form-section">
           <h2>Notes / Questions</h2>
@@ -479,7 +481,6 @@
       const email = document.getElementById('email').value.trim();
       const phone = document.getElementById('phone').value.trim();
       const ticketsRequested = Number(document.getElementById('ticketsRequested').value);
-      const scrimmageInterest = document.getElementById('scrimmageInterest').checked;
       const notes = document.getElementById('notes').value.trim();
 
       const playerEntries = document.querySelectorAll('.player-entry');
@@ -492,7 +493,7 @@
           tickets_requested: ticketsRequested,
           player_name: entry.querySelector('.player-name').value.trim(),
           player_team: entry.querySelector('.player-team').value.trim(),
-          scrimmage_interest: scrimmageInterest,
+          scrimmage_interest: false,
           notes: notes
         };
       });
@@ -509,8 +510,7 @@
           tickets_requested: ticketsRequested,
           player_name: '',
           player_team: '',
-          scrimmage_interest: scrimmageInterest,
-          notes: notes
+scrimmage_interest: entry.querySelector('.player-scrimmage-interest').value === 'true',          notes: notes
         }];
       }
 
