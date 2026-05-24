@@ -183,12 +183,15 @@
     }
 
     input,
-    textarea {
+    textarea,
+    select {
       width: 100%;
       padding: 0.55rem 0.6rem;
       border: 1px solid #ccc;
       font-size: 0.95rem;
       font-family: inherit;
+      background: #fff;
+      color: #000;
     }
 
     textarea {
@@ -202,44 +205,31 @@
       padding-bottom: 0.5rem;
     }
 
-    .add-player-btn {
-      margin-top: 0.2rem;
-      background: #fff;
-      color: #000;
-      border: 1px solid #000;
-      padding: 0.55rem 1rem;
-      cursor: pointer;
-      font-size: 0.9rem;
-    }
-
-    .add-player-btn:hover {
-      background: #f2f2f2;
-    }
-
+    .add-player-btn,
     .remove-player-btn {
       background: #fff;
       color: #000;
-      border: 1px solid #999;
-      padding: 0.4rem 0.75rem;
+      border: 1px solid #000;
       cursor: pointer;
+    }
+
+    .add-player-btn {
+      margin-top: 0.2rem;
+      padding: 0.55rem 1rem;
+      font-size: 0.9rem;
+    }
+
+    .remove-player-btn {
+      padding: 0.4rem 0.75rem;
       font-size: 0.8rem;
       margin-top: -0.3rem;
       margin-bottom: 0.7rem;
+      border-color: #999;
     }
 
+    .add-player-btn:hover,
     .remove-player-btn:hover {
       background: #f2f2f2;
-    }
-
-    .checkbox-row {
-      margin-top: 1rem;
-      font-size: 0.9rem;
-      line-height: 1.5;
-    }
-
-    .checkbox-row input {
-      margin-right: 0.5rem;
-      width: auto;
     }
 
     .submit-row {
@@ -256,9 +246,7 @@
       cursor: pointer;
     }
 
-    .submit-btn:hover {
-      opacity: 0.9;
-    }
+    .submit-btn:hover { opacity: 0.9; }
 
     .submit-btn:disabled {
       opacity: 0.6;
@@ -317,6 +305,8 @@
       </div>
 
       <div class="notice-box">
+        Tickets requested through this form are reserved for Hanover Flag Football families.
+        <br><br>
         Participation in the on-field scrimmage is limited and is <strong>not guaranteed.</strong>
       </div>
 
@@ -351,35 +341,12 @@
         <div class="form-section">
           <h2>Player Information</h2>
 
-          <div id="playersContainer">
-            <div class="player-entry">
-              <div class="form-grid">
-                <div class="form-row">
-  <label>Player Team</label>
-  <input type="text" class="player-team">
-</div>
-
-<div class="form-row">
-  <label>Interested in On-Field Scrimmage?</label>
-  <select class="player-scrimmage-interest">
-    <option value="false">No</option>
-    <option value="true">Yes</option>
-  </select>
-</div>
-
-                <div class="form-row">
-                  <label>Player Team</label>
-                  <input type="text" class="player-team">
-                </div>
-              </div>
-            </div>
-          </div>
+          <div id="playersContainer"></div>
 
           <button type="button" class="add-player-btn" id="addPlayerBtn">
             + Add Another Player
           </button>
-
-          </div>
+        </div>
 
         <div class="form-section">
           <h2>Notes / Questions</h2>
@@ -434,8 +401,11 @@
           </div>
 
           <div class="form-row">
-            <label>Player Team</label>
-            <input type="text" class="player-team">
+            <label>Interested in On-Field Scrimmage?</label>
+            <select class="player-scrimmage-interest">
+              <option value="false">No</option>
+              <option value="true">Yes</option>
+            </select>
           </div>
         </div>
 
@@ -461,13 +431,15 @@
       playersContainer.appendChild(createPlayerEntry(false));
     }
 
+    resetPlayers();
+
     addPlayerBtn.addEventListener('click', () => {
       playersContainer.appendChild(createPlayerEntry(true));
     });
 
     function showMessage(type, text) {
-      message.className = 'message ' + type;
-      message.textContent = text;
+      message.className = type ? 'message ' + type : 'message';
+      message.textContent = text || '';
     }
 
     form.addEventListener('submit', async (e) => {
@@ -492,14 +464,14 @@
           phone: phone,
           tickets_requested: ticketsRequested,
           player_name: entry.querySelector('.player-name').value.trim(),
-          player_team: entry.querySelector('.player-team').value.trim(),
-          scrimmage_interest: false,
+          player_team: '',
+          scrimmage_interest: entry.querySelector('.player-scrimmage-interest').value === 'true',
           notes: notes
         };
       });
 
       rowsToInsert = rowsToInsert.filter(row => {
-        return row.player_name || row.player_team;
+        return row.player_name || row.scrimmage_interest;
       });
 
       if (rowsToInsert.length === 0) {
@@ -510,7 +482,8 @@
           tickets_requested: ticketsRequested,
           player_name: '',
           player_team: '',
-scrimmage_interest: entry.querySelector('.player-scrimmage-interest').value === 'true',          notes: notes
+          scrimmage_interest: false,
+          notes: notes
         }];
       }
 
@@ -530,10 +503,7 @@ scrimmage_interest: entry.querySelector('.player-scrimmage-interest').value === 
       form.reset();
       resetPlayers();
 
-      showMessage(
-        'success',
-        'Thank you! Your request has been submitted.'
-      );
+      showMessage('success', 'Thank you! Your request has been submitted.');
 
       submitBtn.disabled = false;
       submitBtn.textContent = 'Submit Request';
