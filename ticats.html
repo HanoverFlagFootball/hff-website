@@ -351,147 +351,150 @@
   </section>
 
   <script>
-    const SUPABASE_URL = "YOUR_SUPABASE_URL";
-    const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+  document.addEventListener('DOMContentLoaded', function () {
+    const mobileBtn = document.getElementById('mobileMenuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
 
-    const supabaseClient = supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_ANON_KEY
-    );
+    if (mobileBtn && mobileMenu) {
+      mobileBtn.addEventListener('click', function () {
+        mobileMenu.classList.toggle('show');
+      });
+    }
 
-    document.addEventListener('DOMContentLoaded', function () {
-      const mobileBtn = document.getElementById('mobileMenuBtn');
-      const mobileMenu = document.getElementById('mobileMenu');
+    const form = document.getElementById('ticatsForm');
+    const message = document.getElementById('formMessage');
+    const submitBtn = document.getElementById('submitBtn');
+    const playersContainer = document.getElementById('playersContainer');
+    const addPlayerBtn = document.getElementById('addPlayerBtn');
 
-      if (mobileBtn && mobileMenu) {
-        mobileBtn.addEventListener('click', function () {
-          mobileMenu.classList.toggle('show');
+    function createPlayerEntry(showRemoveButton) {
+      const playerEntry = document.createElement('div');
+      playerEntry.className = 'player-entry';
+
+      playerEntry.innerHTML = `
+        <div class="form-grid">
+          <div class="form-row">
+            <label>Player Name</label>
+            <input type="text" class="player-name">
+          </div>
+
+          <div class="form-row">
+            <label>Interested in On-Field Scrimmage?</label>
+            <select class="player-scrimmage-interest">
+              <option value="false">No</option>
+              <option value="true">Yes</option>
+            </select>
+          </div>
+        </div>
+
+        ${
+          showRemoveButton
+            ? '<button type="button" class="remove-player-btn">Remove Player</button>'
+            : ''
+        }
+      `;
+
+      if (showRemoveButton) {
+        playerEntry.querySelector('.remove-player-btn').addEventListener('click', function () {
+          playerEntry.remove();
         });
       }
 
-      const form = document.getElementById('ticatsForm');
-      const message = document.getElementById('formMessage');
-      const submitBtn = document.getElementById('submitBtn');
-      const playersContainer = document.getElementById('playersContainer');
-      const addPlayerBtn = document.getElementById('addPlayerBtn');
+      return playerEntry;
+    }
 
-      function createPlayerEntry(showRemoveButton) {
-        const playerEntry = document.createElement('div');
-        playerEntry.className = 'player-entry';
+    function resetPlayers() {
+      playersContainer.innerHTML = '';
+      playersContainer.appendChild(createPlayerEntry(false));
+    }
 
-        playerEntry.innerHTML =
-          '<div class="form-grid">' +
-            '<div class="form-row">' +
-              '<label>Player Name</label>' +
-              '<input type="text" class="player-name">' +
-            '</div>' +
+    resetPlayers();
 
-            '<div class="form-row">' +
-              '<label>Interested in On-Field Scrimmage?</label>' +
-              '<select class="player-scrimmage-interest">' +
-                '<option value="false">No</option>' +
-                '<option value="true">Yes</option>' +
-              '</select>' +
-            '</div>' +
-          '</div>' +
-          (showRemoveButton
-            ? '<button type="button" class="remove-player-btn">Remove Player</button>'
-            : '');
+    addPlayerBtn.addEventListener('click', function () {
+      playersContainer.appendChild(createPlayerEntry(true));
+    });
 
-        if (showRemoveButton) {
-          const removeBtn = playerEntry.querySelector('.remove-player-btn');
-          removeBtn.addEventListener('click', function () {
-            playerEntry.remove();
-          });
-        }
+    function showMessage(type, text) {
+      message.className = type ? 'message ' + type : 'message';
+      message.textContent = text || '';
+    }
 
-        return playerEntry;
-      }
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
 
-      function resetPlayers() {
-        playersContainer.innerHTML = '';
-        playersContainer.appendChild(createPlayerEntry(false));
-      }
+      const SUPABASE_URL = "YOUR_SUPABASE_URL";
+      const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
 
-      resetPlayers();
+      const supabaseClient = supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY
+      );
 
-      addPlayerBtn.addEventListener('click', function () {
-        playersContainer.appendChild(createPlayerEntry(true));
+      showMessage('', '');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
+
+      const parentName = document.getElementById('parentName').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const ticketsRequested = Number(document.getElementById('ticketsRequested').value);
+      const notes = document.getElementById('notes').value.trim();
+
+      const playerEntries = document.querySelectorAll('.player-entry');
+
+      let rowsToInsert = Array.from(playerEntries).map(function (entry) {
+        return {
+          parent_name: parentName,
+          email: email,
+          phone: phone,
+          tickets_requested: ticketsRequested,
+          player_name: entry.querySelector('.player-name').value.trim(),
+          player_team: '',
+          scrimmage_interest: entry.querySelector('.player-scrimmage-interest').value === 'true',
+          notes: notes
+        };
       });
 
-      function showMessage(type, text) {
-        message.className = type ? 'message ' + type : 'message';
-        message.textContent = text || '';
+      rowsToInsert = rowsToInsert.filter(function (row) {
+        return row.player_name || row.scrimmage_interest;
+      });
+
+      if (rowsToInsert.length === 0) {
+        rowsToInsert = [{
+          parent_name: parentName,
+          email: email,
+          phone: phone,
+          tickets_requested: ticketsRequested,
+          player_name: '',
+          player_team: '',
+          scrimmage_interest: false,
+          notes: notes
+        }];
       }
 
-      form.addEventListener('submit', async function (e) {
-        e.preventDefault();
+      const result = await supabaseClient
+        .from('ticats_game_requests')
+        .insert(rowsToInsert);
 
-        showMessage('', '');
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Submitting...';
-
-        const parentName = document.getElementById('parentName').value.trim();
-        const email = document.getElementById('email').value.trim();
-        const phone = document.getElementById('phone').value.trim();
-        const ticketsRequested = Number(document.getElementById('ticketsRequested').value);
-        const notes = document.getElementById('notes').value.trim();
-
-        const playerEntries = document.querySelectorAll('.player-entry');
-
-        let rowsToInsert = Array.from(playerEntries).map(function (entry) {
-          return {
-            parent_name: parentName,
-            email: email,
-            phone: phone,
-            tickets_requested: ticketsRequested,
-            player_name: entry.querySelector('.player-name').value.trim(),
-            player_team: '',
-            scrimmage_interest: entry.querySelector('.player-scrimmage-interest').value === 'true',
-            notes: notes
-          };
-        });
-
-        rowsToInsert = rowsToInsert.filter(function (row) {
-          return row.player_name || row.scrimmage_interest;
-        });
-
-        if (rowsToInsert.length === 0) {
-          rowsToInsert = [{
-            parent_name: parentName,
-            email: email,
-            phone: phone,
-            tickets_requested: ticketsRequested,
-            player_name: '',
-            player_team: '',
-            scrimmage_interest: false,
-            notes: notes
-          }];
-        }
-
-        const result = await supabaseClient
-          .from('ticats_game_requests')
-          .insert(rowsToInsert);
-
-        if (result.error) {
-          console.error(result.error);
-          showMessage('error', 'Something went wrong. Please try again.');
-
-          submitBtn.disabled = false;
-          submitBtn.textContent = 'Submit Request';
-          return;
-        }
-
-        form.reset();
-        resetPlayers();
-
-        showMessage('success', 'Thank you! Your request has been submitted.');
+      if (result.error) {
+        console.error(result.error);
+        showMessage('error', 'Something went wrong. Please try again.');
 
         submitBtn.disabled = false;
         submitBtn.textContent = 'Submit Request';
-      });
+        return;
+      }
+
+      form.reset();
+      resetPlayers();
+
+      showMessage('success', 'Thank you! Your request has been submitted.');
+
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit Request';
     });
-  </script>
+  });
+</script>
 
 </body>
 </html>
