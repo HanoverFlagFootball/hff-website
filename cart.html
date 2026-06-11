@@ -453,15 +453,37 @@
 
     localStorage.setItem('athleteName', athlete);
 
-    const cartItems = loadCart().map(i => ({
-      name: i.name,
+    const cartItems = loadCart().map(i => {
+  const qty = Number(i.quantity || 1);
+  const isPictures = i.name === 'Pictures';
+
+  if (isPictures) {
+    const pictureTotal = 10 + Math.max(0, qty - 1) * 5;
+
+    return {
+      name: i.picturePlayerName
+        ? `Pictures - ${i.picturePlayerName} (${qty} picture${qty === 1 ? '' : 's'})`
+        : `Pictures (${qty} picture${qty === 1 ? '' : 's'})`,
       team: i.team || null,
       size: i.size || null,
       image: i.image || null,
-      price: Number(i.price || 0),
-      quantity: Number(i.quantity || 1),
-      picturePlayerName: i.picturePlayerName || null
-    }));
+      price: pictureTotal,
+      quantity: 1,
+      picturePlayerName: i.picturePlayerName || null,
+      pictureQuantity: qty
+    };
+  }
+
+  return {
+    name: i.name,
+    team: i.team || null,
+    size: i.size || null,
+    image: i.image || null,
+    price: Number(i.price || 0),
+    quantity: qty,
+    picturePlayerName: i.picturePlayerName || null
+  };
+});
 
     if (!cartItems.length) {
       alert('Your cart is empty.');
