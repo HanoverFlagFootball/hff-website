@@ -35,19 +35,39 @@
     }
 
     .rep-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:1rem;
+  position:relative;
   margin-bottom:1rem;
 }
 
 .rep-header-text{
-  flex:1;
+  text-align:center;
 }
 
 .rep-header-logo{
-  flex:0 0 auto;
+  position:absolute;
+  right:0;
+  top:50%;
+  transform:translateY(-50%);
+}
+
+.rep-header-logo img{
+  height:110px;
+  width:auto;
+  display:block;
+}
+
+@media (max-width:700px){
+  .rep-header-logo{
+    position:static;
+    transform:none;
+    text-align:center;
+    margin-top:0.75rem;
+  }
+
+  .rep-header-logo img{
+    height:80px;
+    margin:0 auto;
+  }
 }
 
 .rep-header-logo img{
@@ -218,7 +238,7 @@
   <div class="rep-header-logo">
     <img src="hustle.png" alt="Hanover Hustle">
   </div>
-</div>
+</div>  
       <p class="register-details">
         Tournament: <strong>Under Armour World Cup</strong> &nbsp; | &nbsp; Dates: <strong>August 14–16</strong> &nbsp; | &nbsp; Location: <strong>Brampton</strong><br>Registration fee: <strong>$210</strong>.
       </p>
