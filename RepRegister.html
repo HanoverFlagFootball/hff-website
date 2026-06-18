@@ -255,7 +255,7 @@
         </div>
 
         <div class="form-section">
-          <h2>Health & Buddy Request</h2>
+          <h2>Health Information</h2>
           <div class="form-row">
             <label for="healthConcerns">Health Concerns / Allergies / Accessibility Needs</label>
             <textarea id="healthConcerns" name="healthConcerns"
@@ -265,7 +265,7 @@
         </div>
 
         <div class="form-section">
-          <h2>Waivers & Permissions</h2>
+          <h2>Waivers & Acknowledgements</h2>
 
           <div class="checkbox-row">
             <label>
@@ -288,13 +288,12 @@
             </label>
           </div>
 
-          <div class="radio-row">
-            <div>Photo / Video Permission<span class="required">*</span></div>
-            <div class="radio-group">
-              <label><input type="radio" name="photoPermission" value="yes" /> Yes, I give permission for my child to appear in league photos and videos.</label>
-              <label><input type="radio" name="photoPermission" value="no" /> No, please do not include my child in photos or videos.</label>
-            </div>
-          </div>
+          <div class="checkbox-row">
+  <label>
+    <input type="checkbox" id="mediaAck" name="mediaAck" />
+    I understand that photographs and video recordings may be taken during practices, games, tournaments, team events, and related activities. I grant Hanover Flag Football permission to use these images and recordings for league-related purposes, including promotional materials, social media, websites, newsletters, sponsorship presentations, and other communications. No player names will be published without additional consent. <span class="required">*</span>
+  </label>
+</div>
         </div>
 
         <div class="form-section">
@@ -404,8 +403,8 @@
 
         const liabilityWaiver = document.getElementById('liabilityWaiver');
         const riskAck = document.getElementById('riskAck');
-        const photoPermission = document.querySelector('input[name="photoPermission"]:checked');
-        const shirtSizeEl = document.getElementById('shirtSize');
+const mediaAck = document.getElementById('mediaAck');
+const shirtSizeEl = document.getElementById('shirtSize');
         if (!shirtSizeEl || !shirtSizeEl.value) {
           shirtSizeEl && shirtSizeEl.focus();
           alert('Please select a shirt size.');
@@ -417,10 +416,10 @@
           return;
         }
 
-        if (!photoPermission) {
-          alert('Please select a photo/video permission option.');
-          return;
-        }
+        if (!mediaAck.checked) {
+  alert('Please acknowledge the photo and video policy.');
+  return;
+}
 
         const requiredIds = [
           'parentName', 'parentEmail', 'parentPhone',
@@ -463,7 +462,7 @@
           waivers: {
             liabilityWaiver: liabilityWaiver.checked,
             riskAcknowledgement: riskAck.checked,
-            photoPermission: photoPermission.value
+            mediaAcknowledgement: mediaAck.checked
           },
           signature: {
             name: document.getElementById('signatureName').value.trim(),
