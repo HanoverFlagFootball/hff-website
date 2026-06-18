@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>Rep Register - Hanover Flag Football</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <style>
     :root { --ink:#fff; --line:#333; --black:#000; }
     * { box-sizing: border-box; }
@@ -27,12 +28,8 @@
       font-weight: 700;
       border-radius: 0.4rem;
     }
-    .registration-closed .closed-message {
-      display: block;
-    }
-    .registration-closed #registrationForm {
-      display: none;
-    }
+    .registration-closed .closed-message { display: block; }
+    .registration-closed #registrationForm { display: none; }
 
     /* SCORES STRIP */
     .scores-strip { width:100%; background:#000; padding:0.35rem 1rem; overflow:hidden; }
@@ -51,6 +48,47 @@
       .score-box { flex:0 0 calc((100% - 0.6rem)/2); }
       .score-box:nth-child(n + 3) { display:none; }
     }
+
+.rep-header{
+  position:relative;
+  min-height:120px;
+  margin-bottom:1rem;
+}
+
+.rep-header-text{
+  text-align:center;
+}
+
+.rep-header-logo{
+  position:absolute;
+  right:10px;
+  top:50%;
+  transform:translateY(-50%);
+}
+
+.rep-header-logo img{
+  height:100px;
+  width:auto;
+  display:block;
+}
+
+@media (max-width:700px){
+  .rep-header{
+    min-height:auto;
+  }
+
+  .rep-header-logo{
+    position:static;
+    transform:none;
+    text-align:center;
+    margin-top:0.75rem;
+  }
+
+  .rep-header-logo img{
+    height:80px;
+    margin:0 auto;
+  }
+}
 
     /* TOP BANNER */
     .top-banner {
@@ -103,32 +141,65 @@
       width:100%; padding:0.4rem 0.5rem; font-size:0.9rem; border-radius:4px; border:1px solid #ccc; font-family:inherit;
     }
     textarea { min-height:80px; resize:vertical; }
-    .checkbox-row, .radio-row { margin-bottom:0.6rem; font-size:0.85rem; color:#333; }
-    .checkbox-row input, .radio-row input { margin-right:0.35rem; }
-    .radio-group { display:flex; gap:1.5rem; align-items:center; flex-wrap:wrap; }
+    .checkbox-row { margin-bottom:0.6rem; font-size:0.85rem; color:#333; }
+    .checkbox-row input { margin-right:0.35rem; }
     .required { color:#c00; margin-left:0.1rem; }
     .signature-note { font-size:0.8rem; color:#555; margin-bottom:0.5rem; }
     .submit-row { text-align:center; margin-top:1.5rem; }
     .submit-btn { padding:0.6rem 1.6rem; border-radius:999px; border:none; background:#0b5ed7; color:#fff; font-size:0.95rem; font-weight:600; cursor:pointer; }
     .submit-btn:hover { opacity:0.9; }
     .small-note { font-size:0.8rem; color:#555; margin-top:0.4rem; text-align:center; }
+
+    /* REP HEADER LOGO */
+    .rep-header {
+      position: relative;
+      margin-bottom: 1rem;
+      min-height: 120px;
+    }
+    .rep-header-text {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      text-align: center;
+      padding: 0 130px;
+    }
+    .rep-header-logo {
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    .rep-header-logo img {
+      height: 110px;
+      width: auto;
+      display: block;
+    }
+
     @media (max-width:800px) {
       .register-wrapper { padding:1.1rem 1rem 1.6rem; }
       .form-grid { grid-template-columns:1fr; }
     }
 
-    /* COACHING BUTTONS */
-    .coach-choice { display:flex; gap:0.6rem; flex-wrap:wrap; margin-top:0.5rem; }
-    .coach-btn {
-      border:1px solid #333; background:#fff; color:#000;
-      padding:0.55rem 0.8rem; font-size:0.9rem; cursor:pointer;
-      border-radius:999px;
-      transition: transform 0.05s ease, opacity 0.15s ease, background 0.15s ease;
-      user-select:none;
+    @media (max-width:700px){
+      .rep-header {
+        min-height: auto;
+      }
+      .rep-header-text {
+        position: static;
+        padding: 0;
+      }
+      .rep-header-logo {
+        position: static;
+        transform: none;
+        text-align: center;
+        margin-top: 0.75rem;
+      }
+      .rep-header-logo img {
+        height: 80px;
+        margin: 0 auto;
+      }
     }
-    .coach-btn:hover { opacity:0.9; }
-    .coach-btn:active { transform:scale(0.98); }
-    .coach-btn.selected { background:#0b5ed7; color:#fff; border-color:#0b5ed7; }
 
     /* SPONSORS */
     .sponsor-strip { background:#000; color:#fff; padding:1.5vw 2vw 3vw; text-align:center; }
@@ -146,7 +217,7 @@
 <body>
 
   <script>
-    const REGISTRATION_OPEN = true; // Rep registration is currently open
+    const REGISTRATION_OPEN = true;
   </script>
 
   <div class="scores-strip">
@@ -174,12 +245,30 @@
 
   <section class="register-page" id="register">
     <div class="register-wrapper">
-      <h1>Rep Team Registration</h1>
-      <p class="register-intro">
-        Register for the Hanover Flag Football rep team competing at the Under Armour World Cup.
-      </p>
+      <div class="rep-header">
+        <div class="rep-header-text">
+          <div class="rep-header">
+  <div class="rep-header-text">
+    <h1>Rep Team Registration</h1>
+    <p class="register-intro">
+      Register for the Hanover Flag Football rep team competing at the Under Armour World Cup.
+    </p>
+  </div>
+
+  <div class="rep-header-logo">
+    <img src="hustle.png" alt="Hanover Hustle">
+  </div>
+</div>
+        </div>
+
+        <div class="rep-header-logo">
+          <img src="hustle.png" alt="Hanover Hustle">
+        </div>
+      </div>
+
       <p class="register-details">
-        Tournament: <strong>Under Armour World Cup</strong> &nbsp; | &nbsp; Dates: <strong>August 14–16</strong> &nbsp; | &nbsp; Location: <strong>Brampton</strong><br>Registration fee: <strong>$210</strong>.
+        Tournament: <strong>Under Armour World Cup</strong> &nbsp; | &nbsp; Dates: <strong>August 14–16</strong> &nbsp; | &nbsp; Location: <strong>Brampton</strong><br>
+        Registration fee: <strong>$210</strong>.
       </p>
 
       <div class="credit-banner" id="creditBanner">
@@ -215,12 +304,11 @@
             </div>
           </div>
         </div>
-        
+
         <div class="form-section">
           <h2>Player Information</h2>
           <p class="info-note">
-            This registration is for the Hanover Flag Football rep team attending the Under Armour World Cup
-            in Brampton from August 14–16.
+            This registration is for the Hanover Flag Football rep team attending the Under Armour World Cup in Brampton from August 14–16.
           </p>
 
           <div class="form-grid">
@@ -236,7 +324,6 @@
               <label for="playerDob">Date of Birth<span class="required">*</span></label>
               <input type="date" id="playerDob" name="playerDob" required />
             </div>
-
             <div class="form-row">
               <label for="shirtSize">Shirt Size<span class="required">*</span></label>
               <select id="shirtSize" name="shirtSize" required>
@@ -250,7 +337,6 @@
                 <option value="AXL">Adult XL</option>
               </select>
             </div>
-            
           </div>
         </div>
 
@@ -258,23 +344,18 @@
           <h2>Health Information</h2>
           <div class="form-row">
             <label for="healthConcerns">Health Concerns / Allergies / Accessibility Needs</label>
-            <textarea id="healthConcerns" name="healthConcerns"
-              placeholder="Please list any medical, allergy, or accessibility information coaches should be aware of."></textarea>
+            <textarea id="healthConcerns" name="healthConcerns" placeholder="Please list any medical, allergy, or accessibility information coaches should be aware of."></textarea>
           </div>
-          
         </div>
 
         <div class="form-section">
-          <h2>Waivers & Acknowledgements</h2>
+          <h2>Waivers &amp; Acknowledgements</h2>
 
           <div class="checkbox-row">
             <label>
               <input type="checkbox" id="liabilityWaiver" name="liabilityWaiver" />
-              I am the parent/guardian of the player and I understand and accept that participation in flag football
-              involves inherent risks of injury. I have read and agree to the terms of the
-              <a href="Waiver and Release of Liability.pdf" target="_blank" rel="noopener noreferrer">
-                Waiver and Release of Liability
-              </a>,
+              I am the parent/guardian of the player and I understand and accept that participation in flag football involves inherent risks of injury. I have read and agree to the terms of the
+              <a href="Waiver and Release of Liability.pdf" target="_blank" rel="noopener noreferrer">Waiver and Release of Liability</a>,
               and I release the league, organizers, and coaches from liability to the fullest extent permitted by law.
               <span class="required">*</span>
             </label>
@@ -283,24 +364,22 @@
           <div class="checkbox-row">
             <label>
               <input type="checkbox" id="riskAck" name="riskAck" />
-              I acknowledge that I have reviewed the league rules and risk information, and I agree to support safe play
-              and sportsmanship.<span class="required">*</span>
+              I acknowledge that I have reviewed the league rules and risk information, and I agree to support safe play and sportsmanship.<span class="required">*</span>
             </label>
           </div>
 
           <div class="checkbox-row">
-  <label>
-    <input type="checkbox" id="mediaAck" name="mediaAck" />
-    I understand that photographs and video recordings may be taken during practices, games, tournaments, team events, and related activities. I grant Hanover Flag Football permission to use these images and recordings for league-related purposes, including promotional materials, social media, websites, newsletters, sponsorship presentations, and other communications. No player names will be published without additional consent. <span class="required">*</span>
-  </label>
-</div>
+            <label>
+              <input type="checkbox" id="mediaAck" name="mediaAck" />
+              I understand that photographs and video recordings may be taken during practices, games, tournaments, team events, and related activities. I grant Hanover Flag Football permission to use these images and recordings for league-related purposes, including promotional materials, social media, websites, newsletters, sponsorship presentations, and other communications. No player names will be published without additional consent. <span class="required">*</span>
+            </label>
+          </div>
         </div>
 
         <div class="form-section">
           <h2>Parent / Guardian Signature</h2>
           <p class="signature-note">
-            By typing my full name below, I confirm that I am the legal parent/guardian of the player and that all
-            information provided is accurate. I agree to the waivers and permissions above.
+            By typing my full name below, I confirm that I am the legal parent/guardian of the player and that all information provided is accurate. I agree to the waivers and acknowledgements above.
           </p>
 
           <div class="form-grid">
@@ -390,7 +469,7 @@
       const dd = String(today.getDate()).padStart(2, '0');
       dateInput.value = `${yyyy}-${mm}-${dd}`;
     })();
-    
+
     // submit handler
     document.addEventListener('DOMContentLoaded', () => {
       const form = document.getElementById('registrationForm');
@@ -403,8 +482,24 @@
 
         const liabilityWaiver = document.getElementById('liabilityWaiver');
         const riskAck = document.getElementById('riskAck');
-const mediaAck = document.getElementById('mediaAck');
-const shirtSizeEl = document.getElementById('shirtSize');
+        const mediaAck = document.getElementById('mediaAck');
+        const shirtSizeEl = document.getElementById('shirtSize');
+
+        const requiredIds = [
+          'parentName', 'parentEmail', 'parentPhone',
+          'playerFirstName', 'playerLastName', 'playerDob',
+          'signatureName', 'signatureDate'
+        ];
+
+        for (const id of requiredIds) {
+          const el = document.getElementById(id);
+          if (!el || !el.value.trim()) {
+            el && el.focus();
+            alert('Please complete all required fields.');
+            return;
+          }
+        }
+
         if (!shirtSizeEl || !shirtSizeEl.value) {
           shirtSizeEl && shirtSizeEl.focus();
           alert('Please select a shirt size.');
@@ -417,22 +512,8 @@ const shirtSizeEl = document.getElementById('shirtSize');
         }
 
         if (!mediaAck.checked) {
-  alert('Please acknowledge the photo and video policy.');
-  return;
-}
-
-        const requiredIds = [
-          'parentName', 'parentEmail', 'parentPhone',
-          'playerFirstName', 'playerLastName', 'playerDob',
-          'signatureName', 'signatureDate'
-        ];
-        for (const id of requiredIds) {
-          const el = document.getElementById(id);
-          if (!el || !el.value.trim()) {
-            el && el.focus();
-            alert('Please complete all required fields.');
-            return;
-          }
+          alert('Please acknowledge the photo and video policy.');
+          return;
         }
 
         const payload = {
@@ -446,8 +527,7 @@ const shirtSizeEl = document.getElementById('shirtSize');
             firstName: document.getElementById('playerFirstName').value.trim(),
             lastName: document.getElementById('playerLastName').value.trim(),
             dob: document.getElementById('playerDob').value,
-            shirtSize: document.getElementById('shirtSize').value,
-            
+            shirtSize: document.getElementById('shirtSize').value
           },
           ageGroup: 'Rep Team',
           registrationFee: 210,
@@ -457,7 +537,9 @@ const shirtSizeEl = document.getElementById('shirtSize');
             dates: 'August 14-16',
             location: 'Brampton'
           },
-          health: { concerns: document.getElementById('healthConcerns').value.trim() },
+          health: {
+            concerns: document.getElementById('healthConcerns').value.trim()
+          },
           waivers: {
             liabilityWaiver: liabilityWaiver.checked,
             riskAcknowledgement: riskAck.checked,
