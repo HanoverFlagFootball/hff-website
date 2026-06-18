@@ -54,45 +54,56 @@
 
 
     /* REP HEADER LOGO */
-    .rep-header {
-      position: relative;
-      margin-bottom: 1rem;
-      min-height: 120px;
-    }
-    .rep-header-text {
-      text-align: center;
-      padding: 0 130px;
-    }
-    .rep-header-logo {
-      position: absolute;
-      right: 0;
-      top: 50%;
-      transform: translateY(-50%);
-    }
-    .rep-header-logo img {
-      height: 110px;
-      width: auto;
-      display: block;
-    }
+.rep-header {
+  position: relative;
+  margin-bottom: 0.2rem;
+  min-height: 105px;
+}
 
-    @media (max-width:700px){
-      .rep-header {
-        min-height: auto;
-      }
-      .rep-header-text {
-        padding: 0;
-      }
-      .rep-header-logo {
-        position: static;
-        transform: none;
-        text-align: center;
-        margin-top: 0.75rem;
-      }
-      .rep-header-logo img {
-        height: 80px;
-        margin: 0 auto;
-      }
-    }
+.rep-header-text {
+  text-align: center;
+  padding: 12px 130px 0;
+}
+
+.rep-header-text .register-intro {
+  margin-top: 0.9rem;
+  margin-bottom: 0;
+}
+
+.rep-header-logo {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.rep-header-logo img {
+  height: 100px;
+  width: auto;
+  display: block;
+}
+
+@media (max-width:700px){
+  .rep-header {
+    min-height: auto;
+  }
+
+  .rep-header-text {
+    padding: 0;
+  }
+
+  .rep-header-logo {
+    position: static;
+    transform: none;
+    text-align: center;
+    margin-top: 0.75rem;
+  }
+
+  .rep-header-logo img {
+    height: 80px;
+    margin: 0 auto;
+  }
+}
 
     /* TOP BANNER */
     .top-banner {
@@ -509,7 +520,6 @@ const shirtSizeEl = document.getElementById('shirtSize');
             location: 'Brampton'
           },
           health: { concerns: document.getElementById('healthConcerns').value.trim() },
-          buddyRequest: document.getElementById('buddyRequest').value.trim(),
           waivers: {
             liabilityWaiver: liabilityWaiver.checked,
             riskAcknowledgement: riskAck.checked,
