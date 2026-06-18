@@ -215,22 +215,7 @@
             </div>
           </div>
         </div>
-
-        <div class="form-section">
-          <h2>Coaching Interest (Optional)</h2>
-          <p class="info-note">We’re always looking for great coaches. Choose one option below (or leave blank).</p>
-          <input type="hidden" id="coachInterest" name="coachInterest" value="" />
-
-          <div class="coach-choice">
-            <button type="button" class="coach-btn" data-value="want">I would like to coach my child's team</button>
-            <button type="button" class="coach-btn" data-value="open">I am open to coaching my child's team</button>
-          </div>
-
-          <div class="small-note" style="text-align:left; margin-top:0.5rem;">
-            Tip: click the selected option again to clear it.
-          </div>
-        </div>
-
+        
         <div class="form-section">
           <h2>Player Information</h2>
           <p class="info-note">
@@ -265,16 +250,7 @@
                 <option value="AXL">Adult XL</option>
               </select>
             </div>
-
-            <div class="form-row">
-              <label for="experience">Football Experience</label>
-              <select id="experience" name="experience">
-                <option value="">Select...</option>
-                <option value="first-time">First time playing</option>
-                <option value="some">Some experience</option>
-                <option value="experienced">Experienced player</option>
-              </select>
-            </div>
+            
           </div>
         </div>
 
@@ -285,11 +261,7 @@
             <textarea id="healthConcerns" name="healthConcerns"
               placeholder="Please list any medical, allergy, or accessibility information coaches should be aware of."></textarea>
           </div>
-          <div class="form-row">
-            <label for="buddyRequest">Buddy Request (optional)</label>
-            <input type="text" id="buddyRequest" name="buddyRequest"
-              placeholder="Player name your child would like to play with (if possible)" />
-          </div>
+          
         </div>
 
         <div class="form-section">
@@ -419,28 +391,7 @@
       const dd = String(today.getDate()).padStart(2, '0');
       dateInput.value = `${yyyy}-${mm}-${dd}`;
     })();
-
-    // coaching buttons (toggle + single select)
-    (function () {
-      const hidden = document.getElementById('coachInterest');
-      const buttons = document.querySelectorAll('.coach-btn');
-      if (!hidden || !buttons.length) return;
-
-      buttons.forEach(btn => {
-        btn.addEventListener('click', () => {
-          const val = btn.getAttribute('data-value');
-          if (btn.classList.contains('selected')) {
-            btn.classList.remove('selected');
-            hidden.value = '';
-            return;
-          }
-          buttons.forEach(b => b.classList.remove('selected'));
-          btn.classList.add('selected');
-          hidden.value = val;
-        });
-      });
-    })();
-
+    
     // submit handler
     document.addEventListener('DOMContentLoaded', () => {
       const form = document.getElementById('registrationForm');
@@ -497,7 +448,7 @@
             lastName: document.getElementById('playerLastName').value.trim(),
             dob: document.getElementById('playerDob').value,
             shirtSize: document.getElementById('shirtSize').value,
-            experience: document.getElementById('experience').value
+            
           },
           ageGroup: 'Rep Team',
           registrationFee: 210,
@@ -507,7 +458,6 @@
             dates: 'August 14-16',
             location: 'Brampton'
           },
-          coachInterest: document.getElementById('coachInterest').value || null,
           health: { concerns: document.getElementById('healthConcerns').value.trim() },
           buddyRequest: document.getElementById('buddyRequest').value.trim(),
           waivers: {
