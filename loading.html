@@ -182,15 +182,22 @@
               : 'Adult Flag Team Registration (No Jersey)';
           }
         } else {
-          const ageGroup = reg.ageGroup; // "U6" or "7plus"
-          fee = (ageGroup === 'U6') ? 80 : 185;
+  const isRepRegistration = parsed.type === 'rep-registration' || reg.program === 'Rep Team';
 
-          lineItemName = isGirlsTeam
-            ? 'Girls U18 Team Registration'
-            : (ageGroup === 'U6')
-              ? 'Player Registration (U6)'
-              : 'Player Registration (Age 6+)';
-        }
+  if (isRepRegistration) {
+    fee = 210;
+    lineItemName = 'Hanover Flag Football Rep Team Registration';
+  } else {
+    const ageGroup = reg.ageGroup; // "U6" or "7plus"
+    fee = (ageGroup === 'U6') ? 80 : 185;
+
+    lineItemName = isGirlsTeam
+      ? 'Girls U18 Team Registration'
+      : (ageGroup === 'U6')
+        ? 'Player Registration (U6)'
+        : 'Player Registration (Age 6+)';
+  }
+}
 
         const playerName =
           (reg.player && (reg.player.firstName || reg.player.lastName))
