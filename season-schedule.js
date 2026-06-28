@@ -123,9 +123,9 @@ window.HFF_SCHEDULE = (function () {
 ["2026-07-04", "11:00", "C", "Game", "Winner of 9am game (U12)", "Winner of 10am game (U12)", "", "", "", "0-0", "0-0"],
 ["2026-07-04", "12:00", "A", "Game", "Commanders (U16)", "Chiefs (U16)", "", "", "", "2-7", "1-8"],
 ["2026-07-04", "13:00", "A", "Game", "Cowboys (U16)", "Panthers (U16)", "", "", "", "5-5", "6-3"],
-["2026-07-04", "13:00", "C", "Game", "Winner of 12pm game (U12)", "Vikings (U16)", "", "", "", "0-0", "9-0"],
-["2026-07-04", "14:00", "A", "Game", "Loser of 1pm game", "Loser of 1pm game", "", "", "", "0-0", "0-0"],
-["2026-07-04", "14:00", "C", "Game", "Winner of 1pm game", "Winner of 1pm game", "", "", "", "0-0", "0-0"],
+["2026-07-04", "13:00", "C", "Game", "Winner of 12pm game (U16)", "Vikings (U16)", "", "", "", "0-0", "9-0"],
+["2026-07-04", "14:00", "A", "Game", "Loser of 1pm game (U16)", "Loser of 1pm game (U16)", "", "", "", "0-0", "0-0"],
+["2026-07-04", "14:00", "C", "Game", "Winner of 1pm game (U16)", "Winner of 1pm game (U16)", "", "", "", "0-0", "0-0"],
   ];
 
   function formatDate(dateString) {
