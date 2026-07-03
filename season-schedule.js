@@ -119,13 +119,11 @@ window.HFF_SCHEDULE = (function () {
 ["2026-07-04", "09:15", "B", "Game", "Giants (U6)", "Giants (U6)", "", "", "", "0-0", "0-0"],
 ["2026-07-04", "10:00", "A", "Game", "Winner of 9:30am game (U9)", "Packers (U9)", "", "", "", "0-0", "5-4"],
 ["2026-07-04", "10:00", "C", "Game", "Browns (U12)", "Ravens (U12)", "", "", "", "0-7", "6-1"],
-["2026-07-04", "11:00", "A", "Game", "Loser of 9am game (U12)", "Loser of 10am game (U12)", "", "", "", "0-0", "0-0"],
 ["2026-07-04", "11:00", "C", "Game", "Winner of 9am game (U12)", "Winner of 10am game (U12)", "", "", "", "0-0", "0-0"],
-["2026-07-04", "12:00", "A", "Game", "Commanders (U16)", "Chiefs (U16)", "", "", "", "2-7", "1-8"],
-["2026-07-04", "13:00", "A", "Game", "Cowboys (U16)", "Panthers (U16)", "", "", "", "5-5", "6-3"],
-["2026-07-04", "13:00", "C", "Game", "Winner of 12pm game (U16)", "Vikings (U16)", "", "", "", "0-0", "9-0"],
-["2026-07-04", "14:00", "A", "Game", "Loser of 1pm game (U16)", "Loser of 1pm game (U16)", "", "", "", "0-0", "0-0"],
-["2026-07-04", "14:00", "C", "Game", "Winner of 1pm game (U16)", "Winner of 1pm game (U16)", "", "", "", "0-0", "0-0"],
+["2026-07-04", "11:00", "A", "Game", "Commanders (U16)", "Chiefs (U16)", "", "", "", "2-7", "1-8"],
+["2026-07-04", "12:00", "A", "Game", "Cowboys (U16)", "Panthers (U16)", "", "", "", "5-5", "6-3"],
+["2026-07-04", "12:00", "C", "Game", "Winner of 11am game (U16)", "Vikings (U16)", "", "", "", "0-0", "9-0"],
+["2026-07-04", "13:00", "C", "Game", "Winner of 12pm game (U16)", "Winner of 12pm game (U16)", "", "", "", "0-0", "0-0"],
   ];
 
   function formatDate(dateString) {
