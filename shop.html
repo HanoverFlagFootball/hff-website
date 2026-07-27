@@ -236,9 +236,43 @@
       opacity: 1;
       transform: translateY(0);
     }
+    
+/* SHOP OPEN/CLOSED */
+
+.shop-closed-message{
+  display:none;
+  max-width:800px;
+  margin:2rem auto;
+  padding:2rem;
+  text-align:center;
+  background:#f8f8f8;
+  border:2px solid #000;
+  border-radius:8px;
+}
+
+.shop-closed-message h2{
+  margin-top:0;
+}
+
+.shop-closed .shop-closed-message{
+  display:block;
+}
+
+.shop-closed .products-grid{
+  display:none;
+}
+
+.shop-closed .cart-icon-box{
+  display:none;
+}
+
   </style>
 </head>
 <body>
+
+<script>
+  const SHOP_OPEN = false;
+</script>
 
   <!-- BANNER -->
   <div class="top-banner">
@@ -264,6 +298,25 @@
 
   <!-- PRODUCTS -->
   <div class="products-wrapper">
+    <div class="shop-closed-message">
+  <h2>League Shop Closed</h2>
+
+  <p>
+    Thank you for supporting Hanover Flag Football throughout the season!
+  </p>
+
+  <p>
+    The League Shop is now closed.
+  </p>
+
+  <p>
+    <strong>The shop will reopen on November 10th.</strong>
+  </p>
+
+  <p>
+    We look forward to serving you again for the upcoming season.
+  </p>
+</div>
     <div class="products-grid">
 
 <!-- PRODUCT 0 (PICTURES) -->
@@ -810,5 +863,10 @@
   </script>
 
   <script src="nav.js"></script>
+  <script>
+  if (!SHOP_OPEN) {
+    document.body.classList.add('shop-closed');
+  }
+</script>
 </body>
 </html>
