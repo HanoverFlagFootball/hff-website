@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>About HFF</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --ink: #fff;
+      --line: #333;
+      --black: #000;
+      --accent: #0b5ed7;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #000;
+      color: var(--ink);
+    }
+
+    /* =========================
+       SCORES STRIP
+       ========================= */
+    .scores-strip {
+      width: 100%;
+      background: #000;
+      padding: 0.35rem 1rem;
+      overflow: hidden;
+    }
+    .score-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+  justify-content: center;
+  overflow: hidden;
+}
+    .score-box {
+  background: #fff;
+  color: #000;
+  border: 1px solid #ccc;
+  border-radius: 0.5rem;
+  padding: 0.35rem 0.45rem;
+  flex: 0 0 calc((100% - 4.5rem) / 8);
+  min-height: 74px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.score-box:nth-child(n + 11) {
+  display: none;
+}
+    .score-title {
+      font-size: 0.65rem;
+      text-align: center;
+      border-bottom: 1px solid #ddd;
+      margin-bottom: 0.15rem;
+      padding-bottom: 0.15rem;
+    }
+    .team-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.15rem;
+      line-height: 1.05;
+    }
+    .team-left {
+      display: flex;
+      align-items: center;
+      gap: 0.2rem;
+      min-width: 0;
+      flex: 1;
+    }
+    .team-logo {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+      background: #fff;
+      border-radius: 4px;
+      padding: 1px;
+    }
+    .team-name {
+      flex: 1;
+      font-size: 0.68rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .team-score {
+      width: 1.9rem;
+      text-align: right;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+    .score-status {
+      font-size: 0.58rem;
+      text-align: center;
+      margin-top: 0.2rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    @media (max-width: 700px) {
+      .scores-strip { overflow: hidden; }
+      .score-row { justify-content: center; }
+      .score-box {
+        flex: 0 0 calc((100% - 0.6rem) / 2);
+      }
+      .score-box:nth-child(n + 3) { display: none; }
+    }
+
+    /* =========================
+       TOP BANNER
+       ========================= */
+    .top-banner {
+      width: 100%;
+      background: #000;
+      aspect-ratio: 8 / 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 56px;
+      position: relative;
+    }
+    .top-banner img {
+      height: 82%;
+      width: auto;
+      max-width: 90vw;
+      object-fit: contain;
+      display: block;
+    }
+
+    /* =========================
+       PAGE CONTENT
+       ========================= */
+    .content-wrapper {
+      padding: 1.5rem 2rem 3rem;
+      background: #000;
+      display: flex;
+      justify-content: center;
+    }
+    .by-team-box {
+      background: #fff;
+      color: #000;
+      border: 0;
+      border-radius: 0;
+      padding: 2rem 2.2rem 2.5rem;
+      max-width: 1100px;
+      width: 100%;
+      box-shadow: none;
+    }
+
+    /* =========================
+       ABOUT CONTENT STYLES
+       ========================= */
+    .page-title {
+      text-align: center;
+      font-weight: 800;
+      font-size: 1.35rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin: 0.2rem 0 0.9rem;
+    }
+    .about-text {
+      font-size: 0.98rem;
+      line-height: 1.55;
+      margin: 0;
+    }
+    .about-text p {
+      margin: 0 0 0.9rem;
+    }
+    .about-text p:last-child {
+      margin-bottom: 0;
+    }
+    .about-section-title {
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin: 1.2rem 0 0.55rem;
+      border-top: 2px solid #333;
+      padding-top: 0.8rem;
+      font-size: 0.95rem;
+      text-align: center;
+    }
+    .bullets {
+      margin: 0.2rem 0 0.9rem;
+      padding-left: 1.1rem;
+    }
+    .bullets li {
+      margin: 0.35rem 0;
+    }
+
+
+    /* =========================
+       ABOUT PAGE — EDITORIAL / SPORTS STYLE
+       ========================= */
+    .about-shell { max-width: 980px; margin: 0 auto; }
+    .about-hero { padding: .35rem 0 2rem; border-bottom: 1px solid #d9dee5; }
+    .about-kicker { color:#0b5ed7; font-size:.74rem; font-weight:800; letter-spacing:.16em; text-transform:uppercase; margin-bottom:.55rem; }
+    .about-hero h1 { margin:0; color:#07182c; font-size:clamp(2rem,4vw,3.4rem); line-height:.98; letter-spacing:-.035em; text-transform:none; }
+    .about-lead { margin:1rem 0 0; max-width:820px; font-size:1.06rem; line-height:1.7; color:#28384d; }
+    .about-section { padding:2.25rem 0; border-bottom:1px solid #d9dee5; }
+    .about-section:last-child { border-bottom:0; padding-bottom:.5rem; }
+    .about-section h2 { margin:0 0 .9rem; color:#07182c; font-size:clamp(1.65rem,2.8vw,2.35rem); line-height:1.05; letter-spacing:-.025em; }
+    .about-section p { margin:.5rem 0; line-height:1.68; color:#26374b; }
+
+    .values-layout { display:grid; grid-template-columns:minmax(0,1fr) 190px; gap:2.2rem; align-items:center; }
+    .values-words { margin:.65rem 0 .85rem; font-size:1.08rem; font-weight:800; color:#07182c; letter-spacing:.015em; }
+    .values-photo { width:100%; aspect-ratio:1/1; overflow:hidden; background:#eef1f5; }
+    .values-photo img { width:100%; height:100%; object-fit:cover; display:block; }
+
+    .house-intro { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(260px,.7fr); gap:2.5rem; align-items:end; margin-bottom:2rem; }
+    .house-note { border-left:4px solid #0b5ed7; padding-left:1rem; color:#526274; font-size:.92rem; line-height:1.6; }
+
+    .season-flow { position:relative; display:grid; grid-template-columns:repeat(4,1fr); gap:1.35rem; margin:1.25rem 0 2.1rem; padding-top:1.25rem; }
+    .season-flow::before { content:""; position:absolute; left:4%; right:4%; top:2.27rem; height:2px; background:#cbd3dd; }
+    .season-phase { position:relative; padding-top:2.35rem; }
+    .season-dot { position:absolute; top:.55rem; left:0; width:1.35rem; height:1.35rem; border-radius:50%; background:#0b5ed7; border:4px solid #fff; box-shadow:0 0 0 2px #0b5ed7; z-index:2; }
+    .season-week { color:#0b5ed7; font-size:.76rem; font-weight:900; letter-spacing:.12em; text-transform:uppercase; margin-bottom:.35rem; }
+    .season-phase h3 { margin:0 0 .42rem; color:#07182c; font-size:1.12rem; line-height:1.15; }
+    .season-phase p { margin:0; font-size:.91rem; line-height:1.55; color:#58687a; }
+
+    .house-gallery { display:grid; grid-template-columns:repeat(3,1fr); gap:.55rem; margin-top:1.65rem; }
+    .house-photo { aspect-ratio:4/3; overflow:hidden; background:#eef1f5; }
+    .house-photo img { width:100%; height:100%; object-fit:cover; display:block; }
+
+    .hustle-layout { display:grid; grid-template-columns:minmax(0,.78fr) minmax(0,1.22fr); gap:2.5rem; align-items:start; }
+    .hustle-copy { padding-top:.15rem; }
+    .hustle-mark { color:#0b5ed7; font-size:.78rem; font-weight:900; letter-spacing:.15em; text-transform:uppercase; margin-bottom:.55rem; }
+    .hustle-photo { margin-top:1.6rem; width:100%; aspect-ratio:16/7; overflow:hidden; background:#eef1f5; }
+    .hustle-photo img { width:100%; height:100%; object-fit:cover; display:block; }
+
+    @media (max-width: 760px) {
+      .values-layout, .house-intro, .hustle-layout { grid-template-columns:1fr; gap:1.25rem; }
+      .values-photo { max-width:150px; }
+      .season-flow { grid-template-columns:1fr; gap:0; padding:0 0 0 2.15rem; margin-top:1.5rem; }
+      .season-flow::before { left:.66rem; top:.7rem; bottom:.8rem; right:auto; width:2px; height:auto; }
+      .season-phase { padding:0 0 1.45rem 0; }
+      .season-dot { left:-2.12rem; top:.18rem; }
+      .house-gallery { grid-template-columns:1fr; gap:.7rem; }
+      .house-photo { aspect-ratio:16/10; }
+      .hustle-photo { aspect-ratio:16/9; }
+    }
+
+    @media (max-width: 620px) {
+      .content-wrapper { padding: 1.2rem 1rem 3rem; }
+      .page-title { font-size: 1.2rem; }
+      .about-text { font-size: 0.95rem; }
+    }
+  </style>
+  <link rel="stylesheet" href="site-theme.css?v=20260913">
+</head>
+
+<body>
+
+  <!-- SCORE STRIP -->
+  <div class="scores-strip">
+    <div class="score-row" id="scoreRow"></div>
+  </div>
+
+  <!-- BANNER -->
+  <div class="top-banner">
+    <a href="index.html" style="display:flex; align-items:center; justify-content:center; height:100%; width:100%;">
+      <img src="White Logo.jpg" alt="League Logo" style="height:82%; width:auto; max-width:90vw; object-fit:contain; display:block; cursor:pointer;">
+    </a>
+
+    <!-- SHARED HAMBURGER (from nav.js) -->
+    <div id="site-nav"></div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="content-wrapper">
+    <div class="by-team-box">
+
+      <div class="about-shell">
+        <header class="about-hero">
+          <div class="about-kicker">Hanover Flag Football</div>
+          <h1>About HFF</h1>
+          <p class="about-lead">Hanover Flag Football was established in <strong>2025</strong> to provide youth in Hanover and the surrounding area with an opportunity to play organized flag football. Our focus is simple: <strong>fun, competitive, affordable, and well organized</strong>.</p>
+          <p class="about-lead">For our first two seasons, HFF has operated <strong>U6, U9, U12, and U16</strong> divisions. Divisions are reviewed each season and may change based on registration numbers so we can create the best possible experience and competition for our players.</p>
+        </header>
+
+        <section class="about-section">
+          <div class="values-layout">
+            <div>
+              <h2>Our Values</h2>
+              <div class="values-words">Teamwork &nbsp;•&nbsp; Dedication &nbsp;•&nbsp; Sportsmanship &nbsp;•&nbsp; Fun</div>
+              <p>We want players to develop their football skills while learning to work as a team, give their best effort, and show respect for teammates, opponents, coaches, and officials.</p>
+            </div>
+            <div class="values-photo">
+              <img src="Medallion2c.png" alt="Hanover Flag Football values" onerror="this.style.display='none'">
+            </div>
+          </div>
+        </section>
+
+        <section class="about-section">
+          <div class="house-intro">
+            <div>
+              <h2>House League</h2>
+              <p>The HFF House League is a <strong>nine-week season</strong> that combines development with organized competition. Games are played locally in Hanover and are officiated by <strong>local student referees</strong>.</p>
+            </div>
+            <div class="house-note">Players of all skill and experience levels are welcome. The emphasis stays on teamwork, dedication, sportsmanship, development, and fun.</div>
+          </div>
+
+          <div class="season-flow" aria-label="House League season format">
+            <article class="season-phase">
+              <span class="season-dot"></span>
+              <div class="season-week">Week 1</div>
+              <h3>Exhibition Games</h3>
+              <p>Players compete with their new teams. Trades may be made afterward to help create fair and competitive teams.</p>
+            </article>
+            <article class="season-phase">
+              <span class="season-dot"></span>
+              <div class="season-week">Week 2</div>
+              <h3>Team Practices</h3>
+              <p>A dedicated practice week gives teams time to build chemistry and prepare for the regular season.</p>
+            </article>
+            <article class="season-phase">
+              <span class="season-dot"></span>
+              <div class="season-week">Weeks 3–8</div>
+              <h3>Regular Season</h3>
+              <p>Six weeks of scheduled, refereed games where standings and playoff positioning take shape.</p>
+            </article>
+            <article class="season-phase">
+              <span class="season-dot"></span>
+              <div class="season-week">Week 9</div>
+              <h3>Super Bowl Weekend</h3>
+              <p>The season finishes with playoffs and championship games.</p>
+            </article>
+          </div>
+
+          <div class="house-gallery">
+            <div class="house-photo"><img src="Champions2026U9.jpg" alt="HFF house league" onerror="this.style.display='none'"></div>
+            <div class="house-photo"><img src="Champions2026U12.jpg" alt="HFF house league" onerror="this.style.display='none'"></div>
+            <div class="house-photo"><img src="Champions2026U16.jpg" alt="HFF house league" onerror="this.style.display='none'"></div>
+          </div>
+        </section>
+
+        <section class="about-section">
+          <div class="hustle-layout">
+            <div>
+              <div class="hustle-mark">Rep Program</div>
+              <h2>Hanover Hustle</h2>
+            </div>
+            <div class="hustle-copy">
+              <p><strong>Hanover Hustle</strong> is where HFF's top athletes take their game beyond the house league.</p>
+
+<p>Built for players ready to compete at a higher level, Hustle teams represent Hanover on the tournament stage against elite competition from across Ontario and beyond.</p>
+
+<p>In 2026, Hanover Hustle made its mark at the <strong>Under Armour Flag Football World Cup in Brampton, Ontario</strong> — competing on one of the biggest stages in youth flag football.</p>
+
+<p>Wearing the Hustle jersey means more than playing rep football. It means earning the opportunity to <strong>compete, develop, and represent Hanover</strong> against some of the best.</p>
+            </div>
+          </div>
+
+          <p style="margin:1.2rem 0 0"><a href="rep-home.html" style="display:inline-block;background:#fff;color:#000;padding:12px 20px;text-decoration:none;font-weight:800;border-radius:3px">Explore Hanover Hustle →</a></p>
+          <div class="hustle-photo">
+            <img src="AboutUsHustle.jpg" alt="Hanover Hustle rep team" onerror="this.style.display='none'">
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- shared score strip JS (central file) -->
+  <script src="season-schedule.js?v=20"></script>
+<script src="scores-strip.js?v=20"></script>
+<script src="nav.js"></script>
+
+</body>
+</html>
+
+

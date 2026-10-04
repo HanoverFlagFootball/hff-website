@@ -1,0 +1,18 @@
+Hanover Flag Football Website Overview:
+
+html coded (VS Code for edit)
+
+Supabase for database:
+Password: HanoverFlagFootball2025!
+Database password: FtWktIXKc2vqsB0x
+
+Stripe for payment:
+Hanover Flag Football2
+HanFF2025!2
+
+GitHub to host html
+Username: HanoverFlagFootball
+Password: HanoverFlagFootball2025!
+
+
+

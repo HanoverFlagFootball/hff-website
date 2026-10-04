@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Registration Successful</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #000;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .card {
+      background: #fff;
+      color: #000;
+      padding: 1.5rem 2rem;
+      border-radius: 0.5rem;
+      max-width: 500px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 1.5rem;
+    }
+    .reg-number {
+      font-family: "Courier New", monospace;
+      font-size: 0.9rem;
+      padding: 0.4rem 0.6rem;
+      border-radius: 0.3rem;
+      background: #f0f0f0;
+      display: inline-block;
+      margin: 0.3rem 0 0.7rem;
+      word-break: break-all;
+    }
+    p {
+      margin: 0.4rem 0;
+    }
+    a {
+      color: #0b5ed7;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+  <link rel="stylesheet" href="site-theme.css?v=20260913">
+</head>
+<body>
+  <div class="card">
+    <h1>Thank You for Registering!</h1>
+    <p>Your registration has been received and your payment was successful.</p>
+
+    <p id="regWrapper" style="display:none;">
+      <strong>Your registration number:</strong><br />
+      <span class="reg-number" id="regNumber"></span>
+    </p>
+
+    <p id="statusMsg">Finalizing your registration…</p>
+
+    <p style="margin-top: 1rem;">
+      <a href="index.html">Return to League Home Page</a>
+    </p>
+  </div>
+
+  <script>
+    // ✅ Point this to your Render backend
+    const BACKEND_URL = "https://hff-server.onrender.com";
+
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get('session_id');
+
+    const regWrapper = document.getElementById('regWrapper');
+    const regNumberSpan = document.getElementById('regNumber');
+    const statusMsg = document.getElementById('statusMsg');
+
+    async function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    async function fetchOrderNoWithRetry(sessionId, attempts = 12, delayMs = 1500) {
+      for (let i = 0; i < attempts; i++) {
+        const url = `${BACKEND_URL}/order-by-session?session_id=${encodeURIComponent(sessionId)}`;
+        try {
+          const res = await fetch(url);
+          if (res.ok) {
+            return await res.json(); // { order_no, order_type, created_at }
+          }
+
+          // 404 means webhook may not have written yet — retry
+          if (res.status === 404) {
+            await sleep(delayMs);
+            continue;
+          }
+
+          // other errors
+          let errJson = null;
+          try { errJson = await res.json(); } catch {}
+          throw new Error(errJson?.error || `Request failed (${res.status})`);
+        } catch (e) {
+          // network hiccup or transient issue — retry
+          await sleep(delayMs);
+        }
+      }
+      throw new Error("Order number not available yet. Please refresh in a moment.");
+    }
+
+    (async () => {
+      // If someone lands here without session_id, show a helpful message
+      if (!sessionId) {
+        statusMsg.textContent = "Missing session_id in the URL. If you need help, contact us.";
+        return;
+      }
+
+      try {
+        const data = await fetchOrderNoWithRetry(sessionId);
+
+        if (data?.order_no) {
+          regWrapper.style.display = 'block';
+          regNumberSpan.textContent = data.order_no;
+          statusMsg.textContent = "Please save this number for your records.";
+        } else {
+          statusMsg.textContent = "Payment successful, but we couldn't retrieve the order number yet. Please refresh.";
+        }
+      } catch (err) {
+        statusMsg.textContent = err.message || "Payment successful, but the order number is not available yet. Please refresh.";
+      }
+    })();
+  </script>
+  <script src="nav.js?v=20260913"></script>
+</body>
+</html>

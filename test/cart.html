@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cart</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Stripe.js (only used later on loading.html, safe to include here) -->
+  <script src="https://js.stripe.com/v3/"></script>
+
+  <style>
+    :root {
+      --ink: #fff;
+      --black: #000;
+      --accent: #0b5ed7;
+      --danger: #d9534f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #000;
+      color: var(--ink);
+    }
+
+    /* =========================
+       TOP BANNER (STANDARD)
+       ========================= */
+    .top-banner {
+      width: 100%;
+      background: #000;
+      aspect-ratio: 8 / 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 56px;
+      position: relative;
+    }
+    .top-banner img {
+      height: 82%;
+      width: auto;
+      max-width: 90vw;
+      object-fit: contain;
+      display: block;
+    }
+
+    /* =========================
+       CART PAGE
+       ========================= */
+    .cart-page-bg {
+      background: #fff;
+      min-height: 100vh;
+      padding: 1.5rem 1rem 3rem;
+      display: flex;
+      justify-content: center;
+      color: #000;
+    }
+
+    .cart-wrapper {
+      width: 100%;
+      max-width: 1100px;
+    }
+
+    .cart-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    .cart-header-bar {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 0.4rem;
+    }
+
+    /* Make the continue link look like a button */
+    .btn-continue {
+      display: inline-block;
+      padding: 0.35rem 0.85rem;
+      border-radius: 999px;
+      border: none;
+      background: #000;
+      color: #fff;
+      font-size: 0.85rem;
+      cursor: pointer;
+      text-decoration: none;
+      line-height: 1.2;
+    }
+
+    .cart-header-row,
+    .cart-item-row {
+      display: grid;
+      grid-template-columns: 40px 80px 1fr 80px 80px 90px;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .cart-header-row {
+      padding: 0.6rem 0.2rem;
+      border-bottom: 1px solid #ddd;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #555;
+    }
+
+    .cart-item-row {
+      padding: 0.6rem 0.2rem;
+      border-bottom: 1px solid #eee;
+      font-size: 0.9rem;
+    }
+
+    .cart-empty {
+      padding: 1rem 0.2rem;
+      color: #666;
+    }
+
+    .cart-remove-btn {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: none;
+      background: var(--danger);
+      color: #fff;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    .cart-item-img {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: #fff;
+    }
+
+    .cart-item-name {
+      font-weight: 600;
+    }
+
+    .cart-item-details {
+      font-size: 0.8rem;
+      color: #666;
+      line-height: 1.2;
+      margin-top: 0.15rem;
+    }
+
+    .cart-qty-input {
+      width: 60px;
+      text-align: center;
+    }
+
+    .cart-price,
+    .cart-line-total {
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    /* =========================
+       SUMMARY
+       ========================= */
+    .cart-summary {
+      margin-top: 1.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid #ddd;
+      max-width: 360px;
+      margin-left: auto;
+    }
+
+    .checkout-fields {
+      margin-bottom: 1rem;
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      background: #fafafa;
+    }
+
+    .field-label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+      display: block;
+    }
+
+    .field-input {
+      width: 100%;
+      padding: 0.45rem 0.6rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 0.95rem;
+    }
+
+    .summary-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 0.5rem;
+    }
+
+    .checkout-btn {
+      padding: 0.4rem 0.9rem;
+      border-radius: 999px;
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.35rem;
+    }
+
+    .summary-row.total {
+      font-weight: 700;
+      border-top: 1px solid #ddd;
+      padding-top: 0.35rem;
+    }
+
+    @media (max-width: 780px) {
+      .cart-header-row { display: none; }
+      .cart-item-row { grid-template-columns: 40px 70px 1fr; }
+      .cart-price, .cart-line-total { display:none; }
+    }
+  </style>
+  <link rel="stylesheet" href="site-theme.css?v=20260913">
+</head>
+<body>
+
+  <!-- BANNER -->
+  <div class="top-banner">
+    <a href="index.html" style="display:flex; align-items:center; justify-content:center; height:100%; width:100%;">
+      <img src="White Logo.jpg" alt="League Logo">
+    </a>
+    <div id="site-nav"></div>
+  </div>
+
+  <!-- CART -->
+  <div class="cart-page-bg">
+    <div class="cart-wrapper">
+
+      <h1 class="cart-title">Cart</h1>
+
+      <div class="cart-header-bar">
+        <a class="btn-continue" href="shop.html">Continue Shopping</a>
+      </div>
+
+      <div class="cart-header-row">
+        <div></div>
+        <div>Item</div>
+        <div>Name</div>
+        <div>Qty</div>
+        <div>Unit</div>
+        <div>Total</div>
+      </div>
+
+      <div id="cartItems"></div>
+
+      <div class="cart-summary" id="cartSummary" style="display:none;">
+
+        <div class="checkout-fields">
+          <label class="field-label" for="athleteName">
+            Athlete name (for pickup)
+          </label>
+          <input
+            class="field-input"
+            id="athleteName"
+            placeholder="e.g. Jordan Smith"
+            autocomplete="name"
+          >
+        </div>
+
+        <div class="summary-actions">
+          <!-- ✅ type="button" prevents any default submit/scroll behavior -->
+          <button class="checkout-btn" id="checkoutBtn" type="button">Checkout</button>
+        </div>
+
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <span id="subtotalText">$0.00</span>
+        </div>
+
+        <div class="summary-row total">
+          <span>Total</span>
+          <span id="totalText">$0.00</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="seasonal-settings.js?v=23"></script>
+  <!-- nav.js first so it cannot overwrite our checkout handler after -->
+  <script src="nav.js"></script>
+
+  <script>
+  function loadCart() {
+    try {
+      return JSON.parse(localStorage.getItem('cartItems')) || [];
+    } catch {
+      return [];
+    }
+  }
+
+  function saveCart(cart) {
+    localStorage.setItem('cartItems', JSON.stringify(cart));
+  }
+
+  function money(v) {
+    return '$' + Number(v || 0).toFixed(2);
+  }
+
+  function pictureLineTotal(qty) {
+    return 10 + Math.max(0, qty - 1) * 5;
+  }
+
+  function renderCart() {
+    const cart = loadCart();
+    const list = document.getElementById('cartItems');
+    const summary = document.getElementById('cartSummary');
+    list.innerHTML = '';
+
+    if (!cart.length) {
+      summary.style.display = 'none';
+      list.innerHTML = '<p class="cart-empty">Your cart is empty.</p>';
+      return;
+    }
+
+    let subtotal = 0;
+
+    cart.forEach((item, i) => {
+      const qty = Number(item.quantity || 1);
+      const price = Number(item.price || 0);
+
+      let line = qty * price;
+      let displayPrice = money(price);
+
+      if (item.name === 'Pictures') {
+        line = pictureLineTotal(qty);
+        displayPrice = qty > 1 ? 'First $10, extras $5' : '$10.00';
+      }
+
+      subtotal += line;
+
+      const detailsLines = [];
+      if (item.team) detailsLines.push(`Team: ${item.team}`);
+      if (item.size) detailsLines.push(`Size: ${item.size}`);
+
+      const row = document.createElement('div');
+      row.className = 'cart-item-row';
+      row.innerHTML = `
+        <button class="cart-remove-btn" type="button" data-i="${i}">&times;</button>
+        <img class="cart-item-img" src="${item.image || ''}" alt="">
+        <div>
+          <div class="cart-item-name">${item.name || 'Item'}</div>
+          <div class="cart-item-details">${detailsLines.join('<br>')}</div>
+
+          ${item.name === 'Pictures' ? `
+            <div style="margin-top:0.45rem;">
+              <input
+                class="field-input picture-player-input"
+                data-i="${i}"
+                placeholder="Player name for pictures"
+                value="${item.picturePlayerName || ''}"
+                style="font-size:0.85rem; padding:0.35rem 0.5rem;"
+              >
+
+              <button
+                type="button"
+                class="btn-continue add-picture-player-btn"
+                data-i="${i}"
+                style="margin-top:0.4rem;"
+              >
+                Add Another Player
+              </button>
+            </div>
+          ` : ''}
+        </div>
+        <input class="cart-qty-input" type="number" min="1" value="${qty}" data-i="${i}">
+        <div class="cart-price">${displayPrice}</div>
+        <div class="cart-line-total">${money(line)}</div>
+      `;
+      list.appendChild(row);
+    });
+
+    document.getElementById('subtotalText').textContent = money(subtotal);
+    document.getElementById('totalText').textContent = money(subtotal);
+    summary.style.display = 'block';
+
+    attachCartListeners();
+  }
+
+  function attachCartListeners() {
+    const cart = loadCart();
+
+    document.querySelectorAll('.cart-remove-btn').forEach(btn => {
+      btn.onclick = () => {
+        cart.splice(btn.dataset.i, 1);
+        saveCart(cart);
+        renderCart();
+      };
+    });
+
+    document.querySelectorAll('.cart-qty-input').forEach(inp => {
+      inp.onchange = () => {
+        cart[inp.dataset.i].quantity = Math.max(1, Number(inp.value));
+        saveCart(cart);
+        renderCart();
+      };
+    });
+
+    document.querySelectorAll('.picture-player-input').forEach(inp => {
+      inp.onchange = () => {
+        cart[inp.dataset.i].picturePlayerName = inp.value.trim();
+        saveCart(cart);
+      };
+    });
+
+    document.querySelectorAll('.add-picture-player-btn').forEach(btn => {
+      btn.onclick = () => {
+        const source = cart[btn.dataset.i];
+
+        cart.push({
+          name: 'Pictures',
+          team: 'Not team specific',
+          size: 'Picture Order',
+          image: source.image || 'pictures.png',
+          price: 10,
+          unitPrice: 10,
+          quantity: 1,
+          picturePlayerName: ''
+        });
+
+        saveCart(cart);
+        renderCart();
+      };
+    });
+  }
+
+  async function handleCheckout(e) {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
+    }
+
+    const shopOpen = await HFFSeasonal.get('shop_open');
+    if (!shopOpen) { alert('The League Shop is currently closed.'); return; }
+
+    const athleteEl = document.getElementById('athleteName');
+    const athlete = (athleteEl ? athleteEl.value : '').trim();
+
+    if (!athlete) {
+      alert('Please enter the athlete name.');
+      return;
+    }
+
+    localStorage.setItem('athleteName', athlete);
+
+    const cartItems = loadCart().map(i => {
+  const qty = Number(i.quantity || 1);
+  const isPictures = i.name === 'Pictures';
+
+  if (isPictures) {
+    const pictureTotal = 10 + Math.max(0, qty - 1) * 5;
+
+    return {
+      name: i.picturePlayerName
+        ? `Pictures - ${i.picturePlayerName} (${qty} picture${qty === 1 ? '' : 's'})`
+        : `Pictures (${qty} picture${qty === 1 ? '' : 's'})`,
+      team: i.team || null,
+      size: i.size || null,
+      image: i.image || null,
+      price: pictureTotal,
+      quantity: 1,
+      picturePlayerName: i.picturePlayerName || null,
+      pictureQuantity: qty
+    };
+  }
+
+  return {
+    name: i.name,
+    team: i.team || null,
+    size: i.size || null,
+    image: i.image || null,
+    price: Number(i.price || 0),
+    quantity: qty,
+    picturePlayerName: i.picturePlayerName || null
+  };
+});
+
+    if (!cartItems.length) {
+      alert('Your cart is empty.');
+      return;
+    }
+
+    const checkoutPayload = JSON.stringify({
+      cart: cartItems,
+      athleteName: athlete
+    });
+
+    sessionStorage.setItem('HFF_CHECKOUT_PAYLOAD', checkoutPayload);
+    localStorage.setItem('HFF_CHECKOUT_PAYLOAD', checkoutPayload);
+
+    window.location.replace('loading.html?v=' + Date.now());
+  }
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    const shopOpen=await HFFSeasonal.get('shop_open');
+    if(!shopOpen){
+      const list=document.getElementById('cartItems'); const summary=document.getElementById('cartSummary');
+      if(list) list.innerHTML='<p class="cart-empty"><strong>The League Shop is currently closed.</strong><br><br>Your saved cart will remain on this device for when the shop reopens.</p>';
+      if(summary) summary.style.display='none';
+      const btn=document.getElementById('checkoutBtn'); if(btn) btn.disabled=true;
+      return;
+    }
+    document.getElementById('athleteName').value = localStorage.getItem('athleteName') || '';
+
+    const btn = document.getElementById('checkoutBtn');
+    if (btn) btn.addEventListener('click', handleCheckout, true);
+
+    renderCart();
+  });
+</script>
+
+</body>
+</html>

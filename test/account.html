@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>HFF Account | Hanover Flag Football</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="site-theme.css?v=20260927">
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #f4f4f4;
+      color: #111;
+      font-family: Arial, sans-serif;
+    }
+
+    .wrap {
+      max-width: 760px;
+      margin: 42px auto;
+      padding: 0 18px 50px;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid #ddd;
+      padding: 28px;
+      border-radius: 10px;
+    }
+
+    .brand {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .brand img {
+      max-width: 210px;
+      background: #000;
+      padding: 12px;
+    }
+
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid #111;
+      margin-bottom: 24px;
+    }
+
+    .tabs button {
+      flex: 1;
+      border: 0;
+      background: #eee;
+      padding: 14px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .tabs button.active {
+      background: #111;
+      color: #fff;
+    }
+
+    label {
+      display: block;
+      font-weight: 700;
+      margin: 14px 0 6px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #aaa;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+
+    .btn {
+      width: 100%;
+      margin-top: 20px;
+      padding: 13px;
+      border: 0;
+      border-radius: 5px;
+      background: #111;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .btn.secondary {
+      background: #fff;
+      color: #111;
+      border: 2px solid #111;
+    }
+
+    .status {
+      margin-top: 16px;
+      padding: 12px;
+      background: #f2f2f2;
+      border-radius: 5px;
+      display: none;
+      line-height: 1.45;
+    }
+
+    .small {
+      font-size: 13px;
+      color: #555;
+      line-height: 1.45;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .forgot {
+      border: 0;
+      background: none;
+      text-decoration: underline;
+      cursor: pointer;
+      margin-top: 14px;
+      padding: 0;
+      color: #222;
+    }
+
+    .reset-heading {
+      margin-top: 0;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="site-nav"></div>
+
+  <main class="wrap">
+    <div class="card">
+
+      <!-- SIGN IN / CREATE ACCOUNT -->
+      <div id="signedOut">
+
+        <div class="tabs">
+          <button id="loginTab" class="active">Sign In</button>
+          <button id="createTab">Create Account</button>
+        </div>
+
+        <div id="nameFields" class="hidden">
+          <label for="firstName">First Name</label>
+          <input
+            id="firstName"
+            autocomplete="given-name"
+          >
+
+          <label for="lastName">Last Name</label>
+          <input
+            id="lastName"
+            autocomplete="family-name"
+          >
+        </div>
+
+        <label for="email">Email</label>
+        <input
+          id="email"
+          type="email"
+          autocomplete="email"
+        >
+
+        <label for="password">Password</label>
+        <input
+          id="password"
+          type="password"
+          autocomplete="current-password"
+        >
+
+        <button class="btn" id="submitBtn">
+          Sign In
+        </button>
+
+        <button class="forgot" id="forgotBtn">
+          Forgot password?
+        </button>
+
+        <div class="status" id="status"></div>
+
+        <p class="small">
+          Parents and guardians should create one account using the same
+          email address used for HFF registration. Existing players and
+          teams can then be connected to your account.
+        </p>
+
+      </div>
+
+
+      <!-- FORGOT PASSWORD -->
+      <div id="forgotPassword" class="hidden">
+
+        <h2 class="reset-heading">Reset Password</h2>
+
+        <p>
+          Enter the email address connected to your HFF account.
+          We'll send you a link to choose a new password.
+        </p>
+
+        <label for="resetEmail">Email</label>
+        <input
+          id="resetEmail"
+          type="email"
+          autocomplete="email"
+        >
+
+        <button class="btn" id="sendResetBtn">
+          Send Reset Link
+        </button>
+
+        <button class="btn secondary" id="backToSignInBtn">
+          Back to Sign In
+        </button>
+
+        <div class="status" id="resetStatus"></div>
+
+      </div>
+
+
+      <!-- ALREADY SIGNED IN -->
+      <div id="signedIn" class="hidden">
+
+        <h2>You're signed in</h2>
+
+        <p id="signedInEmail"></p>
+
+        <a
+          class="btn"
+          style="display:block; text-align:center; text-decoration:none;"
+          href="my-hff.html"
+        >
+          Go to My HFF
+        </a>
+
+        <button class="btn secondary" id="signOutBtn">
+          Sign Out
+        </button>
+
+      </div>
+
+    </div>
+  </main>
+
+
+  <script src="nav.js"></script>
+
+  <script>
+    const sb = supabase.createClient(
+      'https://wnhzgxnwlmohfldnhhyt.supabase.co',
+      'sb_publishable_x5Xkl7tfpUwhz_ENftiaqQ_am915vqY'
+    );
+
+    const $ = id => document.getElementById(id);
+
+    let mode = 'login';
+
+
+    // --------------------------------------------------
+    // STATUS MESSAGES
+    // --------------------------------------------------
+
+    function showStatus(text, bad = false) {
+      $('status').style.display = 'block';
+      $('status').textContent = text;
+      $('status').style.borderLeft =
+        `4px solid ${bad ? '#a00' : '#111'}`;
+    }
+
+
+    function showResetStatus(text, bad = false) {
+      $('resetStatus').style.display = 'block';
+      $('resetStatus').textContent = text;
+      $('resetStatus').style.borderLeft =
+        `4px solid ${bad ? '#a00' : '#111'}`;
+    }
+
+
+    // --------------------------------------------------
+    // SIGN IN / CREATE ACCOUNT TABS
+    // --------------------------------------------------
+
+    function setMode(newMode) {
+      mode = newMode;
+
+      const creatingAccount = newMode === 'create';
+
+      $('loginTab').classList.toggle(
+        'active',
+        !creatingAccount
+      );
+
+      $('createTab').classList.toggle(
+        'active',
+        creatingAccount
+      );
+
+      $('nameFields').classList.toggle(
+        'hidden',
+        !creatingAccount
+      );
+
+      $('submitBtn').textContent =
+        creatingAccount
+          ? 'Create Account'
+          : 'Sign In';
+
+      $('password').autocomplete =
+        creatingAccount
+          ? 'new-password'
+          : 'current-password';
+
+      $('status').style.display = 'none';
+    }
+
+
+    $('loginTab').onclick = () => {
+      setMode('login');
+    };
+
+
+    $('createTab').onclick = () => {
+      setMode('create');
+    };
+
+
+    // --------------------------------------------------
+    // CONNECT EXISTING HFF RECORDS TO ACCOUNT
+    // --------------------------------------------------
+
+    async function connectAccount(user) {
+      const email = (user.email || '')
+        .trim()
+        .toLowerCase();
+
+      if (!email) {
+        return;
+      }
+
+      const meta = user.user_metadata || {};
+
+      await sb
+        .from('hff_profiles')
+        .upsert(
+          {
+            user_id: user.id,
+            email: email,
+            first_name: meta.first_name || null,
+            last_name: meta.last_name || null
+          },
+          {
+            onConflict: 'user_id'
+          }
+        );
+
+
+      await sb
+        .from('hff_player_guardians')
+        .update({
+          user_id: user.id
+        })
+        .is('user_id', null)
+        .ilike('guardian_email', email);
+
+
+      await sb
+        .from('hff_team_staff')
+        .update({
+          user_id: user.id
+        })
+        .is('user_id', null)
+        .ilike('email', email);
+    }
+
+
+    // --------------------------------------------------
+    // CHECK WHETHER USER IS ALREADY SIGNED IN
+    // --------------------------------------------------
+
+    async function refresh() {
+
+      const {
+        data: { user }
+      } = await sb.auth.getUser();
+
+
+      $('signedOut').classList.toggle(
+        'hidden',
+        !!user
+      );
+
+      $('signedIn').classList.toggle(
+        'hidden',
+        !user
+      );
+
+      $('forgotPassword').classList.add(
+        'hidden'
+      );
+
+
+      if (user) {
+        $('signedInEmail').textContent =
+          user.email;
+
+        await connectAccount(user);
+      }
+    }
+
+
+    // --------------------------------------------------
+    // SIGN IN / CREATE ACCOUNT
+    // --------------------------------------------------
+
+    $('submitBtn').onclick = async () => {
+
+      const email = $('email')
+        .value
+        .trim()
+        .toLowerCase();
+
+      const password =
+        $('password').value;
+
+
+      if (!email || !password) {
+        return showStatus(
+          'Enter your email and password.',
+          true
+        );
+      }
+
+
+      $('submitBtn').disabled = true;
+
+
+      // CREATE ACCOUNT
+      if (mode === 'create') {
+
+        if (password.length < 6) {
+          $('submitBtn').disabled = false;
+
+          return showStatus(
+            'Password must be at least 6 characters.',
+            true
+          );
+        }
+
+
+        const first =
+          $('firstName').value.trim();
+
+        const last =
+          $('lastName').value.trim();
+
+
+        if (!first || !last) {
+          $('submitBtn').disabled = false;
+
+          return showStatus(
+            'Enter your first and last name.',
+            true
+          );
+        }
+
+
+        const {
+          data,
+          error
+        } = await sb.auth.signUp({
+          email: email,
+          password: password,
+
+          options: {
+            data: {
+              first_name: first,
+              last_name: last
+            }
+          }
+        });
+
+
+        $('submitBtn').disabled = false;
+
+
+        if (error) {
+          return showStatus(
+            error.message,
+            true
+          );
+        }
+
+
+        if (data.user && data.session) {
+
+          await connectAccount(data.user);
+
+          location.href = 'my-hff.html';
+
+        } else {
+
+          showStatus(
+            'Account created. Check your email for the confirmation link, then return here to sign in.'
+          );
+
+        }
+
+      }
+
+
+      // SIGN IN
+      else {
+
+        const {
+          data,
+          error
+        } = await sb.auth.signInWithPassword({
+          email: email,
+          password: password
+        });
+
+
+        $('submitBtn').disabled = false;
+
+
+        if (error) {
+          return showStatus(
+            error.message,
+            true
+          );
+        }
+
+
+        await connectAccount(data.user);
+
+        location.href = 'my-hff.html';
+      }
+    };
+
+
+    // --------------------------------------------------
+    // OPEN FORGOT PASSWORD SCREEN
+    // --------------------------------------------------
+
+    $('forgotBtn').onclick = () => {
+
+      const existingEmail =
+        $('email').value.trim();
+
+      $('signedOut').classList.add(
+        'hidden'
+      );
+
+      $('forgotPassword').classList.remove(
+        'hidden'
+      );
+
+
+      if (existingEmail) {
+        $('resetEmail').value =
+          existingEmail;
+      }
+
+
+      $('resetStatus').style.display =
+        'none';
+
+      $('resetEmail').focus();
+    };
+
+
+    // --------------------------------------------------
+    // BACK TO SIGN IN
+    // --------------------------------------------------
+
+    $('backToSignInBtn').onclick = () => {
+
+      $('forgotPassword').classList.add(
+        'hidden'
+      );
+
+      $('signedOut').classList.remove(
+        'hidden'
+      );
+
+      $('resetStatus').style.display =
+        'none';
+    };
+
+
+    // --------------------------------------------------
+    // SEND PASSWORD RESET EMAIL
+    // --------------------------------------------------
+
+    $('sendResetBtn').onclick = async () => {
+
+      const email = $('resetEmail')
+        .value
+        .trim()
+        .toLowerCase();
+
+
+      if (!email) {
+        return showResetStatus(
+          'Enter your email address.',
+          true
+        );
+      }
+
+
+      $('sendResetBtn').disabled = true;
+
+
+      /*
+        This relative URL is intentional.
+
+        While testing:
+        /test/account.html
+            becomes
+        /test/reset-password.html
+
+        After the test site is promoted to the main site:
+        /account.html
+            becomes
+        /reset-password.html
+      */
+
+      const redirectURL =
+        new URL(
+          'reset-password.html',
+          location.href
+        ).href;
+
+
+      const {
+        error
+      } = await sb.auth.resetPasswordForEmail(
+        email,
+        {
+          redirectTo: redirectURL
+        }
+      );
+
+
+      $('sendResetBtn').disabled = false;
+
+
+      if (error) {
+        return showResetStatus(
+          error.message,
+          true
+        );
+      }
+
+
+      showResetStatus(
+        'Password reset email sent. Check your inbox and follow the link to choose a new password.'
+      );
+    };
+
+
+    // --------------------------------------------------
+    // SIGN OUT
+    // --------------------------------------------------
+
+    $('signOutBtn').onclick = async () => {
+
+      await sb.auth.signOut();
+
+      location.reload();
+    };
+
+
+    // --------------------------------------------------
+    // START PAGE
+    // --------------------------------------------------
+
+    refresh();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,280 @@
+:root {
+  --hff-navy:#000000;
+  --hff-navy-2:#000000;
+  --hff-blue:#0b4f8a;
+  --hff-red:#c8102e;
+  --hff-page:#f4f5f7;
+  --hff-card:#ffffff;
+  --hff-ink:#111827;
+  --hff-muted:#5f6b7a;
+  --hff-line:#d9dee7;
+  --hff-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+
+* { box-sizing:border-box; }
+html { background:var(--hff-page); }
+body {
+  margin:0 !important;
+  background:var(--hff-page) !important;
+  color:var(--hff-ink) !important;
+  font-family:Arial,Helvetica,sans-serif !important;
+}
+body > .top-banner,
+body > header:not(.hff-global-header):not(.site-header),
+.top-banner { display:none !important; }
+
+/* Global MLB-inspired league header */
+.hff-global-header,
+.site-header {
+  position:relative;
+  z-index:1400;
+  width:100%;
+  background:var(--hff-navy) !important;
+  color:#fff;
+  box-shadow:0 2px 7px rgba(0,0,0,.22);
+}
+#site-nav { width:100%; }
+.hff-nav-inner {
+  max-width:1280px;
+  margin:0 auto;
+  min-height:64px;
+  display:flex;
+  align-items:center;
+  gap:1rem;
+  padding:0 24px;
+}
+.hff-nav-brand {
+  display:flex;
+  align-items:center;
+  text-decoration:none;
+  flex:0 0 auto;
+}
+.hff-nav-brand img {
+  display:block;
+  width:clamp(150px,16vw,210px) !important;
+  height:46px !important;
+  object-fit:contain !important;
+  object-position:left center;
+  border-radius:0 !important;
+  background:transparent !important;
+}
+.hff-nav-links {
+  display:flex;
+  align-items:stretch;
+  margin-left:auto;
+}
+.hff-nav-links a {
+  color:#fff !important;
+  text-decoration:none !important;
+  display:flex;
+  align-items:center;
+  min-height:64px;
+  padding:0 12px;
+  font-size:.82rem;
+  font-weight:700;
+  border-bottom:3px solid transparent;
+  transition:background .15s ease,border-color .15s ease;
+  white-space:nowrap;
+}
+.hff-nav-links a:hover { background:rgba(255,255,255,.08); }
+.hff-nav-links a.active { border-bottom-color:#fff; background:rgba(255,255,255,.08); }
+.hff-menu-btn {
+  display:none;
+  margin-left:auto;
+  width:42px;
+  height:38px;
+  border:1px solid rgba(255,255,255,.65);
+  background:transparent;
+  border-radius:4px;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  gap:4px;
+  cursor:pointer;
+}
+.hff-menu-btn span { width:20px;height:2px;background:#fff;display:block; }
+
+/* Scores strip */
+.scores-strip {
+  background:#e9edf2 !important;
+  border-bottom:1px solid #cfd5dd !important;
+  padding:8px 12px !important;
+  overflow:hidden;
+  color:#111 !important;
+}
+.score-row { max-width:1280px !important; margin:0 auto !important; gap:8px !important; }
+.score-box {
+  background:#fff !important;
+  color:#111 !important;
+  border:1px solid #cdd3dc !important;
+  border-radius:3px !important;
+  box-shadow:none !important;
+}
+
+/* Page framing */
+main,
+.main-content,
+.content,
+.page-content { color:var(--hff-ink); }
+main:not(.page-wrap) { max-width:1280px; margin-left:auto; margin-right:auto; }
+.register-page,
+.shop-page,
+.rules-page,
+.about-page,
+.standings-page,
+.schedule-page,
+.cart-page,
+.rep-page,
+.page-section {
+  background:transparent !important;
+  color:var(--hff-ink) !important;
+}
+.register-page,
+.shop-page,
+.rules-page,
+.about-page,
+.standings-page,
+.schedule-page,
+.cart-page,
+.rep-page { padding-top:24px !important; padding-bottom:40px !important; }
+
+/* Main cards / wrappers used across the site */
+.register-wrapper,
+.shop-wrapper,
+.rules-wrapper,
+.about-wrapper,
+.standings-wrapper,
+.schedule-wrapper,
+.cart-wrapper,
+.content-wrapper,
+.page-wrapper,
+.form-wrapper,
+.container {
+  background:var(--hff-card) !important;
+  color:var(--hff-ink) !important;
+  border:1px solid var(--hff-line) !important;
+  border-radius:5px !important;
+  box-shadow:var(--hff-shadow) !important;
+}
+
+h1,h2,h3,h4 { color:var(--hff-ink); }
+h1 {
+  letter-spacing:-.025em;
+  font-weight:900 !important;
+}
+.register-wrapper > h1,
+.shop-wrapper > h1,
+.rules-wrapper > h1,
+.about-wrapper > h1,
+.standings-page h1,
+.cart-title,
+main > h1,
+section > h1 {
+  text-align:left !important;
+  border-bottom:3px solid var(--hff-navy);
+  padding-bottom:12px;
+  margin-bottom:18px !important;
+}
+p { line-height:1.5; }
+
+/* Forms */
+.form-section {
+  background:#fff !important;
+  border-top:1px solid #e1e5ea !important;
+  color:var(--hff-ink) !important;
+}
+.form-section h2 { color:var(--hff-navy) !important; font-weight:800 !important; }
+label { color:#253143 !important; font-weight:700; }
+input,select,textarea {
+  border:1px solid #b8c1cc !important;
+  border-radius:4px !important;
+  background:#fff !important;
+  color:#111 !important;
+}
+input:focus,select:focus,textarea:focus {
+  outline:2px solid rgba(11,79,138,.18) !important;
+  border-color:var(--hff-blue) !important;
+}
+button,.submit-btn,.checkout-btn,.add-player-btn,.coach-btn,.primary-btn {
+  border-radius:4px !important;
+}
+.submit-btn,.checkout-btn,.primary-btn,.add-player-btn {
+  background:var(--hff-navy) !important;
+  color:#fff !important;
+  border:1px solid var(--hff-navy) !important;
+  font-weight:800 !important;
+}
+.submit-btn:hover,.checkout-btn:hover,.primary-btn:hover,.add-player-btn:hover { background:var(--hff-navy-2) !important; }
+
+/* Tables */
+table { background:#fff !important; color:#111 !important; border-collapse:collapse; }
+th {
+  background:var(--hff-navy) !important;
+  color:#fff !important;
+  font-weight:800 !important;
+}
+th,td { border-color:#d8dee6 !important; }
+tr:nth-child(even) td { background:#f7f8fa; }
+
+/* Cards / shop / news */
+.product-card,.story-card,.news-card,.team-card,.division-card,.info-card,.schedule-card,.standings-card {
+  background:#fff !important;
+  color:var(--hff-ink) !important;
+  border:1px solid var(--hff-line) !important;
+  border-radius:5px !important;
+  box-shadow:none !important;
+}
+.product-title,.product-price { color:var(--hff-ink) !important; }
+
+/* Sponsor treatment */
+.sponsor-strip {
+  background:#fff !important;
+  color:#4b5563 !important;
+  border-top:1px solid var(--hff-line);
+  border-bottom:1px solid var(--hff-line);
+}
+.sponsor-logo { border:1px solid #e0e4e9 !important; border-radius:4px !important; background:#fff !important; }
+
+/* Old per-page mobile nav is replaced by the shared header */
+.mobile-nav,.mobile-nav-menu,.mobile-nav-btn { display:none !important; }
+
+/* Utility / system pages */
+body > .success-container,
+body > .cancel-container,
+body > .loading-container,
+body > .waiver-container,
+body > .admin-container,
+body > .database-container {
+  max-width:900px;
+  margin:32px auto !important;
+  background:#fff !important;
+  color:#111 !important;
+  border:1px solid var(--hff-line);
+  border-radius:5px;
+  box-shadow:var(--hff-shadow);
+}
+
+@media (max-width:980px) {
+  .hff-nav-inner { min-height:58px;padding:0 16px; }
+  .hff-nav-brand img { width:160px !important;height:40px !important; }
+  .hff-menu-btn { display:flex; }
+  .hff-nav-links {
+    position:absolute;
+    left:0;right:0;top:58px;
+    z-index:1500;
+    background:var(--hff-navy);
+    border-top:1px solid rgba(255,255,255,.14);
+    box-shadow:0 12px 24px rgba(0,0,0,.24);
+    display:none;
+    flex-direction:column;
+    margin:0;
+  }
+  .hff-nav-links.open { display:flex; }
+  .hff-nav-links a { min-height:48px;padding:0 18px;border-bottom:1px solid rgba(255,255,255,.09); }
+  .hff-nav-links a.active { border-left:4px solid #fff;border-bottom-color:rgba(255,255,255,.09); }
+}
+@media (max-width:700px) {
+  .scores-strip { padding:7px 8px !important; }
+  .register-page,.shop-page,.rules-page,.about-page,.standings-page,.schedule-page,.cart-page,.rep-page { padding:14px 10px 28px !important; }
+  .register-wrapper,.shop-wrapper,.rules-wrapper,.about-wrapper,.standings-wrapper,.schedule-wrapper,.cart-wrapper,.content-wrapper,.page-wrapper,.form-wrapper,.container { border-radius:3px !important; }
+}

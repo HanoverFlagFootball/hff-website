@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Flag Football League</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+:root{--navy:#000000;--navy2:#000000;--ink:#111827;--muted:#5f6b7a;--line:#d9dee7;--page:#f4f5f7;--white:#fff;--red:#c8102e}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--page);color:var(--ink)}a{color:inherit}
+.site-header{position:relative;background:var(--navy);color:#fff;box-shadow:0 2px 7px rgba(0,0,0,.22)}
+.scores-strip{background:#e9edf2;border-bottom:1px solid #cfd5dd;padding:8px 12px;overflow:hidden}.score-row{display:flex;gap:8px;max-width:1280px;margin:0 auto;overflow:hidden}.score-box{background:#fff;color:#111;border:1px solid #cdd3dc;border-radius:3px;padding:7px 9px;flex:0 0 150px;min-height:78px;display:flex;flex-direction:column;justify-content:center}.score-title{font-size:.64rem;color:#596270;text-align:center;border-bottom:1px solid #e5e7eb;margin-bottom:4px;padding-bottom:3px}.team-row{display:flex;align-items:center;justify-content:space-between;gap:4px}.team-left{display:flex;align-items:center;gap:5px;min-width:0}.team-logo{width:22px;height:22px;object-fit:contain}.team-name{font-size:.72rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.team-score{font-size:.78rem;font-weight:800}.score-status{font-size:.58rem;text-transform:uppercase;text-align:center;margin-top:3px;color:#596270;letter-spacing:.05em}
+.page-wrap{max-width:1280px;margin:0 auto;padding:22px 22px 40px}.section-title{font-size:1.28rem;margin:0 0 14px;font-weight:900;letter-spacing:-.02em}.section-rule{border-top:3px solid var(--navy);padding-top:13px}
+.hero-grid{display:grid;grid-template-columns:minmax(0,2.5fr) minmax(280px,.75fr);gap:22px;align-items:start}.hero-feature{position:relative;min-height:0;aspect-ratio:16/9;background:var(--navy);overflow:hidden;border-radius:4px;border:1px solid var(--line)}.hero-feature video,.hero-feature .hero-fallback{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:var(--hero-pos-desktop,center center)}.hero-feature .hero-fallback{z-index:0}.hero-feature video{z-index:1}.panel,.story-card,.shop-card{background:#fff;border:1px solid var(--line);border-radius:4px;overflow:hidden}.eyebrow{color:var(--red);font-size:.69rem;text-transform:uppercase;font-weight:900;letter-spacing:.08em;margin-bottom:6px}
+.panel{padding:15px}.panel h2{font-size:1.05rem;margin:0 0 12px;padding-bottom:9px;border-bottom:3px solid var(--navy)}.date-item{display:grid;grid-template-columns:58px 1fr;gap:10px;padding:10px 0;border-bottom:1px solid #e4e7eb;align-items:center}.date-item:last-child{border-bottom:0}.date-thumb{width:58px;height:58px;overflow:hidden;border-radius:3px;background:#eee;cursor:pointer}.date-thumb img{width:100%;height:100%;object-fit:cover;display:block}.date-copy h3{font-size:.88rem;margin:0 0 3px}.date-copy p{font-size:.76rem;line-height:1.35;color:var(--muted);margin:0}
+.content-section{margin-top:28px}.story-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.story-card img{width:100%;aspect-ratio:16/10;object-fit:cover;display:block}.story-copy{padding:11px 12px}.story-copy h3{font-size:.93rem;line-height:1.2;margin:0 0 5px}.story-copy p{font-size:.78rem;line-height:1.4;color:var(--muted);margin:0}
+.shop-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}.shop-card{text-decoration:none;text-align:center;padding:13px 8px 12px;transition:transform .12s ease,box-shadow .12s ease}.shop-card:hover{transform:translateY(-2px);box-shadow:0 5px 14px rgba(0,0,0,.1)}.shop-card img{width:100%;height:100px;object-fit:contain;display:block;margin-bottom:8px}.shop-card span{font-size:.82rem;font-weight:800}.view-all{display:inline-block;margin-top:12px;color:var(--navy);font-size:.84rem;font-weight:800;text-decoration:none}.view-all:hover{text-decoration:underline}
+.sponsor-strip{margin-top:30px;background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:24px 20px 30px;text-align:center}.sponsor-strip h2{font-size:.9rem;color:#4b5563;letter-spacing:.12em;margin:0 0 16px}.sponsor-track-wrapper{overflow:hidden;max-width:1280px;margin:0 auto}.sponsor-track{display:flex;justify-content:center;align-items:center;gap:28px}.sponsor-logo{width:100px;height:100px;border:1px solid #e0e4e9;border-radius:4px;background:#fff;overflow:hidden;cursor:pointer;flex:0 0 auto}.sponsor-logo img{width:100%;height:100%;object-fit:contain;display:block}
+.image-modal-overlay,.sponsor-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);display:none;align-items:center;justify-content:center;z-index:2500;padding:1rem}.image-modal-overlay.show,.sponsor-modal-overlay.show{display:flex}.image-modal-content{max-width:min(90vw,700px);max-height:90vh}.image-modal-content img{max-width:100%;max-height:85vh;display:block;border:3px solid #fff}.image-modal-close,.sponsor-modal-close{position:absolute;top:1rem;right:1rem;background:#fff;color:#111;border:0;border-radius:50%;width:36px;height:36px;font-size:1.35rem;cursor:pointer}.sponsor-modal-box{width:min(92vw,520px);background:#fff;color:#111;border-radius:6px;padding:24px;position:relative;text-align:center}.sponsor-modal-title{font-size:1.05rem;font-weight:900;text-transform:uppercase;margin-bottom:8px}.sponsor-modal-text{line-height:1.45}.sponsor-modal-actions{margin-top:14px}.sponsor-modal-btn{background:var(--navy);color:#fff;border:0;border-radius:3px;padding:10px 18px;font-weight:800;cursor:pointer}
+@media(max-width:980px){.hero-grid{grid-template-columns:1fr;align-items:start}.hero-feature{height:auto;min-height:0;aspect-ratio:16/9}.hero-feature video,.hero-feature .hero-fallback{object-position:var(--hero-pos-mobile,center center)}.story-grid{grid-template-columns:repeat(2,1fr)}.shop-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:700px){.scores-strip{padding:7px 8px}.score-box{flex:0 0 calc((100% - 8px)/2)}.score-box:nth-child(n+3){display:none}.page-wrap{padding:14px 12px 28px}.hero-feature{height:auto;min-height:0;aspect-ratio:16/9}.story-grid{grid-template-columns:1fr 1fr;gap:9px}.story-copy{padding:9px}.shop-grid{grid-template-columns:repeat(2,1fr)}.shop-card img{height:84px}.sponsor-track{justify-content:flex-start;gap:14px}.sponsor-logo{width:84px;height:84px}}
+@media(max-width:430px){.story-grid{grid-template-columns:1fr}.hero-feature{height:auto;min-height:0;aspect-ratio:16/9}}
+</style>
+  <link rel="stylesheet" href="site-theme.css?v=20260913">
+<link rel="stylesheet" href="visual-editor.css?v=1"></head>
+
+<body data-cms-page="hff">
+  <header class="site-header">
+    <div id="site-nav"></div>
+  </header>
+
+  <div class="scores-strip">
+    <div class="score-row" id="scoreRow"></div>
+  </div>
+
+  <main class="page-wrap">
+    <section class="hero-grid">
+      <article class="hero-feature">
+        <img class="hero-fallback" id="heroFallback" alt="Hanover Flag Football action" style="display:none">
+        <video id="heroVideo" autoplay muted loop playsinline style="display:none" aria-label="Hanover Flag Football highlight video">
+          <source src="" type="video/mp4">
+        </video>
+      </article>
+
+      <aside class="panel right-col">
+        <h2 data-cms-key="important_dates_heading">Important Dates</h2>
+        <div id="importantDatesList"><div class="date-item"><div class="date-thumb"><img src="./June27.png?v=4" alt="June 27"></div><div class="date-copy"><h3>Skills Competition</h3><p>U6 9:15am · U9 9:00am · U12 & U16 11:00am</p></div></div>
+        <div class="date-item"><div class="date-thumb"><img src="./July4.png?v=4" alt="July 4"></div><div class="date-copy"><h3>Super Bowl Weekend</h3><p>Final week of the HFF 2026 season.</p></div></div>
+        <div class="date-item"><div class="date-thumb"><img src="./July11.png?v=4" alt="July 11"></div><div class="date-copy"><h3>Adult Tournament</h3><p>HFF's first adult one-day tournament.</p></div></div>
+        <div class="date-item"><div class="date-thumb"><img src="./August1.png?v=4" alt="August 1"></div><div class="date-copy"><h3>Ti-Cats Day</h3><p>HFF goes to Hamilton.</p></div></div></div>
+      </aside>
+    </section>
+
+    <section class="content-section section-rule">
+      <h2 class="section-title" data-cms-key="latest_heading">Latest from HFF</h2>
+      <div class="story-grid" id="latestStories">
+        <article class="story-card"><a href="rep-home.html" style="text-decoration:none"><img src="Rep/jersey.png" alt="Hanover Hustle rep team"><div class="story-copy"><div class="eyebrow">Hanover Hustle</div><h3>Hanover's rep program</h3><p>Follow the Hanover Hustle competitive flag football program and tournament journey.</p></div></a></article>
+        <article class="story-card"><img src="thankyou.jpg" alt="Thank you"><div class="story-copy"><h3>Thank you for a great season</h3><p>Thank you players, coaches, referees and families for making 2026 a great HFF season.</p></div></article>
+        <article class="story-card"><img src="champions2026u9.jpg" alt="U9 Bears"><div class="story-copy"><h3>U9 Bears are champions</h3><p>Congratulations to the Bears on taking home the U9 title.</p></div></article>
+        <article class="story-card"><img src="champions2026u12.jpg" alt="U12 Jets"><div class="story-copy"><h3>U12 Jets finish on top</h3><p>Congratulations to the Jets on a terrific championship season.</p></div></article>
+        <article class="story-card"><img src="champions2026u16.jpg" alt="U16 Vikings"><div class="story-copy"><h3>Vikings win the U16 championship</h3><p>Congratulations to the Vikings on capturing the U16 title.</p></div></article>
+      </div>
+    </section>
+
+    <section class="content-section section-rule">
+      <h2 class="section-title" data-cms-key="shop_heading">Shop NFL Flag Gear</h2>
+      <div class="shop-grid">
+        <a href="shop.html" class="shop-card"><img src="gloves.png" alt="Team Gloves"><span>Team Gloves</span></a>
+        <a href="shop.html" class="shop-card"><img src="headband.png" alt="Team Headband"><span>Team Headband</span></a>
+        <a href="shop.html" class="shop-card"><img src="sleeve.png" alt="Team Sleeve"><span>Team Sleeve</span></a>
+        <a href="shop.html" class="shop-card"><img src="shorts.png" alt="Team Shorts"><span>Team Shorts</span></a>
+        <a href="shop.html" class="shop-card"><img src="Football - Flag.png" alt="Flag Football"><span>Footballs</span></a>
+      </div>
+      <a href="shop.html" class="view-all" data-cms-key="shop_link_text">View all HFF gear →</a>
+    </section>
+  </main>
+
+  <section class="sponsor-strip">
+    <h2 data-cms-key="sponsor_heading">SPONSORED BY</h2>
+    <div class="sponsor-track-wrapper"><div class="sponsor-track" id="sponsorTrack">
+      <div class="sponsor-logo" data-sponsor="true"><img src="DC Cab.png" alt="DC Cab"></div>
+      <div class="sponsor-logo"><img src="YourAdHere.png" alt="Sponsor slot"></div>
+      <div class="sponsor-logo"><img src="SponsorFun.png" alt="Sponsor slot"></div>
+      <div class="sponsor-logo"><img src="ThankYouSponsors.png" alt="Sponsor slot"></div>
+      <div class="sponsor-logo"><img src="YourAdHere.png" alt="Sponsor slot"></div>
+      <div class="sponsor-logo"><img src="SponsorFun.png" alt="Sponsor slot"></div>
+    </div></div>
+  </section>
+
+  <!-- IMAGE MODAL (existing) -->
+  <div class="image-modal-overlay" id="imageModal">
+    <button class="image-modal-close" id="imageModalClose" aria-label="Close">&times;</button>
+    <div class="image-modal-content">
+      <img src="" alt="enlarged image" id="imageModalImg">
+    </div>
+  </div>
+
+  <!-- SPONSOR POPUP MODAL (NEW) -->
+  <div class="sponsor-modal-overlay" id="sponsorModal" aria-hidden="true">
+    <div class="sponsor-modal-box" role="dialog" aria-modal="true" aria-labelledby="sponsorModalTitle">
+      <button class="sponsor-modal-close" id="sponsorModalClose" aria-label="Close">×</button>
+      <div class="sponsor-modal-title" id="sponsorModalTitle">Sponsor Hanover Flag Football</div>
+      <p class="sponsor-modal-text">
+        To sponsor Hanover Flag Football, please reach out to Kyle or Emily at
+        <strong>info@hanoverflagfootball.ca</strong> or <strong>226 230 1477</strong>.<br>
+        Thank you!
+      </p>
+
+      <div class="sponsor-modal-actions">
+        <button class="sponsor-modal-btn" id="sponsorModalOk">Got it</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // sponsor rotation every 5s
+    const sponsorTrack = document.getElementById('sponsorTrack');
+    if (sponsorTrack) {
+      setInterval(() => {
+        const firstLogo = sponsorTrack.firstElementChild;
+        if (firstLogo) sponsorTrack.appendChild(firstLogo);
+      }, 5000);
+    }
+
+    // ===== IMAGE MODAL LOGIC (existing) =====
+    const modal = document.getElementById('imageModal');
+    const modalImg = document.getElementById('imageModalImg');
+    const modalClose = document.getElementById('imageModalClose');
+
+    document.querySelectorAll('.right-col .date-thumb img').forEach(img => {
+      img.addEventListener('click', () => {
+        modalImg.src = img.src;
+        modal.classList.add('show');
+      });
+    });
+
+    modalClose.addEventListener('click', () => {
+      modal.classList.remove('show');
+      modalImg.src = "";
+    });
+
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.classList.remove('show');
+        modalImg.src = "";
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modal.classList.contains('show')) {
+        modal.classList.remove('show');
+        modalImg.src = "";
+      }
+    });
+
+    // ===== SPONSOR POPUP MODAL (NEW) =====
+    const sponsorModal = document.getElementById('sponsorModal');
+    const sponsorModalClose = document.getElementById('sponsorModalClose');
+    const sponsorModalOk = document.getElementById('sponsorModalOk');
+
+    function openSponsorModal() {
+      if (!sponsorModal) return;
+      sponsorModal.classList.add('show');
+      sponsorModal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeSponsorModal() {
+      if (!sponsorModal) return;
+      sponsorModal.classList.remove('show');
+      sponsorModal.setAttribute('aria-hidden', 'true');
+    }
+
+    // Click sponsor logos:
+    // - data-sponsor="true" => enlarge logo (use existing image modal)
+    // - otherwise => open sponsorship popup modal
+    document.querySelectorAll('.sponsor-logo').forEach(logoDiv => {
+      logoDiv.addEventListener('click', (e) => {
+        e.preventDefault();
+
+        const img = logoDiv.querySelector('img');
+        if (!img) return;
+
+        const isRealSponsor = (logoDiv.getAttribute('data-sponsor') === 'true');
+
+        if (isRealSponsor) {
+          modalImg.src = img.src;
+          modal.classList.add('show');
+        } else {
+          openSponsorModal();
+        }
+      });
+    });
+
+    // Close buttons
+    if (sponsorModalClose) sponsorModalClose.addEventListener('click', closeSponsorModal);
+    if (sponsorModalOk) sponsorModalOk.addEventListener('click', closeSponsorModal);
+
+    // Click outside box closes
+    if (sponsorModal) {
+      sponsorModal.addEventListener('click', (e) => {
+        if (e.target === sponsorModal) closeSponsorModal();
+      });
+    }
+
+    // ESC closes sponsor modal too (without breaking image modal behavior)
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && sponsorModal && sponsorModal.classList.contains('show')) {
+        closeSponsorModal();
+      }
+    });
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="homepage-content.js?v=20260926b"></script>
+
+  <!-- Shared hamburger nav -->
+  <script src="nav.js"></script>
+<script src="season-schedule.js?v=20"></script>
+<script src="scores-strip.js?v=20"></script>
+<script>window.HFF_VISUAL_EDITOR={mode:"hff",page:"hff"};</script><script src="visual-home-editor.js?v=20260926b"></script></body>
+</html>

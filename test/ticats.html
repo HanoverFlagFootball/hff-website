@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ticats Game - Hanover Flag Football</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Arial, Helvetica, sans-serif; background: #000; color: #fff; }
+
+    .top-banner {
+      width: 100%; background: #000; aspect-ratio: 8 / 1;
+      display: flex; align-items: center; justify-content: center;
+      min-height: 90px; position: relative; border-bottom: 1px solid #222;
+    }
+
+    .top-banner img { height: 94%; width: auto; max-width: 95vw; object-fit: contain; display: block; }
+
+    .mobile-nav { position: absolute; bottom: 6px; left: 10px; display: flex; align-items: center; }
+    .mobile-nav-btn {
+      width: 34px; height: 28px; border: 1px solid #fff;
+      background: rgba(0,0,0,0.3); display: inline-flex;
+      flex-direction: column; justify-content: center; gap: 4px; cursor: pointer;
+    }
+    .mobile-nav-btn span { display: block; height: 2px; background: #fff; }
+
+    .mobile-nav-menu {
+      position: absolute; top: calc(100% + 4px); left: 10px;
+      background: #111; border: 1px solid #333; border-radius: 0.5rem;
+      display: none; flex-direction: column; z-index: 999; min-width: 180px;
+    }
+    .mobile-nav-menu a {
+      color: #fff; text-decoration: none; padding: 0.6rem 0.8rem;
+      border-bottom: 1px solid #222; font-size: 0.9rem;
+    }
+    .mobile-nav-menu.show { display: flex; }
+
+    @media (min-width:701px) {
+      .mobile-nav { bottom: 38px; left: 44px; }
+      .mobile-nav-btn { width: 65px; height: 50px; gap: 5px; border-width: 2px; }
+      .mobile-nav-btn span { height: 3px; }
+    }
+
+    .page-wrap { padding: 2rem 1rem 3rem; display: flex; justify-content: center; }
+    .form-card { width: 100%; max-width: 850px; background: #fff; color: #000; border: 1px solid #333; padding: 1.7rem; }
+    .form-card h1 { margin-top: 0; text-align: center; font-size: clamp(1.5rem, 2.5vw, 2rem); }
+
+    .intro-text { text-align: center; color: #333; line-height: 1.5; margin-bottom: 1.4rem; font-size: 0.95rem; }
+    .notice-box {
+      background: #f5f5f5; border: 1px solid #ccc; padding: 0.9rem 1rem;
+      margin-bottom: 1.5rem; font-size: 0.92rem; line-height: 1.5; text-align: center;
+    }
+
+    .form-section { margin-bottom: 1.5rem; border-top: 1px solid #ddd; padding-top: 1rem; }
+    .form-section:first-of-type { border-top: none; padding-top: 0; }
+    .form-section h2 { margin-top: 0; font-size: 1rem; }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width:700px) { .form-grid { grid-template-columns: 1fr; } }
+
+    .form-row { margin-bottom: 1rem; }
+    label { display: block; margin-bottom: 0.3rem; font-size: 0.9rem; color: #333; }
+
+    input, textarea, select {
+      width: 100%; padding: 0.55rem 0.6rem; border: 1px solid #ccc;
+      font-size: 0.95rem; font-family: inherit; background: #fff; color: #000;
+    }
+
+    textarea { min-height: 90px; resize: vertical; }
+
+    .player-entry { border-bottom: 1px solid #ddd; margin-bottom: 1rem; padding-bottom: 0.5rem; }
+
+    .add-player-btn, .remove-player-btn {
+      background: #fff; color: #000; border: 1px solid #000; cursor: pointer;
+    }
+
+    .add-player-btn { padding: 0.55rem 1rem; font-size: 0.9rem; }
+    .remove-player-btn { padding: 0.4rem 0.75rem; font-size: 0.8rem; border-color: #999; }
+
+    .submit-row { text-align: center; margin-top: 2rem; }
+    .submit-btn {
+      background: #000; color: #fff; border: 1px solid #000;
+      padding: 0.8rem 1.8rem; font-size: 1rem; cursor: pointer;
+    }
+
+    .message { margin-top: 1rem; text-align: center; font-size: 0.95rem; display: none; }
+    .message.success { display: block; color: green; font-weight: bold; }
+    .message.error { display: block; color: red; font-weight: bold; }
+  </style>
+  <link rel="stylesheet" href="site-theme.css?v=20260913">
+</head>
+
+<body>
+
+  <div class="top-banner">
+    <a href="index.html" style="display:flex; align-items:center; justify-content:center; height:100%; width:100%;">
+      <img src="White Logo.jpg" alt="Hanover Flag Football Logo">
+    </a>
+
+    <div class="mobile-nav">
+      <button class="mobile-nav-btn" type="button" onclick="toggleMenu()">
+        <span></span><span></span><span></span>
+      </button>
+
+      <div class="mobile-nav-menu" id="mobileMenu">
+        <a href="index.html">Home</a>
+        <a href="scores&schedules.html">Scores &amp; Schedules</a>
+        <a href="AboutUs.html">About Us</a>
+        <a href="shop.html">Shop</a>
+      </div>
+    </div>
+  </div>
+
+  <section class="page-wrap">
+    <div class="form-card">
+      <h1>Hamilton Ticats Game – August 1st</h1>
+
+      <div class="intro-text">
+        Request tickets for the August 1st Hamilton Ticats game and let us know if your player is interested in participating in the on-field scrimmage experience.
+      </div>
+
+      <div class="notice-box">
+        Participation in the on-field scrimmage is limited and is <strong>not guaranteed.</strong>
+      </div>
+
+      <form id="ticatsForm" onsubmit="submitTicatsForm(event)">
+        <div class="form-section">
+          <h2>Parent / Guardian Information</h2>
+
+          <div class="form-grid">
+            <div class="form-row">
+              <label>Parent / Guardian Name *</label>
+              <input type="text" id="parentName" required>
+            </div>
+
+            <div class="form-row">
+              <label>Email *</label>
+              <input type="email" id="email" required>
+            </div>
+
+            <div class="form-row">
+              <label>Phone Number</label>
+              <input type="tel" id="phone">
+            </div>
+
+            <div class="form-row">
+              <label>Number of Tickets Requested *</label>
+              <input type="number" id="ticketsRequested" min="1" max="10" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h2>Player Information</h2>
+          <div id="playersContainer"></div>
+
+          <button type="button" class="add-player-btn" onclick="addPlayer()">
+            + Add Another Player
+          </button>
+        </div>
+
+        <div class="form-section">
+          <h2>Notes / Questions</h2>
+          <textarea id="notes" placeholder="Anything else we should know?"></textarea>
+        </div>
+
+        <div class="submit-row">
+          <button type="submit" class="submit-btn" id="submitBtn">Submit Request</button>
+          <div id="formMessage" class="message"></div>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <script>
+    const SUPABASE_URL = "https://wnhzgxnwlmohfldnhhyt.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InduaHpneG53bG1vaGZsZG5oaHl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcwMjkxMDQsImV4cCI6MjA4MjYwNTEwNH0.k2kjxeRDJs8oNb-hQPihdDuDDviP6OzAIBXwPBfc8cc";
+
+    function toggleMenu() {
+      document.getElementById('mobileMenu').classList.toggle('show');
+    }
+
+    function createPlayerEntry(canRemove) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'player-entry';
+
+      wrapper.innerHTML = `
+        <div class="form-grid">
+          <div class="form-row">
+            <label>Player Name</label>
+            <input type="text" class="player-name">
+          </div>
+
+          <div class="form-row">
+            <label>Interested in On-Field Scrimmage?</label>
+            <select class="player-scrimmage-interest">
+              <option value="false">No</option>
+              <option value="true">Yes</option>
+            </select>
+          </div>
+        </div>
+      `;
+
+      if (canRemove) {
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'remove-player-btn';
+        removeBtn.textContent = 'Remove Player';
+        removeBtn.onclick = function () {
+          wrapper.remove();
+        };
+        wrapper.appendChild(removeBtn);
+      }
+
+      return wrapper;
+    }
+
+    function addPlayer() {
+      document.getElementById('playersContainer').appendChild(createPlayerEntry(true));
+    }
+
+    function resetPlayers() {
+      const container = document.getElementById('playersContainer');
+      container.innerHTML = '';
+      container.appendChild(createPlayerEntry(false));
+    }
+
+    function showMessage(type, text) {
+      const message = document.getElementById('formMessage');
+      message.className = type ? 'message ' + type : 'message';
+      message.textContent = text || '';
+    }
+
+    async function submitTicatsForm(event) {
+      event.preventDefault();
+
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
+      showMessage('', '');
+
+      try {
+        if (SUPABASE_URL === "YOUR_SUPABASE_URL" || SUPABASE_ANON_KEY === "YOUR_SUPABASE_ANON_KEY") {
+          throw new Error("Supabase URL/key have not been added yet.");
+        }
+
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const parentName = document.getElementById('parentName').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+        const ticketsRequested = Number(document.getElementById('ticketsRequested').value);
+        const notes = document.getElementById('notes').value.trim();
+
+        const rowsToInsert = Array.from(document.querySelectorAll('.player-entry')).map(entry => ({
+          parent_name: parentName,
+          email: email,
+          phone: phone,
+          tickets_requested: ticketsRequested,
+          player_name: entry.querySelector('.player-name').value.trim(),
+          player_team: '',
+          scrimmage_interest: entry.querySelector('.player-scrimmage-interest').value === 'true',
+          notes: notes
+        }));
+
+        const { error } = await supabaseClient
+          .from('ticats_game_requests')
+          .insert(rowsToInsert);
+
+        if (error) throw error;
+
+        document.getElementById('ticatsForm').reset();
+        resetPlayers();
+        showMessage('success', 'Thank you! Your request has been submitted.');
+
+      } catch (error) {
+        console.error(error);
+        showMessage('error', 'Something went wrong: ' + error.message);
+      }
+
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit Request';
+    }
+
+    resetPlayers();
+  </script>
+
+  <script src="nav.js?v=20260913"></script>
+</body>
+</html>
