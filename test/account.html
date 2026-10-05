@@ -346,19 +346,39 @@
 
       const meta = user.user_metadata || {};
 
-      await sb
+      const { data: existingProfile } = await sb
         .from('hff_profiles')
-        .upsert(
-          {
+        .select('user_id, first_name, last_name')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (!existingProfile) {
+        await sb
+          .from('hff_profiles')
+          .insert({
             user_id: user.id,
             email: email,
             first_name: meta.first_name || null,
             last_name: meta.last_name || null
-          },
-          {
-            onConflict: 'user_id'
-          }
-        );
+          });
+      } else {
+        const profileUpdate = {
+          email: email
+        };
+
+        if (!existingProfile.first_name && meta.first_name) {
+          profileUpdate.first_name = meta.first_name;
+        }
+
+        if (!existingProfile.last_name && meta.last_name) {
+          profileUpdate.last_name = meta.last_name;
+        }
+
+        await sb
+          .from('hff_profiles')
+          .update(profileUpdate)
+          .eq('user_id', user.id);
+      }
 
 
       await sb
