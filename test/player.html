@@ -290,11 +290,13 @@ async function authorName(){
 
   const {data:p}=await sb.from('hff_profiles').select('first_name,last_name').eq('user_id',currentUser.id).maybeSingle();
 
-  if(p?.first_name)return boardDisplayName(p.first_name,p.last_name);
-
   const meta=currentUser.user_metadata||{};
 
-  return boardDisplayName(meta.first_name,meta.last_name);
+  const baseName=p?.first_name
+    ? boardDisplayName(p.first_name,p.last_name)
+    : boardDisplayName(meta.first_name,meta.last_name);
+
+  return currentIsCoach ? `${baseName} - Coach` : baseName;
 
 }
 
