@@ -13,9 +13,144 @@
 <script>
 const sb=supabase.createClient('https://wnhzgxnwlmohfldnhhyt.supabase.co','sb_publishable_x5Xkl7tfpUwhz_ENftiaqQ_am915vqY'),$=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));let currentUser,currentTeam;const teamId=new URLSearchParams(location.search).get('team');
 function fmtDate(s){if(!s)return'';const[y,m,d]=s.split('-').map(Number);return new Date(Date.UTC(y,m-1,d)).toLocaleDateString('en-CA',{weekday:'short',month:'short',day:'numeric',timeZone:'UTC'})}function fmtTime(t){if(!t)return'';const[h,m]=t.split(':').map(Number);return new Date(2000,0,1,h,m).toLocaleTimeString('en-CA',{hour:'numeric',minute:'2-digit'})}function eventName(e){return e.title||((e.event_type||'Event').charAt(0).toUpperCase()+(e.event_type||'event').slice(1))}function bindTabs(){document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));b.classList.add('active');$(b.dataset.view).classList.add('active')})}
-async function boot(){const{data:{user}}=await sb.auth.getUser();currentUser=user;if(!user){location.href='account.html';return}if(!teamId){$('content').textContent='Team not specified.';return}const{data:staff,error}=await sb.from('hff_team_staff').select('role,active,hff_teams(id,season,program,division,team_name,active)').eq('team_id',teamId).eq('user_id',user.id).eq('active',true).maybeSingle();if(error||!staff||!['coach','assistant_coach'].includes(staff.role)){$('content').textContent='This team is not connected to your coaching account.';return}currentTeam=staff.hff_teams;if(!currentTeam||currentTeam.active===false){$('content').textContent='This team is not currently active.';return}const[{data:links},{data:members}]=await Promise.all([sb.from('hff_event_teams').select('id,score,result,hff_events(*)').eq('team_id',teamId),sb.from('hff_team_players').select('jersey_number,active,hff_players(first_name,last_name)').eq('team_id',teamId)]);const events=(links||[]).map(x=>({...x.hff_events,link:x})).filter(e=>e&&e.published!==false).sort((a,b)=>(a.event_date||'').localeCompare(b.event_date||''));const roster=(members||[]).filter(x=>x.active!==false&&x.hff_players);const today=new Date().toISOString().slice(0,10),next=events.find(e=>(e.event_date||'')>=today);const nextHtml=next?`<div class="next"><div class="meta">Next up · ${esc(fmtDate(next.event_date))}${next.start_time?' · '+esc(fmtTime(next.start_time)):''}</div><h2>${esc(eventName(next))}</h2><div class="meta">${esc([next.location,next.field].filter(Boolean).join(' · ')||'Location to be announced')}</div></div>`:'<div class="empty">No upcoming team events are currently published.</div>';const eventHtml=events.length?`<div class="events">${events.map(e=>`<div class="event"><div class="event-date">${esc(fmtDate(e.event_date))}<small>${esc(fmtTime(e.start_time))}</small></div><div><div class="event-title">${esc(eventName(e))}</div><div class="meta">${esc([e.event_type,e.location,e.field].filter(Boolean).join(' · '))}</div></div><div class="score">${(e.event_date||'')<today&&e.link?.result?esc(e.link.result):''}</div></div>`).join('')}</div>`:'<div class="empty">No schedule has been published.</div>';const rosterHtml=roster.length?`<div class="roster">${roster.map(r=>`<div class="roster-row"><span class="roster-name">${esc(r.hff_players.first_name)} ${esc(r.hff_players.last_name||'')}</span><span>${r.jersey_number?'#'+esc(r.jersey_number):''}</span></div>`).join('')}</div>`:'<div class="empty">No active players are assigned.</div>';$('content').className='';$('content').innerHTML=`<section class="hero"><div class="kicker">${esc(currentTeam.program==='rep'?'Hanover Hustle':'Hanover Flag Football')}</div><h1>${esc(currentTeam.team_name)}</h1><div class="teamline">${[currentTeam.division,currentTeam.season].filter(Boolean).map(esc).join(' · ')}</div></section><nav class="tabs"><button class="tab active" data-view="overview">Overview</button><button class="tab" data-view="schedule">Schedule & Results</button><button class="tab" data-view="roster">Roster</button><button class="tab" data-view="playbook">Playbook</button></nav><section class="view active" id="overview"><h2 class="section-title">Next Up</h2>${nextHtml}<h2 class="section-title">Team Attendance</h2><div id="attendance"></div><h2 class="section-title">Team Announcements</h2><div id="announcements"></div></section><section class="view" id="schedule"><h2 class="section-title">Team Schedule & Results</h2>${eventHtml}</section><section class="view" id="roster"><h2 class="section-title">Team Roster</h2>${rosterHtml}</section><section class="view" id="playbook"><div class="feature"><h2>Team Playbook</h2><button class="playbook-btn" onclick="downloadPlaybook()">Download Playbook</button><div class="playbook-upload"><strong>Coach Upload</strong><div class="meta">PDF files only. Uploading a new file replaces the current playbook.</div><input id="playbookFile" type="file" accept=".pdf,application/pdf"><button class="playbook-btn" onclick="uploadPlaybook()">Upload / Replace Playbook</button><div id="playbookStatus" class="meta"></div></div></div></section>`;bindTabs();loadAttendance(events);loadAnnouncements()}
+async function boot(){const{data:{user}}=await sb.auth.getUser();currentUser=user;if(!user){location.href='account.html';return}if(!teamId){$('content').textContent='Team not specified.';return}const{data:staff,error}=await sb.from('hff_team_staff').select('role,active,hff_teams(id,season,program,division,team_name,active)').eq('team_id',teamId).eq('user_id',user.id).eq('active',true).maybeSingle();if(error||!staff||!['coach','assistant_coach'].includes(staff.role)){$('content').textContent='This team is not connected to your coaching account.';return}currentTeam=staff.hff_teams;if(!currentTeam||currentTeam.active===false){$('content').textContent='This team is not currently active.';return}const[{data:links},{data:members}]=await Promise.all([sb.from('hff_event_teams').select('id,score,result,hff_events(*)').eq('team_id',teamId),sb.from('hff_team_players').select('jersey_number,active,hff_players(first_name,last_name)').eq('team_id',teamId)]);const events=(links||[]).map(x=>({...x.hff_events,link:x})).filter(e=>e&&e.published!==false).sort((a,b)=>(a.event_date||'').localeCompare(b.event_date||''));const roster=(members||[]).filter(x=>x.active!==false&&x.hff_players);const today=new Date().toISOString().slice(0,10),next=events.find(e=>(e.event_date||'')>=today);const nextHtml=next?`<div class="next"><div class="meta">Next up · ${esc(fmtDate(next.event_date))}${next.start_time?' · '+esc(fmtTime(next.start_time)):''}</div><h2>${esc(eventName(next))}</h2><div class="meta">${esc([next.location,next.field].filter(Boolean).join(' · ')||'Location to be announced')}</div></div>`:'<div class="empty">No upcoming team events are currently published.</div>';const eventHtml=events.length?`<div class="events">${events.map(e=>`<div class="event"><div class="event-date">${esc(fmtDate(e.event_date))}<small>${esc(fmtTime(e.start_time))}</small></div><div><div class="event-title">${esc(eventName(e))}</div><div class="meta">${esc([e.event_type,e.location,e.field].filter(Boolean).join(' · '))}</div></div><div class="score">${(e.event_date||'')<today&&e.link?.result?esc(e.link.result):''}</div></div>`).join('')}</div>`:'<div class="empty">No schedule has been published.</div>';const rosterHtml=roster.length?`<div class="roster">${roster.map(r=>`<div class="roster-row"><span class="roster-name">${esc(r.hff_players.first_name)} ${esc(r.hff_players.last_name||'')}</span><span>${r.jersey_number?'#'+esc(r.jersey_number):''}</span></div>`).join('')}</div>`:'<div class="empty">No active players are assigned.</div>';$('content').className='';$('content').innerHTML=`<section class="hero"><div class="kicker">${esc(currentTeam.program==='rep'?'Hanover Hustle':'Hanover Flag Football')}</div><h1>${esc(currentTeam.team_name)}</h1><div class="teamline">${[currentTeam.division,currentTeam.season].filter(Boolean).map(esc).join(' · ')}</div></section><nav class="tabs"><button class="tab active" data-view="overview">Overview</button><button class="tab" data-view="schedule">Schedule & Results</button><button class="tab" data-view="roster">Roster</button><button class="tab" data-view="playbook">Playbook</button></nav><section class="view active" id="overview"><h2 class="section-title">Next Up</h2>${nextHtml}<h2 class="section-title">Team Attendance</h2><div id="attendance"></div><h2 class="section-title">Team Announcements</h2><div class="composer"><input id="announcementTitle" maxlength="120" placeholder="Post title"><textarea id="announcementBody" maxlength="3000" placeholder="Share an update with the team..."></textarea><button onclick="postAnnouncement()">Post to Team</button><div id="announcementStatus" class="meta"></div></div><div id="announcements"></div></section><section class="view" id="schedule"><h2 class="section-title">Team Schedule & Results</h2>${eventHtml}</section><section class="view" id="roster"><h2 class="section-title">Team Roster</h2>${rosterHtml}</section><section class="view" id="playbook"><div class="feature"><h2>Team Playbook</h2><button class="playbook-btn" onclick="downloadPlaybook()">Download Playbook</button><div class="playbook-upload"><strong>Coach Upload</strong><div class="meta">PDF files only. Uploading a new file replaces the current playbook.</div><input id="playbookFile" type="file" accept=".pdf,application/pdf"><button class="playbook-btn" onclick="uploadPlaybook()">Upload / Replace Playbook</button><div id="playbookStatus" class="meta"></div></div></div></section>`;bindTabs();loadAttendance(events);loadAnnouncements()}
 async function loadAttendance(events){const box=$('attendance'),today=new Date().toISOString().slice(0,10),open=events.filter(e=>(e.event_date||'')>=today&&e.attendance_open_date&&today>=e.attendance_open_date);if(!open.length){box.innerHTML='<div class="empty">No attendance confirmations are open right now.</div>';return}const cards=[];for(const e of open){const{data,error}=await sb.rpc('hff_team_attendance',{check_event_id:e.id,check_team_id:currentTeam.id});if(error){cards.push(`<div class="empty">Attendance could not load.</div>`);continue}const rows=data||[],g=rows.filter(r=>r.response==='going').length,n=rows.filter(r=>r.response==='not_going').length,z=rows.filter(r=>!r.response).length;cards.push(`<div class="attendance-card"><strong>${esc(eventName(e))}</strong><div class="meta">${esc(fmtDate(e.event_date))}</div><div class="attendance-summary">✓ Attending: ${g} · ✕ Can't Attend: ${n} · □ No Response: ${z}</div>${rows.map(r=>`<div class="attendance-row"><span>${esc(r.player_name)}</span><span class="attendance-mark ${r.response==='going'?'attending':r.response==='not_going'?'not-attending':''}">${r.response==='going'?'✓':r.response==='not_going'?'✕':''}</span></div>`).join('')}</div>`)}box.innerHTML=cards.join('')}
-async function loadAnnouncements(){const box=$('announcements');const{data,error}=await sb.from('hff_team_announcements').select('title,body,author_name,created_at').eq('team_id',currentTeam.id).order('created_at',{ascending:false});if(error){box.innerHTML='<div class="empty">Team announcements could not load.</div>';return}box.innerHTML=data?.length?data.map(a=>`<article class="announcement"><h3>${esc(a.title)}</h3><div class="announcement-meta">${esc(a.author_name||'Team member')} · ${esc(new Date(a.created_at).toLocaleString('en-CA',{dateStyle:'medium',timeStyle:'short'}))}</div><div class="announcement-body">${esc(a.body)}</div></article>`).join(''):'<div class="empty">No team posts yet.</div>'}
+function boardDisplayName(first,last){
+
+  const f=String(first||'').trim();
+
+  const l=String(last||'').trim();
+
+  if(!f)return 'Team member';
+
+  return l ? `${f} ${l.charAt(0).toUpperCase()}.` : f;
+
+}
+
+async function authorName(){
+
+  const {data:p}=await sb.from('hff_profiles').select('first_name,last_name').eq('user_id',currentUser.id).maybeSingle();
+
+  if(p?.first_name)return boardDisplayName(p.first_name,p.last_name);
+
+  const meta=currentUser.user_metadata||{};
+
+  return boardDisplayName(meta.first_name,meta.last_name);
+
+}
+
+async function getTeamDisplayNames(userIds){
+
+  const ids=[...new Set((userIds||[]).filter(Boolean))];
+
+  const names={};
+
+  if(!ids.length||!currentTeam)return names;
+
+  const {data,error}=await sb.rpc('hff_team_display_names',{check_team_id:currentTeam.id,check_user_ids:ids});
+
+  if(error)return names;
+
+  for(const row of data||[])names[row.user_id]=row.display_name||'Team member';
+
+  return names;
+
+}
+
+async function loadAnnouncements(){
+
+  const box=$('announcements');if(!box||!currentTeam)return;
+
+  box.innerHTML='<div class="status">Loading team announcements…</div>';
+
+  const {data:posts,error}=await sb.from('hff_team_announcements').select('id,title,body,author_user_id,author_name,created_at').eq('team_id',currentTeam.id).order('created_at',{ascending:false});
+
+  if(error){box.innerHTML=`<div class="empty">Team announcements could not load. ${esc(error.message)}</div>`;return}
+
+  if(!posts?.length){box.innerHTML='<div class="empty">No team posts yet. Be the first to post.</div>';return}
+
+  const ids=posts.map(x=>x.id);
+
+  const {data:comments,error:ce}=await sb.from('hff_team_announcement_comments').select('id,announcement_id,body,author_user_id,author_name,created_at').in('announcement_id',ids).order('created_at',{ascending:true});
+
+  const cs=ce?[]:(comments||[]);
+
+  const displayNames=await getTeamDisplayNames([...posts.map(x=>x.author_user_id),...cs.map(x=>x.author_user_id)]);
+
+  const myBoardName=await authorName();
+
+  // Always resolve the signed-in member from their own profile. This avoids showing
+
+  // "Team member" for their own older posts if the team-safe lookup returns no row.
+
+  displayNames[currentUser.id]=myBoardName;
+
+  box.innerHTML=posts.map(a=>{
+
+    const mine=a.author_user_id===currentUser.id;
+
+    const deletePost=(mine||true)?`<button class="delete-btn" onclick="deleteAnnouncement('${a.id}')">Delete</button>`:'';
+
+    const these=cs.filter(c=>c.announcement_id===a.id);
+
+    const legacyMine=String(a.author_name||'').trim().toLowerCase()===String(currentUser.email||'').trim().toLowerCase();
+
+    const postName=legacyMine?myBoardName:(displayNames[a.author_user_id]||'Team member');
+
+    return `<article class="announcement">${deletePost}<h3>${esc(a.title)}</h3><div class="announcement-meta">${esc(postName)} · ${esc(new Date(a.created_at).toLocaleString('en-CA',{dateStyle:'medium',timeStyle:'short'}))}</div><div class="announcement-body">${esc(a.body)}</div><div class="comments"><strong>Comments</strong>${these.length?these.map(c=>`<div class="comment">${(c.author_user_id===currentUser.id||true)?`<button class="delete-btn" onclick="deleteComment('${c.id}')">Delete</button>`:''}<strong>${esc(String(c.author_name||'').trim().toLowerCase()===String(currentUser.email||'').trim().toLowerCase()?myBoardName:(displayNames[c.author_user_id]||'Team member'))}</strong>${esc(c.body)}</div>`).join(''):'<div class="meta" style="margin-top:8px">No comments yet.</div>'}<div class="comment-form"><input id="comment-${a.id}" maxlength="1000" placeholder="Add a comment..."><button onclick="postComment('${a.id}')">Post</button></div></div></article>`
+
+  }).join('');
+
+}
+
+async function postAnnouncement(){
+
+  const title=$('announcementTitle')?.value.trim(),body=$('announcementBody')?.value.trim(),status=$('announcementStatus');
+
+  if(!title||!body){if(status)status.textContent='Enter a title and message.';return}
+
+  if(status)status.textContent='Posting…';
+
+  const name=await authorName();
+
+  const {error}=await sb.from('hff_team_announcements').insert({team_id:currentTeam.id,title,body,author_user_id:currentUser.id,author_name:name});
+
+  if(error){if(status)status.textContent='Could not post: '+error.message;return}
+
+  $('announcementTitle').value='';$('announcementBody').value='';if(status)status.textContent='Posted.';await loadAnnouncements();
+
+}
+
+async function postComment(id){
+
+  const input=$('comment-'+id);const body=input?.value.trim();if(!body)return;
+
+  const name=await authorName();
+
+  const {error}=await sb.from('hff_team_announcement_comments').insert({announcement_id:id,body,author_user_id:currentUser.id,author_name:name});
+
+  if(error){alert('Could not post comment: '+error.message);return} input.value='';await loadAnnouncements();
+
+}
+
+async function deleteAnnouncement(id){
+
+  if(!confirm('Delete this team post?'))return;
+
+  const {error}=await sb.from('hff_team_announcements').delete().eq('id',id);if(error){alert('Could not delete post: '+error.message);return}await loadAnnouncements();
+
+}
+
+async function deleteComment(id){
+
+  if(!confirm('Delete this comment?'))return;
+
+  const {error}=await sb.from('hff_team_announcement_comments').delete().eq('id',id);if(error){alert('Could not delete comment: '+error.message);return}await loadAnnouncements();
+
+}
+
+
+
 async function downloadPlaybook(){const{data:r,error}=await sb.from('hff_team_playbooks').select('file_name,storage_path').eq('team_id',currentTeam.id).maybeSingle();if(error||!r){alert('No playbook has been uploaded for this team yet.');return}const{data:file,error:fe}=await sb.storage.from('team-playbooks').download(r.storage_path);if(fe){alert('Could not download the playbook: '+fe.message);return}const u=URL.createObjectURL(file),a=document.createElement('a');a.href=u;a.download=r.file_name||'playbook.pdf';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000)}
 async function uploadPlaybook(){const input=$('playbookFile'),status=$('playbookStatus'),file=input?.files?.[0];if(!file){status.textContent='Choose a PDF file first.';return}if(file.type!=='application/pdf'&&!file.name.toLowerCase().endsWith('.pdf')){status.textContent='Playbooks must be PDF files.';return}status.textContent='Uploading…';const path=currentTeam.id+'/playbook.pdf';const{error:ue}=await sb.storage.from('team-playbooks').upload(path,file,{contentType:'application/pdf',upsert:true});if(ue){status.textContent='Upload failed: '+ue.message;return}const{data:ex}=await sb.from('hff_team_playbooks').select('id').eq('team_id',currentTeam.id).maybeSingle();const payload={team_id:currentTeam.id,file_name:file.name,storage_path:path,uploaded_by:currentUser.id,uploaded_at:new Date().toISOString()};const r=ex?await sb.from('hff_team_playbooks').update(payload).eq('id',ex.id):await sb.from('hff_team_playbooks').insert(payload);status.textContent=r.error?'PDF uploaded, but its record could not be saved: '+r.error.message:'Playbook uploaded successfully.';if(!r.error)input.value=''}
 boot();
