@@ -7,13 +7,101 @@
 <link rel="stylesheet" href="site-theme.css?v=20260927">
 <style>
 *{box-sizing:border-box}body{margin:0;background:#d7d7d7;color:#111;font-family:Arial,sans-serif}.wrap{max-width:1080px;margin:0 auto;padding:32px 20px 70px}.back{display:inline-block;color:#111;font-weight:800;text-decoration:none;margin-bottom:22px}.hero{background:#111;color:#fff;padding:28px 30px;border-bottom:6px solid #fff}.kicker{font-size:.75rem;letter-spacing:.17em;text-transform:uppercase;font-weight:900;color:#bbb}.hero h1{color:#fff!important;margin:6px 0 4px;font-size:clamp(2rem,5vw,3.4rem);line-height:1;font-weight:900}.teamline{font-size:1.08rem;font-weight:800}.tabs{display:flex;background:#fff;border-bottom:1px solid #ccc;overflow-x:auto}.tab{border:0;background:#fff;padding:15px 18px;font-weight:900;cursor:pointer;border-bottom:4px solid transparent}.tab.active{border-color:#111}.view{display:none;padding-top:28px}.view.active{display:block}.section-title{font-size:1rem;text-transform:uppercase;letter-spacing:.1em;font-weight:900;margin:0 0 14px}.next,.feature,.announcement,.attendance-card,.empty{background:#fff;border:1px solid #ddd;padding:20px;margin-bottom:12px}.next{border-left:6px solid #111}.next h2{margin:6px 0}.meta{color:#666;font-size:.88rem;line-height:1.5}.events{background:#fff;border-top:4px solid #111}.event{display:grid;grid-template-columns:110px 1fr auto;gap:18px;align-items:center;padding:17px 18px;border-bottom:1px solid #ddd}.event-date{font-weight:900}.event-date small{display:block;color:#666}.event-title,.roster-name{font-weight:900}.score{font-weight:900}.roster{background:#fff;border-top:4px solid #111}.roster-row,.attendance-row{display:grid;grid-template-columns:1fr auto;gap:12px;padding:11px 16px;border-bottom:1px solid #eee}.attendance-card{border-left:6px solid #111}.attendance-summary{font-weight:900;margin:10px 0}.attendance-mark{display:inline-flex;width:24px;height:24px;align-items:center;justify-content:center;border:2px solid #999;border-radius:3px}.attendance-mark.attending{border-color:#188038;color:#188038}.attendance-mark.not-attending{border-color:#c5221f;color:#c5221f}.playbook-btn{display:inline-block;background:#111;color:#fff;border:0;padding:10px 14px;font-weight:900;cursor:pointer;margin-top:8px}.playbook-upload{margin-top:18px;padding-top:16px;border-top:1px solid #ddd}.playbook-upload input{display:block;margin:10px 0}.announcement h3{margin:0 0 5px}.announcement-meta{font-size:.78rem;color:#666;margin-bottom:12px}.announcement-body{white-space:pre-wrap;line-height:1.5}.status{padding:25px 0;color:#555}@media(max-width:650px){.wrap{padding:24px 14px 50px}.event{grid-template-columns:82px 1fr}.score{grid-column:2}}
+#site-nav,.wrap{position:relative;z-index:2}
+.team-page-bg,.team-page-smoke{position:fixed;inset:0;pointer-events:none}
+.team-page-bg{
+  z-index:0;
+  background-position:center center;
+  background-size:cover;
+  background-repeat:no-repeat;
+  background-attachment:fixed;
+  filter:contrast(.88) brightness(.82) saturate(.95);
+  transform:scale(1.015);
+}
+.team-page-smoke{
+  z-index:1;
+  background:
+    radial-gradient(ellipse at 14% 18%,rgba(245,245,245,.82) 0%,rgba(215,215,215,.58) 25%,rgba(150,150,150,.24) 48%,transparent 67%),
+    radial-gradient(ellipse at 82% 24%,rgba(95,95,95,.36) 0%,rgba(175,175,175,.30) 27%,transparent 59%),
+    radial-gradient(ellipse at 38% 78%,rgba(238,238,238,.72) 0%,rgba(165,165,165,.30) 34%,transparent 64%),
+    radial-gradient(ellipse at 88% 86%,rgba(105,105,105,.34) 0%,rgba(205,205,205,.32) 33%,transparent 63%),
+    linear-gradient(118deg,rgba(225,225,225,.48),rgba(125,125,125,.22) 45%,rgba(235,235,235,.52));
+  backdrop-filter:blur(1.5px);
+}
+
+.delete-btn{float:right;display:inline-flex;align-items:center;justify-content:center;width:23px;height:23px;padding:0;border:1px solid #b91c1c;border-radius:50%;background:#fff;color:#c5221f;font-size:17px;font-weight:900;line-height:1;cursor:pointer}.delete-btn:hover{background:#c5221f;color:#fff}
 </style>
 </head>
 <body><div id="site-nav"></div><main class="wrap"><a class="back" href="my-hff.html">← My HFF</a><div id="content" class="status">Loading team…</div></main><script src="nav.js"></script>
 <script>
 const sb=supabase.createClient('https://wnhzgxnwlmohfldnhhyt.supabase.co','sb_publishable_x5Xkl7tfpUwhz_ENftiaqQ_am915vqY'),$=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));let currentUser,currentTeam;const teamId=new URLSearchParams(location.search).get('team');
-function fmtDate(s){if(!s)return'';const[y,m,d]=s.split('-').map(Number);return new Date(Date.UTC(y,m-1,d)).toLocaleDateString('en-CA',{weekday:'short',month:'short',day:'numeric',timeZone:'UTC'})}function fmtTime(t){if(!t)return'';const[h,m]=t.split(':').map(Number);return new Date(2000,0,1,h,m).toLocaleTimeString('en-CA',{hour:'numeric',minute:'2-digit'})}function eventName(e){return e.title||((e.event_type||'Event').charAt(0).toUpperCase()+(e.event_type||'event').slice(1))}function bindTabs(){document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));b.classList.add('active');$(b.dataset.view).classList.add('active')})}
-async function boot(){const{data:{user}}=await sb.auth.getUser();currentUser=user;if(!user){location.href='account.html';return}if(!teamId){$('content').textContent='Team not specified.';return}const{data:staff,error}=await sb.from('hff_team_staff').select('role,active,hff_teams(id,season,program,division,team_name,active)').eq('team_id',teamId).eq('user_id',user.id).eq('active',true).maybeSingle();if(error||!staff||!['coach','assistant_coach'].includes(staff.role)){$('content').textContent='This team is not connected to your coaching account.';return}currentTeam=staff.hff_teams;if(!currentTeam||currentTeam.active===false){$('content').textContent='This team is not currently active.';return}const[{data:links},{data:members}]=await Promise.all([sb.from('hff_event_teams').select('id,score,result,hff_events(*)').eq('team_id',teamId),sb.from('hff_team_players').select('jersey_number,active,hff_players(first_name,last_name)').eq('team_id',teamId)]);const events=(links||[]).map(x=>({...x.hff_events,link:x})).filter(e=>e&&e.published!==false).sort((a,b)=>(a.event_date||'').localeCompare(b.event_date||''));const roster=(members||[]).filter(x=>x.active!==false&&x.hff_players);const today=new Date().toISOString().slice(0,10),next=events.find(e=>(e.event_date||'')>=today);const nextHtml=next?`<div class="next"><div class="meta">Next up · ${esc(fmtDate(next.event_date))}${next.start_time?' · '+esc(fmtTime(next.start_time)):''}</div><h2>${esc(eventName(next))}</h2><div class="meta">${esc([next.location,next.field].filter(Boolean).join(' · ')||'Location to be announced')}</div></div>`:'<div class="empty">No upcoming team events are currently published.</div>';const eventHtml=events.length?`<div class="events">${events.map(e=>`<div class="event"><div class="event-date">${esc(fmtDate(e.event_date))}<small>${esc(fmtTime(e.start_time))}</small></div><div><div class="event-title">${esc(eventName(e))}</div><div class="meta">${esc([e.event_type,e.location,e.field].filter(Boolean).join(' · '))}</div></div><div class="score">${(e.event_date||'')<today&&e.link?.result?esc(e.link.result):''}</div></div>`).join('')}</div>`:'<div class="empty">No schedule has been published.</div>';const rosterHtml=roster.length?`<div class="roster">${roster.map(r=>`<div class="roster-row"><span class="roster-name">${esc(r.hff_players.first_name)} ${esc(r.hff_players.last_name||'')}</span><span>${r.jersey_number?'#'+esc(r.jersey_number):''}</span></div>`).join('')}</div>`:'<div class="empty">No active players are assigned.</div>';$('content').className='';$('content').innerHTML=`<section class="hero"><div class="kicker">${esc(currentTeam.program==='rep'?'Hanover Hustle':'Hanover Flag Football')}</div><h1>${esc(currentTeam.team_name)}</h1><div class="teamline">${[currentTeam.division,currentTeam.season].filter(Boolean).map(esc).join(' · ')}</div></section><nav class="tabs"><button class="tab active" data-view="overview">Overview</button><button class="tab" data-view="schedule">Schedule & Results</button><button class="tab" data-view="roster">Roster</button><button class="tab" data-view="playbook">Playbook</button></nav><section class="view active" id="overview"><h2 class="section-title">Next Up</h2>${nextHtml}<h2 class="section-title">Team Attendance</h2><div id="attendance"></div><h2 class="section-title">Team Announcements</h2><div class="composer"><input id="announcementTitle" maxlength="120" placeholder="Post title"><textarea id="announcementBody" maxlength="3000" placeholder="Share an update with the team..."></textarea><button onclick="postAnnouncement()">Post to Team</button><div id="announcementStatus" class="meta"></div></div><div id="announcements"></div></section><section class="view" id="schedule"><h2 class="section-title">Team Schedule & Results</h2>${eventHtml}</section><section class="view" id="roster"><h2 class="section-title">Team Roster</h2>${rosterHtml}</section><section class="view" id="playbook"><div class="feature"><h2>Team Playbook</h2><button class="playbook-btn" onclick="downloadPlaybook()">Download Playbook</button><div class="playbook-upload"><strong>Coach Upload</strong><div class="meta">PDF files only. Uploading a new file replaces the current playbook.</div><input id="playbookFile" type="file" accept=".pdf,application/pdf"><button class="playbook-btn" onclick="uploadPlaybook()">Upload / Replace Playbook</button><div id="playbookStatus" class="meta"></div></div></div></section>`;bindTabs();loadAttendance(events);loadAnnouncements()}
+function fmtDate(s){if(!s)return'';const[y,m,d]=s.split('-').map(Number);return new Date(Date.UTC(y,m-1,d)).toLocaleDateString('en-CA',{weekday:'short',month:'short',day:'numeric',timeZone:'UTC'})}function fmtTime(t){if(!t)return'';const[h,m]=t.split(':').map(Number);return new Date(2000,0,1,h,m).toLocaleTimeString('en-CA',{hour:'numeric',minute:'2-digit'})}function eventName(e){return e.title||((e.event_type||'Event').charAt(0).toUpperCase()+(e.event_type||'event').slice(1))}function teamLogoFile(teamName){
+  const clean=String(teamName||'')
+    .replace(/\([^)]*\)/g,' ')
+    .replace(/\bU\d+\b/gi,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+
+  const aliases={
+    'arizona cardinals':'Cardinals','cardinals':'Cardinals',
+    'atlanta falcons':'Falcons','falcons':'Falcons',
+    'baltimore ravens':'Ravens','ravens':'Ravens',
+    'buffalo bills':'Bills','bills':'Bills',
+    'carolina panthers':'Panthers','panthers':'Panthers',
+    'chicago bears':'Bears','bears':'Bears',
+    'cincinnati bengals':'Bengals','bengals':'Bengals',
+    'cleveland browns':'Browns','browns':'Browns',
+    'dallas cowboys':'Cowboys','cowboys':'Cowboys',
+    'denver broncos':'Broncos','broncos':'Broncos',
+    'detroit lions':'Lions','lions':'Lions',
+    'green bay packers':'Packers','packers':'Packers',
+    'houston texans':'Texans','texans':'Texans',
+    'indianapolis colts':'Colts','colts':'Colts',
+    'jacksonville jaguars':'Jaguars','jaguars':'Jaguars',
+    'kansas city chiefs':'Chiefs','chiefs':'Chiefs',
+    'las vegas raiders':'Raiders','raiders':'Raiders',
+    'los angeles chargers':'Chargers','chargers':'Chargers',
+    'los angeles rams':'Rams','rams':'Rams',
+    'miami dolphins':'Dolphins','dolphins':'Dolphins',
+    'minnesota vikings':'Vikings','vikings':'Vikings',
+    'new england patriots':'Patriots','patriots':'Patriots',
+    'new orleans saints':'Saints','saints':'Saints',
+    'new york giants':'Giants','giants':'Giants',
+    'new york jets':'Jets','jets':'Jets',
+    'philadelphia eagles':'Eagles','eagles':'Eagles',
+    'pittsburgh steelers':'Steelers','steelers':'Steelers',
+    'san francisco 49ers':'49ers','49ers':'49ers',
+    'seattle seahawks':'Seahawks','seahawks':'Seahawks',
+    'tampa bay buccaneers':'Buccaneers','buccaneers':'Buccaneers',
+    'tennessee titans':'Titans','titans':'Titans',
+    'washington commanders':'Commanders','commanders':'Commanders'
+  };
+
+  const key=clean.toLowerCase();
+  const mascot=aliases[key] || aliases[key.split(' ').pop()];
+  return mascot ? `${mascot}.png` : '';
+}
+
+function applyTeamBackground(teamName){
+  document.querySelector('.team-page-bg')?.remove();
+  document.querySelector('.team-page-smoke')?.remove();
+
+  const file=teamLogoFile(teamName);
+  if(!file)return;
+
+  const bg=document.createElement('div');
+  bg.className='team-page-bg';
+  bg.style.backgroundImage=`url("${encodeURI(file)}")`;
+
+  const smoke=document.createElement('div');
+  smoke.className='team-page-smoke';
+
+  document.body.prepend(smoke);
+  document.body.prepend(bg);
+}
+
+function bindTabs(){document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));b.classList.add('active');$(b.dataset.view).classList.add('active')})}
+async function boot(){const{data:{user}}=await sb.auth.getUser();currentUser=user;if(!user){location.href='account.html';return}if(!teamId){$('content').textContent='Team not specified.';return}const{data:staff,error}=await sb.from('hff_team_staff').select('role,active,hff_teams(id,season,program,division,team_name,active)').eq('team_id',teamId).eq('user_id',user.id).eq('active',true).maybeSingle();if(error||!staff||!['coach','assistant_coach'].includes(staff.role)){$('content').textContent='This team is not connected to your coaching account.';return}currentTeam=staff.hff_teams;if(!currentTeam||currentTeam.active===false){$('content').textContent='This team is not currently active.';return}applyTeamBackground(currentTeam.team_name);const[{data:links},{data:members}]=await Promise.all([sb.from('hff_event_teams').select('id,score,result,hff_events(*)').eq('team_id',teamId),sb.from('hff_team_players').select('jersey_number,active,hff_players(first_name,last_name)').eq('team_id',teamId)]);const events=(links||[]).map(x=>({...x.hff_events,link:x})).filter(e=>e&&e.published!==false).sort((a,b)=>(a.event_date||'').localeCompare(b.event_date||''));const roster=(members||[]).filter(x=>x.active!==false&&x.hff_players);const today=new Date().toISOString().slice(0,10),next=events.find(e=>(e.event_date||'')>=today);const nextHtml=next?`<div class="next"><div class="meta">Next up · ${esc(fmtDate(next.event_date))}${next.start_time?' · '+esc(fmtTime(next.start_time)):''}</div><h2>${esc(eventName(next))}</h2><div class="meta">${esc([next.location,next.field].filter(Boolean).join(' · ')||'Location to be announced')}</div></div>`:'<div class="empty">No upcoming team events are currently published.</div>';const eventHtml=events.length?`<div class="events">${events.map(e=>`<div class="event"><div class="event-date">${esc(fmtDate(e.event_date))}<small>${esc(fmtTime(e.start_time))}</small></div><div><div class="event-title">${esc(eventName(e))}</div><div class="meta">${esc([e.event_type,e.location,e.field].filter(Boolean).join(' · '))}</div></div><div class="score">${(e.event_date||'')<today&&e.link?.result?esc(e.link.result):''}</div></div>`).join('')}</div>`:'<div class="empty">No schedule has been published.</div>';const rosterHtml=roster.length?`<div class="roster">${roster.map(r=>`<div class="roster-row"><span class="roster-name">${esc(r.hff_players.first_name)} ${esc(r.hff_players.last_name||'')}</span><span>${r.jersey_number?'#'+esc(r.jersey_number):''}</span></div>`).join('')}</div>`:'<div class="empty">No active players are assigned.</div>';$('content').className='';$('content').innerHTML=`<section class="hero"><div class="kicker">${esc(currentTeam.program==='rep'?'Hanover Hustle':'Hanover Flag Football')}</div><h1>${esc(currentTeam.team_name)}</h1><div class="teamline">${[currentTeam.division,currentTeam.season].filter(Boolean).map(esc).join(' · ')}</div></section><nav class="tabs"><button class="tab active" data-view="overview">Overview</button><button class="tab" data-view="schedule">Schedule & Results</button><button class="tab" data-view="roster">Roster</button><button class="tab" data-view="playbook">Playbook</button></nav><section class="view active" id="overview"><h2 class="section-title">Next Up</h2>${nextHtml}<h2 class="section-title">Team Attendance</h2><div id="attendance"></div><h2 class="section-title">Team Announcements</h2><div class="composer"><input id="announcementTitle" maxlength="120" placeholder="Post title"><textarea id="announcementBody" maxlength="3000" placeholder="Share an update with the team..."></textarea><button onclick="postAnnouncement()">Post to Team</button><div id="announcementStatus" class="meta"></div></div><div id="announcements"></div></section><section class="view" id="schedule"><h2 class="section-title">Team Schedule & Results</h2>${eventHtml}</section><section class="view" id="roster"><h2 class="section-title">Team Roster</h2>${rosterHtml}</section><section class="view" id="playbook"><div class="feature"><h2>Team Playbook</h2><button class="playbook-btn" onclick="downloadPlaybook()">Download Playbook</button><div class="playbook-upload"><strong>Coach Upload</strong><div class="meta">PDF files only. Uploading a new file replaces the current playbook.</div><input id="playbookFile" type="file" accept=".pdf,application/pdf"><button class="playbook-btn" onclick="uploadPlaybook()">Upload / Replace Playbook</button><div id="playbookStatus" class="meta"></div></div></div></section>`;bindTabs();loadAttendance(events);loadAnnouncements()}
 async function loadAttendance(events){const box=$('attendance'),today=new Date().toISOString().slice(0,10),open=events.filter(e=>(e.event_date||'')>=today&&e.attendance_open_date&&today>=e.attendance_open_date);if(!open.length){box.innerHTML='<div class="empty">No attendance confirmations are open right now.</div>';return}const cards=[];for(const e of open){const{data,error}=await sb.rpc('hff_team_attendance',{check_event_id:e.id,check_team_id:currentTeam.id});if(error){cards.push(`<div class="empty">Attendance could not load.</div>`);continue}const rows=data||[],g=rows.filter(r=>r.response==='going').length,n=rows.filter(r=>r.response==='not_going').length,z=rows.filter(r=>!r.response).length;cards.push(`<div class="attendance-card"><strong>${esc(eventName(e))}</strong><div class="meta">${esc(fmtDate(e.event_date))}</div><div class="attendance-summary">✓ Attending: ${g} · ✕ Can't Attend: ${n} · □ No Response: ${z}</div>${rows.map(r=>`<div class="attendance-row"><span>${esc(r.player_name)}</span><span class="attendance-mark ${r.response==='going'?'attending':r.response==='not_going'?'not-attending':''}">${r.response==='going'?'✓':r.response==='not_going'?'✕':''}</span></div>`).join('')}</div>`)}box.innerHTML=cards.join('')}
 function boardDisplayName(first,last){
 
@@ -89,7 +177,7 @@ async function loadAnnouncements(){
 
     const mine=a.author_user_id===currentUser.id;
 
-    const deletePost=(mine||true)?`<button class="delete-btn" onclick="deleteAnnouncement('${a.id}')">Delete</button>`:'';
+    const deletePost=(mine||true)?`<button class="delete-btn" onclick="deleteAnnouncement('${a.id}')" title="Delete" aria-label="Delete">×</button>`:'';
 
     const these=cs.filter(c=>c.announcement_id===a.id);
 
@@ -97,7 +185,7 @@ async function loadAnnouncements(){
 
     const postName=legacyMine?myBoardName:(displayNames[a.author_user_id]||'Team member');
 
-    return `<article class="announcement">${deletePost}<h3>${esc(a.title)}</h3><div class="announcement-meta">${esc(postName)} · ${esc(new Date(a.created_at).toLocaleString('en-CA',{dateStyle:'medium',timeStyle:'short'}))}</div><div class="announcement-body">${esc(a.body)}</div><div class="comments"><strong>Comments</strong>${these.length?these.map(c=>`<div class="comment">${(c.author_user_id===currentUser.id||true)?`<button class="delete-btn" onclick="deleteComment('${c.id}')">Delete</button>`:''}<strong>${esc(String(c.author_name||'').trim().toLowerCase()===String(currentUser.email||'').trim().toLowerCase()?myBoardName:(displayNames[c.author_user_id]||'Team member'))}</strong>${esc(c.body)}</div>`).join(''):'<div class="meta" style="margin-top:8px">No comments yet.</div>'}<div class="comment-form"><input id="comment-${a.id}" maxlength="1000" placeholder="Add a comment..."><button onclick="postComment('${a.id}')">Post</button></div></div></article>`
+    return `<article class="announcement">${deletePost}<h3>${esc(a.title)}</h3><div class="announcement-meta">${esc(postName)} · ${esc(new Date(a.created_at).toLocaleString('en-CA',{dateStyle:'medium',timeStyle:'short'}))}</div><div class="announcement-body">${esc(a.body)}</div><div class="comments"><strong>Comments</strong>${these.length?these.map(c=>`<div class="comment">${(c.author_user_id===currentUser.id||true)?`<button class="delete-btn" onclick="deleteComment('${c.id}')" title="Delete" aria-label="Delete">×</button>`:''}<strong>${esc(String(c.author_name||'').trim().toLowerCase()===String(currentUser.email||'').trim().toLowerCase()?myBoardName:(displayNames[c.author_user_id]||'Team member'))}</strong>${esc(c.body)}</div>`).join(''):'<div class="meta" style="margin-top:8px">No comments yet.</div>'}<div class="comment-form"><input id="comment-${a.id}" maxlength="1000" placeholder="Add a comment..."><button onclick="postComment('${a.id}')">Post</button></div></div></article>`
 
   }).join('');
 
