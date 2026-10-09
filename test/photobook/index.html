@@ -1,0 +1,31 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Family Photobook — Sign In</title>
+  <link rel="stylesheet" href="photobook.css">
+</head>
+<body>
+  <main class="login-page">
+    <section class="login-card">
+      <h1>Family Photobook</h1>
+      <p class="subtitle">A place for our family memories.</p>
+
+      <form id="loginForm">
+        <label for="email">Email</label>
+        <input type="email" id="email" required autocomplete="username">
+
+        <label for="password">Password</label>
+        <input type="password" id="password" required autocomplete="current-password">
+
+        <button type="submit">Sign In</button>
+        <p id="loginMessage" role="status"></p>
+      </form>
+    </section>
+  </main>
+
+  <script src="photobook.js"></script>
+</body>
+</html>
