@@ -57,12 +57,13 @@ if (membershipError || !membershipData) {
   return;
 }
 
-accountStatus.textContent =
-  membershipData.role === "poster" ? "Poster" : "Viewer";  }
+    accountStatus.textContent =
+      membershipData.role === "poster" ? "Poster" : "Viewer";
 
-if (membershipData.role === "poster") {
-  document.getElementById("uploadButton").hidden = false;
-}
+    if (membershipData.role === "poster") {
+      document.getElementById("uploadButton").hidden = false;
+    }
+  }
 
   checkGallerySession();
 
