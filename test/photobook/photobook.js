@@ -32,3 +32,30 @@ if (loginForm) {
     }
   });
 }
+// Gallery authentication and sign out.
+const signOutButton = document.getElementById("signOutButton");
+
+if (signOutButton) {
+  async function checkGallerySession() {
+    const { data, error } = await db.auth.getUser();
+
+    if (error || !data.user) {
+      window.location.replace("index.html");
+      return;
+    }
+
+    const accountStatus = document.getElementById("accountStatus");
+    accountStatus.textContent = "Signed in";
+  }
+
+  checkGallerySession();
+
+  signOutButton.addEventListener("click", async function () {
+    signOutButton.disabled = true;
+    signOutButton.textContent = "Signing out...";
+
+    await db.auth.signOut();
+
+    window.location.replace("index.html");
+  });
+}

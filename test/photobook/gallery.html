@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Family Photobook</title>
+  <link rel="stylesheet" href="photobook.css?v=2">
+</head>
+<body>
+  <header class="gallery-header">
+    <h1>Family Photobook</h1>
+    <button id="signOutButton" type="button">Sign Out</button>
+  </header>
+
+  <main class="gallery-page">
+    <div class="gallery-toolbar">
+      <h2>Our Memories</h2>
+      <p id="accountStatus">Checking your account...</p>
+    </div>
+
+    <section id="photoGallery" class="photo-gallery">
+      <p class="empty-gallery">
+        No photos yet. Our family memories will appear here.
+      </p>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="photobook.js?v=3"></script>
+</body>
+</html>
