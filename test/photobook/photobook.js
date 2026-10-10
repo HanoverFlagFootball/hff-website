@@ -60,6 +60,10 @@ if (membershipError || !membershipData) {
 accountStatus.textContent =
   membershipData.role === "poster" ? "Poster" : "Viewer";  }
 
+if (membershipData.role === "poster") {
+  document.getElementById("uploadButton").hidden = false;
+}
+
   checkGallerySession();
 
   signOutButton.addEventListener("click", async function () {
@@ -69,5 +73,13 @@ accountStatus.textContent =
     await db.auth.signOut();
 
     window.location.replace("index.html");
+  });
+}
+const uploadButton = document.getElementById("uploadButton");
+const uploadPanel = document.getElementById("uploadPanel");
+
+if (uploadButton && uploadPanel) {
+  uploadButton.addEventListener("click", function () {
+    uploadPanel.hidden = !uploadPanel.hidden;
   });
 }

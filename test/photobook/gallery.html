@@ -14,9 +14,64 @@
 
   <main class="gallery-page">
     <div class="gallery-toolbar">
-      <h2>Our Memories</h2>
-      <p id="accountStatus">Checking your account...</p>
+  <h2>Our Memories</h2>
+
+  <div class="gallery-actions">
+    <p id="accountStatus">Checking your account...</p>
+    <button id="uploadButton" type="button" hidden>
+      + Upload Photos
+    </button>
+  </div>
+</div>
+
+<section id="uploadPanel" class="upload-panel" hidden>
+  <h2>Upload Photos</h2>
+
+  <label for="photoFiles">Select photographs</label>
+  <input id="photoFiles" type="file" accept="image/*" multiple>
+
+  <div class="upload-date">
+    <div>
+      <label for="photoMonth">Month</label>
+      <select id="photoMonth">
+        <option value="">Select month</option>
+        <option value="1">January</option>
+        <option value="2">February</option>
+        <option value="3">March</option>
+        <option value="4">April</option>
+        <option value="5">May</option>
+        <option value="6">June</option>
+        <option value="7">July</option>
+        <option value="8">August</option>
+        <option value="9">September</option>
+        <option value="10">October</option>
+        <option value="11">November</option>
+        <option value="12">December</option>
+      </select>
     </div>
+
+    <div>
+      <label for="photoYear">Year</label>
+      <input id="photoYear" type="number" min="1800" max="2200"
+             placeholder="2026">
+    </div>
+  </div>
+
+  <label for="photoPeople">People</label>
+  <input id="photoPeople" type="text"
+         placeholder="e.g. Thomas, Sofie">
+
+  <label for="photoTags">Other tags</label>
+  <input id="photoTags" type="text"
+         placeholder="e.g. Summer, Camping">
+
+  <label for="photoCaption">Caption (optional)</label>
+  <input id="photoCaption" type="text"
+         placeholder="A memory worth keeping">
+
+  <button id="submitPhotos" type="button">Upload Selected Photos</button>
+  <p id="uploadMessage" role="status"></p>
+</section>
 
     <section id="photoGallery" class="photo-gallery">
       <p class="empty-gallery">
