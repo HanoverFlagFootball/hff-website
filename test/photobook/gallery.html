@@ -4,83 +4,62 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Family Photobook</title>
-  <link rel="stylesheet" href="photobook.css?v=2">
+  <link rel="stylesheet" href="photobook.css?v=7">
 </head>
 <body>
   <header class="gallery-header">
     <h1>Family Photobook</h1>
     <button id="signOutButton" type="button">Sign Out</button>
   </header>
-
   <main class="gallery-page">
     <div class="gallery-toolbar">
-  <h2>Our Memories</h2>
-
-  <div class="gallery-actions">
-    <p id="accountStatus">Checking your account...</p>
-    <button id="uploadButton" type="button" hidden>
-      + Upload Photos
-    </button>
-  </div>
-</div>
-
-<section id="uploadPanel" class="upload-panel" hidden>
-  <h2>Upload Photos</h2>
-
-  <label for="photoFiles">Select photographs</label>
-  <input id="photoFiles" type="file" accept="image/*" multiple>
-
-  <div class="upload-date">
-    <div>
-      <label for="photoMonth">Month</label>
-      <select id="photoMonth">
-        <option value="">Select month</option>
-        <option value="1">January</option>
-        <option value="2">February</option>
-        <option value="3">March</option>
-        <option value="4">April</option>
-        <option value="5">May</option>
-        <option value="6">June</option>
-        <option value="7">July</option>
-        <option value="8">August</option>
-        <option value="9">September</option>
-        <option value="10">October</option>
-        <option value="11">November</option>
-        <option value="12">December</option>
-      </select>
+      <h2>Our Memories</h2>
+      <div class="gallery-actions">
+        <p id="accountStatus">Checking your account...</p>
+        <button id="uploadButton" type="button" hidden>+ Upload Photos</button>
+      </div>
     </div>
-
-    <div>
-      <label for="photoYear">Year</label>
-      <input id="photoYear" type="number" min="1800" max="2200"
-             placeholder="2026">
-    </div>
-  </div>
-
-  <label for="photoPeople">People</label>
-  <input id="photoPeople" type="text"
-         placeholder="e.g. Thomas, Sofie">
-
-  <label for="photoTags">Other tags</label>
-  <input id="photoTags" type="text"
-         placeholder="e.g. Summer, Camping">
-
-  <label for="photoCaption">Caption (optional)</label>
-  <input id="photoCaption" type="text"
-         placeholder="A memory worth keeping">
-
-  <button id="submitPhotos" type="button">Upload Selected Photos</button>
-  <p id="uploadMessage" role="status"></p>
-</section>
-
-    <section id="photoGallery" class="photo-gallery">
-      <p class="empty-gallery">
-        No photos yet. Our family memories will appear here.
-      </p>
+    <nav class="photo-tabs" aria-label="Photobook sections">
+      <button id="galleryTab" type="button" class="tab active">Gallery</button>
+      <button id="incompleteTab" type="button" class="tab" hidden>Incomplete <span id="incompleteCount"></span></button>
+    </nav>
+    <section id="uploadPanel" class="upload-panel" hidden>
+      <h2>Bulk Upload</h2>
+      <p>Select multiple photographs. No tags are needed now; all uploads go to Incomplete.</p>
+      <label for="photoFiles">Select photographs</label>
+      <input id="photoFiles" type="file" accept="image/*" multiple>
+      <div class="upload-date">
+        <div>
+          <label for="photoMonth">Month</label>
+          <select id="photoMonth">
+            <option value="">Select month</option>
+            <option value="1">January</option><option value="2">February</option>
+            <option value="3">March</option><option value="4">April</option>
+            <option value="5">May</option><option value="6">June</option>
+            <option value="7">July</option><option value="8">August</option>
+            <option value="9">September</option><option value="10">October</option>
+            <option value="11">November</option><option value="12">December</option>
+          </select>
+        </div>
+        <div>
+          <label for="photoYear">Year</label>
+          <input id="photoYear" type="number" min="1800" max="2200" placeholder="2026">
+        </div>
+      </div>
+      <p class="help-text">Month and year apply to the whole batch. You can correct them when organizing.</p>
+      <button id="submitPhotos" type="button">Upload Selected Photos</button>
+      <p id="uploadMessage" role="status" aria-live="polite"></p>
     </section>
+    <section id="photoGallery" class="photo-gallery" aria-label="Completed photographs">
+      <p class="empty-gallery">No completed photographs yet.</p>
+    </section>
+    <section id="incompleteSection" hidden>
+      <p class="help-text">These photos are private and awaiting tags. Editing and deletion are coming next.</p>
+      <div id="incompleteGallery" class="photo-gallery"></div>
+    </section>
+    <p id="galleryMessage" role="status" aria-live="polite"></p>
   </main>
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="photobook.js?v=6"></script>
+  <script src="photobook.js?v=7"></script>
 </body>
 </html>

@@ -203,3 +203,13 @@ button:hover {
     justify-content: space-between;
   }
 }
+/* Bulk upload and Incomplete gallery */
+.photo-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+.photo-tabs .tab { width: auto; margin: 0; padding: 10px 16px; background: #eee; color: #222; }
+.photo-tabs .tab.active { background: #222; color: #fff; }
+.photo-tabs [hidden], #incompleteSection[hidden] { display: none; }
+.photo-tile { margin: 0; min-width: 0; }
+.photo-tile img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; background: #e9e9e9; }
+.photo-tile figcaption { padding: 7px 2px; color: #666; font-size: 13px; overflow-wrap: anywhere; }
+.help-text { font-size: 14px; color: #666; }
+#uploadMessage, #galleryMessage { white-space: pre-line; overflow-wrap: anywhere; }
