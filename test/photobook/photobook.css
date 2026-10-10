@@ -213,3 +213,20 @@ button:hover {
 .photo-tile figcaption { padding: 7px 2px; color: #666; font-size: 13px; overflow-wrap: anywhere; }
 .help-text { font-size: 14px; color: #666; }
 #uploadMessage, #galleryMessage { white-space: pre-line; overflow-wrap: anywhere; }
+
+/* v8 organizer */
+.organizer[hidden] { display: none; }
+.organizer { margin: 24px 0; max-width: 850px; padding: 24px; background: #fff; border: 1px solid #ddd; border-radius: 10px; }
+.organizer-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.organizer-top h2 { margin: 0; }
+.organizer-top button { width: auto; margin: 0; }
+#organizerImage { display: block; max-width: 100%; max-height: 65vh; margin: 16px auto; object-fit: contain; }
+#organizerFilename { color: #666; overflow-wrap: anywhere; }
+.organizer label { display: block; margin-top: 15px; }
+.organizer input, .organizer select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; }
+.organizer-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.organizer-actions button { width: auto; margin-top: 10px; }
+.organizer-actions .danger { background: #a52424; }
+.editable-tile { cursor: pointer; }
+.editable-tile:hover img, .editable-tile:focus img { outline: 3px solid #555; outline-offset: -3px; }
+button:disabled { opacity: .55; cursor: wait; }

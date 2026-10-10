@@ -30,6 +30,8 @@ if (signOutButton) {
   const photoGallery = document.getElementById("photoGallery");
   const galleryMessage = document.getElementById("galleryMessage");
   let isPoster = false;
+  let incompletePhotos = [];
+  let currentPhotoIndex = -1;
 
   async function checkGallerySession() {
     try {
@@ -87,7 +89,19 @@ if (signOutButton) {
         .createSignedUrl(photo.storage_path, 3600);
       if (!error && data?.signedUrl) image.src = data.signedUrl;
       const caption = document.createElement("figcaption");
-      caption.textContent = `${photo.original_filename || "Photograph"} · ${photo.photo_month}/${photo.photo_year}`;
+      const dateLabel = photo.photo_month && photo.photo_year ? ` · ${photo.photo_month}/${photo.photo_year}` : "";
+      caption.textContent = `${photo.original_filename || "Photograph"}${dateLabel}`;
+      if (target.id === "incompleteGallery" && isPoster) {
+        figure.classList.add("editable-tile");
+        figure.tabIndex = 0;
+        figure.setAttribute("role", "button");
+        figure.setAttribute("aria-label", `Organize ${photo.original_filename || "photograph"}`);
+        const open = () => openOrganizer(incompletePhotos.findIndex(item => item.id === photo.id));
+        figure.addEventListener("click", open);
+        figure.addEventListener("keydown", event => {
+          if (event.key === "Enter" || event.key === " ") { event.preventDefault(); open(); }
+        });
+      }
       figure.append(image, caption);
       target.appendChild(figure);
     }
@@ -106,6 +120,7 @@ if (signOutButton) {
         .eq("is_complete", false).order("created_at", { ascending: false }).limit(200);
       if (incompleteError) { galleryMessage.textContent = incompleteError.message; return; }
       document.getElementById("incompleteCount").textContent = `(${incomplete.length}${incomplete.length === 200 ? "+" : ""})`;
+      incompletePhotos = incomplete;
       await renderPhotos(incomplete, document.getElementById("incompleteGallery"), "No incomplete photographs.");
     }
     galleryMessage.textContent = "";
@@ -115,15 +130,8 @@ if (signOutButton) {
   submitPhotos.addEventListener("click", async () => {
     if (!isPoster) return;
     const files = Array.from(document.getElementById("photoFiles").files);
-    const month = Number(document.getElementById("photoMonth").value);
-    const year = Number(document.getElementById("photoYear").value);
     const message = document.getElementById("uploadMessage");
     if (!files.length) { message.textContent = "Select at least one photograph."; return; }
-    if (!Number.isInteger(month) || month < 1 || month > 12 ||
-        !Number.isInteger(year) || year < 1800 || year > 2200) {
-      message.textContent = "Choose a month and a year for this batch.";
-      return;
-    }
     submitPhotos.disabled = true;
     let uploaded = 0;
     const failures = [];
@@ -141,8 +149,8 @@ if (signOutButton) {
         const { error: insertError } = await db.from("photos").insert({
           storage_path: path,
           original_filename: file.name,
-          photo_month: month,
-          photo_year: year,
+          photo_month: null,
+          photo_year: null,
           is_complete: false
         });
         if (insertError) {
@@ -165,6 +173,172 @@ if (signOutButton) {
     } finally {
       submitPhotos.disabled = false;
     }
+  });
+
+  const organizer = document.getElementById("organizer");
+  const organizerMessage = document.getElementById("organizerMessage");
+  const editPeople = document.getElementById("editPeople");
+  const editTags = document.getElementById("editTags");
+  const editMonth = document.getElementById("editMonth");
+  const editYear = document.getElementById("editYear");
+  const editCaption = document.getElementById("editCaption");
+  const saveButton = document.getElementById("savePhoto");
+  const saveNextButton = document.getElementById("saveNextPhoto");
+  const deleteButton = document.getElementById("deletePhoto");
+  let organizerBusy = false;
+
+  function parseTags(value) {
+    return [...new Map(value.split(",").map(item => item.trim())
+      .filter(Boolean).map(item => [item.toLocaleLowerCase(), item])).values()];
+  }
+
+  async function openOrganizer(index) {
+    if (!isPoster || index < 0 || index >= incompletePhotos.length) return;
+    currentPhotoIndex = index;
+    const photo = incompletePhotos[index];
+    organizer.hidden = false;
+    organizerMessage.textContent = "Loading...";
+    document.getElementById("organizerPosition").textContent = `Incomplete ${index + 1} of ${incompletePhotos.length}`;
+    document.getElementById("organizerFilename").textContent = photo.original_filename || "Photograph";
+    editMonth.value = photo.photo_month ?? "";
+    editYear.value = photo.photo_year ?? "";
+    editCaption.value = photo.caption || "";
+    const image = document.getElementById("organizerImage");
+    image.removeAttribute("src");
+    const [urlResult, linksResult, tagsResult] = await Promise.all([
+      db.storage.from(BUCKET).createSignedUrl(photo.storage_path, 3600),
+      db.from("photo_tags").select("tag_id").eq("photo_id", photo.id),
+      db.from("tags").select("id,name,category").order("name")
+    ]);
+    if (urlResult.error || linksResult.error || tagsResult.error) {
+      organizerMessage.textContent = (urlResult.error || linksResult.error || tagsResult.error).message;
+      return;
+    }
+    image.src = urlResult.data.signedUrl;
+    const linked = new Set(linksResult.data.map(link => link.tag_id));
+    editPeople.value = tagsResult.data.filter(tag => linked.has(tag.id) && tag.category === "person")
+      .map(tag => tag.name).join(", ");
+    editTags.value = tagsResult.data.filter(tag => linked.has(tag.id) && tag.category !== "person")
+      .map(tag => tag.name).join(", ");
+    for (const [listId, category] of [["knownPeople", "person"], ["knownTags", "other"]]) {
+      const list = document.getElementById(listId);
+      list.replaceChildren();
+      tagsResult.data.filter(tag => tag.category === category).forEach(tag => {
+        const option = document.createElement("option");
+        option.value = tag.name;
+        list.appendChild(option);
+      });
+    }
+    organizerMessage.textContent = "";
+    organizer.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  async function saveCurrentPhoto(moveNext) {
+    if (organizerBusy || currentPhotoIndex < 0) return;
+    const photo = incompletePhotos[currentPhotoIndex];
+    const month = editMonth.value ? Number(editMonth.value) : null;
+    const year = editYear.value ? Number(editYear.value) : null;
+    if ((month !== null && (month < 1 || month > 12)) ||
+        (year !== null && (year < 1800 || year > 2200))) {
+      organizerMessage.textContent = "Enter a valid month and year, or leave them blank.";
+      return;
+    }
+    const wanted = [
+      ...parseTags(editPeople.value).map(name => ({ name, category: "person" })),
+      ...parseTags(editTags.value).map(name => ({ name, category: "other" }))
+    ];
+    const distinct = [...new Map(wanted.map(tag => [tag.name.toLocaleLowerCase(), tag])).values()];
+    organizerBusy = true;
+    saveButton.disabled = saveNextButton.disabled = deleteButton.disabled = true;
+    organizerMessage.textContent = "Saving...";
+    try {
+      const tagIds = [];
+      for (const tag of distinct) {
+        let { data: existing, error } = await db.from("tags").select("id,category").eq("name", tag.name).maybeSingle();
+        if (error) throw error;
+        if (!existing) {
+          const result = await db.from("tags").insert(tag).select("id,category").single();
+          if (result.error) throw result.error;
+          existing = result.data;
+        }
+        tagIds.push(existing.id);
+      }
+      const { data: oldLinks, error: oldError } = await db.from("photo_tags").select("tag_id").eq("photo_id", photo.id);
+      if (oldError) throw oldError;
+      const previous = new Set(oldLinks.map(link => link.tag_id));
+      const desired = new Set(tagIds);
+      const add = tagIds.filter(id => !previous.has(id)).map(tag_id => ({ photo_id: photo.id, tag_id }));
+      if (add.length) {
+        const { error } = await db.from("photo_tags").insert(add);
+        if (error) throw error;
+      }
+      const remove = [...previous].filter(id => !desired.has(id));
+      if (remove.length) {
+        const { error } = await db.from("photo_tags").delete().eq("photo_id", photo.id).in("tag_id", remove);
+        if (error) throw error;
+      }
+      const { error: photoError } = await db.from("photos").update({
+        photo_month: month, photo_year: year,
+        caption: editCaption.value.trim() || null,
+        is_complete: distinct.length > 0
+      }).eq("id", photo.id);
+      if (photoError) throw photoError;
+      const oldIndex = currentPhotoIndex;
+      await loadPhotos();
+      if (distinct.length || moveNext) {
+        if (incompletePhotos.length) {
+          await openOrganizer(Math.min(oldIndex + (distinct.length ? 0 : 1), incompletePhotos.length - 1));
+        } else {
+          organizer.hidden = true;
+          currentPhotoIndex = -1;
+          showSection("gallery");
+        }
+      } else {
+        await openOrganizer(Math.min(oldIndex, incompletePhotos.length - 1));
+      }
+      organizerMessage.textContent = organizer.hidden ? "" : "Saved.";
+    } catch (error) {
+      organizerMessage.textContent = `Could not save: ${error.message}`;
+    } finally {
+      organizerBusy = false;
+      saveButton.disabled = saveNextButton.disabled = deleteButton.disabled = false;
+    }
+  }
+
+  saveButton.addEventListener("click", () => saveCurrentPhoto(false));
+  saveNextButton.addEventListener("click", () => saveCurrentPhoto(true));
+  document.getElementById("previousPhoto").addEventListener("click", () => openOrganizer(currentPhotoIndex - 1));
+  document.getElementById("nextPhoto").addEventListener("click", () => openOrganizer(currentPhotoIndex + 1));
+  document.getElementById("closeOrganizer").addEventListener("click", () => {
+    organizer.hidden = true;
+    currentPhotoIndex = -1;
+  });
+  deleteButton.addEventListener("click", async () => {
+    if (!isPoster || organizerBusy || currentPhotoIndex < 0) return;
+    const photo = incompletePhotos[currentPhotoIndex];
+    if (!window.confirm(`Permanently delete ${photo.original_filename || "this photograph"}? This cannot be undone.`)) return;
+    organizerBusy = true;
+    deleteButton.disabled = true;
+    organizerMessage.textContent = "Deleting...";
+    // Remove the storage file first. If it fails, preserve the database record.
+    const { error: storageError } = await db.storage.from(BUCKET).remove([photo.storage_path]);
+    if (storageError) {
+      organizerMessage.textContent = storageError.message;
+      organizerBusy = false;
+      deleteButton.disabled = false;
+      return;
+    }
+    const { error } = await db.from("photos").delete().eq("id", photo.id);
+    if (error) {
+      organizerMessage.textContent = `File deleted, but its database record could not be removed: ${error.message}`;
+    } else {
+      const index = currentPhotoIndex;
+      await loadPhotos();
+      if (incompletePhotos.length) await openOrganizer(Math.min(index, incompletePhotos.length - 1));
+      else { organizer.hidden = true; currentPhotoIndex = -1; }
+    }
+    organizerBusy = false;
+    deleteButton.disabled = false;
   });
 
   signOutButton.addEventListener("click", async () => {
