@@ -45,8 +45,20 @@ if (signOutButton) {
     }
 
     const accountStatus = document.getElementById("accountStatus");
-    accountStatus.textContent = "Signed in";
-  }
+const { data: membershipData, error: membershipError } = await db
+  .from("photobook_members")
+  .select("role")
+  .eq("user_id", data.user.id)
+  .single();
+
+if (membershipError || !membershipData) {
+  await db.auth.signOut();
+  window.location.replace("index.html");
+  return;
+}
+
+accountStatus.textContent =
+  membershipData.role === "poster" ? "Poster" : "Viewer";  }
 
   checkGallerySession();
 
