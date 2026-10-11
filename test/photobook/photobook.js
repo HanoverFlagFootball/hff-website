@@ -26,11 +26,12 @@ if (signOutButton) {
   let completePhotos = [], incompletePhotos = [], allTags = [], links = {};
   let activeSection = "gallery", currentIndex = -1;
   let drafts = new Map(), hiddenIds = new Set(), carriedMonth = "", carriedYear = "";
-  let saving = false, saveTimer = null, pickerInstances = {}, fillingForm = false;
+  let saving = false, deleting = false, saveTimer = null, pickerInstances = {}, fillingForm = false;
+  let managePhotos = [], selectedIds = new Set();
   const BUCKET_LIMIT = 1000;
   const norm = s => s.trim().toLocaleLowerCase();
   const pending = () => el("pendingStatus").textContent = `${drafts.size} photo(s) waiting to save`;
-  const currentList = () => activeSection === "incomplete" ? incompletePhotos : completePhotos;
+  const currentList = () => activeSection === "manage" ? managePhotos : completePhotos;
 
   // A picker displays existing options, supports typing and selecting many values.
   function picker(id, category, allowCreate, onChange) {
@@ -150,6 +151,8 @@ if (signOutButton) {
       }
       completePhotos = photos.filter(p => p.is_complete);
       incompletePhotos = isPoster ? photos.filter(p => !p.is_complete) : [];
+      managePhotos = isPoster ? [...photos] : [];
+      selectedIds = new Set([...selectedIds].filter(id => managePhotos.some(p => p.id === id)));
       el("incompleteCount").textContent = `(${incompletePhotos.length})`;
       const years = [...new Set(completePhotos.map(p => p.photo_year).filter(Boolean))].sort((a,b) => b-a);
       const priorYear = el("filterYear").value;
@@ -185,8 +188,14 @@ if (signOutButton) {
       caption.textContent = photo.caption || "";
       figure.append(img, caption);
       if (editable) {
+        const choose = document.createElement("input"); choose.type="checkbox";
+        choose.className="photo-select"; choose.checked=selectedIds.has(photo.id);
+        choose.setAttribute("aria-label", "Select photograph for bulk deletion");
+        choose.onclick=e=>e.stopPropagation();
+        choose.onchange=()=>{if(choose.checked)selectedIds.add(photo.id);else selectedIds.delete(photo.id);updateSelection();};
+        figure.append(choose);
         figure.classList.add("editable-tile"); figure.tabIndex=0; figure.setAttribute("role","button");
-        const open = () => openOrganizer(incompletePhotos.findIndex(p => p.id === photo.id));
+        const open = () => openOrganizer(managePhotos.findIndex(p => p.id === photo.id));
         figure.onclick=open; figure.onkeydown=e => { if (e.key === "Enter" || e.key === " ") {e.preventDefault();open();} };
       } else {
         const hide = document.createElement("button"); hide.type="button"; hide.className="hide-photo"; hide.textContent="×";
@@ -206,27 +215,38 @@ if (signOutButton) {
     el("filterStatus").textContent = `${visible.length} visible · ${hiddenIds.size} temporarily hidden`;
     await Promise.all([
       renderTiles(visible,el("photoGallery"),false),
-      isPoster ? renderTiles(incompletePhotos,el("incompleteGallery"),true) : Promise.resolve()
+      isPoster ? renderTiles(manageVisible(),el("incompleteGallery"),true) : Promise.resolve()
     ]);
+  }
+  function manageVisible() {
+    const view=el("manageView").value;
+    return managePhotos.filter(p=>view==="all" || (view==="complete" ? p.is_complete : !p.is_complete));
+  }
+  function updateSelection() {
+    const visible=manageVisible();
+    el("selectedCount").textContent=`${selectedIds.size} selected`;
+    el("deleteSelected").disabled=deleting || saving || selectedIds.size===0;
+    el("selectAllPhotos").checked=visible.length>0 && visible.every(p=>selectedIds.has(p.id));
+    el("selectAllPhotos").indeterminate=visible.some(p=>selectedIds.has(p.id)) && !visible.every(p=>selectedIds.has(p.id));
   }
   function showSection(section) {
     activeSection=section;
-    const incomplete=section==="incomplete" && isPoster;
+    const incomplete=section==="manage" && isPoster;
     el("incompleteSection").hidden=!incomplete;
     el("photoGallery").hidden=incomplete;
     el("filterPanel").hidden=incomplete;
     el("galleryTab").classList.toggle("active",!incomplete);
     el("incompleteTab").classList.toggle("active",incomplete);
     el("organizer").hidden=true; currentIndex=-1;
+    if(incomplete)updateSelection();
   }
   function openOrganizer(index) {
-    if (!isPoster || index<0 || index>=incompletePhotos.length) return;
+    if (!isPoster || index<0 || index>=managePhotos.length) return;
     if (currentIndex>=0) captureDraft();
     currentIndex=index;
-    const photo=incompletePhotos[index], d=draftFor(photo);
+    const photo=managePhotos[index], d=draftFor(photo);
     el("organizer").hidden=false;
-    el("organizerPosition").textContent=`Incomplete ${index+1} of ${incompletePhotos.length}`;
-    el("organizerFilename").textContent=photo.original_filename || "Photograph";
+    el("organizerPosition").textContent=`Photo ${index+1} of ${managePhotos.length}`;
     fillingForm=true;
     el("editMonth").value=d.month; el("editYear").value=d.year; el("editCaption").value=d.caption;
     pickerInstances.editPeople.set(d.people); pickerInstances.editTheme.set(d.theme); pickerInstances.editTags.set(d.other);
@@ -276,15 +296,17 @@ if (signOutButton) {
       catch(e){failures.push(`${id.slice(0,8)}: ${e.message}`);}
       pending();
     }
-    completePhotos=[...completePhotos,...incompletePhotos.filter(p=>p.is_complete)];
-    incompletePhotos=incompletePhotos.filter(p=>!p.is_complete);
-    el("incompleteCount").textContent=`(${incompletePhotos.length})`;
+    const currentId=managePhotos[currentIndex]?.id;
+    completePhotos=managePhotos.filter(p=>p.is_complete);
+    incompletePhotos=managePhotos.filter(p=>!p.is_complete);
+    el("incompleteCount").textContent=`(${incompletePhotos.length} incomplete)`;
     saving=false; el("savePhoto").disabled=false;
     el("organizerMessage").textContent=failures.length ? `Saved ${saved}; ${failures.length} failed: ${failures.join("; ")}` : `Saved ${saved} photograph(s).`;
-    if(currentIndex>=incompletePhotos.length) currentIndex=incompletePhotos.length-1;
-    if(currentIndex>=0 && !el("organizer").hidden) { const n=currentIndex; currentIndex=-1; openOrganizer(n); }
-    else if(!incompletePhotos.length) el("organizer").hidden=true;
-    await renderGallery();
+    if(currentId && !el("organizer").hidden) {
+      const n=managePhotos.findIndex(p=>p.id===currentId);
+      currentIndex=-1; if(n>=0)openOrganizer(n);
+    }
+    await renderGallery(); updateSelection();
     if(drafts.size) scheduleSave();
   }
   // Bulk upload does not ask for month, year or tags.
@@ -304,20 +326,49 @@ if (signOutButton) {
     }
     message.textContent=`${count} uploaded.`+(errors.length?` Errors: ${errors.join("; ")}`:"");
     el("submitPhotos").disabled=false;
-    if(count){el("photoFiles").value="";await loadData();showSection("incomplete");}
+    if(count){el("photoFiles").value="";await loadData();showSection("manage");}
   };
-  el("deletePhoto").onclick=async()=>{
-    if(!isPoster||saving||currentIndex<0)return;
-    const photo=incompletePhotos[currentIndex];
-    if(!confirm(`Permanently delete ${photo.original_filename || "photograph"}? This cannot be undone.`))return;
-    const {error:storageError}=await db.storage.from(BUCKET).remove([photo.storage_path]);
-    if(storageError){el("organizerMessage").textContent=storageError.message;return;}
-    const {error}=await db.from("photos").delete().eq("id",photo.id);
-    if(error){el("organizerMessage").textContent=`Storage removed, but database deletion failed: ${error.message}`;return;}
-    drafts.delete(photo.id); incompletePhotos.splice(currentIndex,1); el("incompleteCount").textContent=`(${incompletePhotos.length})`;
-    const next=Math.min(currentIndex,incompletePhotos.length-1);currentIndex=-1;
-    if(next>=0)openOrganizer(next);else el("organizer").hidden=true;
-    await renderGallery();pending();
+  // Delete originals from private Storage first, then remove metadata. A failure is reported,
+  // not silently treated as a success. Database cascades remove photo_tags associations.
+  async function deletePhotos(ids) {
+    if(deleting || saving || !isPoster || !ids.length)return;
+    const photos=ids.map(id=>managePhotos.find(p=>p.id===id)).filter(Boolean);
+    if(!photos.length)return;
+    if(!confirm(`PERMANENTLY DELETE ${photos.length} photograph(s)?\n\nThis removes the original files and cannot be undone.`))return;
+    deleting=true;updateSelection();
+    el("deletePhoto").disabled=true;
+    const errors=[];let removed=0;
+    const activeId=managePhotos[currentIndex]?.id;
+    for(const [i,photo] of photos.entries()) {
+      el("manageMessage").textContent=`Deleting ${i+1} of ${photos.length}...`;
+      try {
+        const {error:storageError}=await db.storage.from(BUCKET).remove([photo.storage_path]);
+        if(storageError)throw storageError;
+        const {error}=await db.from("photos").delete().eq("id",photo.id);
+        if(error)throw error;
+        drafts.delete(photo.id);selectedIds.delete(photo.id);hiddenIds.delete(photo.id);
+        managePhotos=managePhotos.filter(p=>p.id!==photo.id);
+        removed++;
+      }catch(e){errors.push(`${photo.original_filename || photo.id}: ${e.message}`);}
+    }
+    completePhotos=managePhotos.filter(p=>p.is_complete);
+    incompletePhotos=managePhotos.filter(p=>!p.is_complete);
+    el("incompleteCount").textContent=`(${incompletePhotos.length} incomplete)`;
+    const next=managePhotos.findIndex(p=>p.id===activeId);
+    if(next<0){el("organizer").hidden=true;currentIndex=-1;}
+    else currentIndex=next;
+    deleting=false;el("deletePhoto").disabled=false;
+    el("manageMessage").textContent=`Deleted ${removed} of ${photos.length} photograph(s).` + (errors.length ? ` Errors: ${errors.join("; ")}` : "");
+    await renderGallery();updateSelection();pending();
+  }
+  el("deletePhoto").onclick=()=>{
+    if(currentIndex>=0)deletePhotos([managePhotos[currentIndex].id]);
+  };
+  el("deleteSelected").onclick=()=>deletePhotos([...selectedIds]);
+  el("manageView").onchange=()=>{selectedIds.clear();renderTiles(manageVisible(),el("incompleteGallery"),true);updateSelection();};
+  el("selectAllPhotos").onchange=e=>{
+    for(const p of manageVisible()) {if(e.target.checked)selectedIds.add(p.id);else selectedIds.delete(p.id);}
+    renderTiles(manageVisible(),el("incompleteGallery"),true);updateSelection();
   };
   el("downloadVisible").onclick=async()=>{
     const rows=matchingGallery();
@@ -347,7 +398,7 @@ if (signOutButton) {
     btn.disabled=false;
   };
   el("galleryTab").onclick=()=>{if(currentIndex>=0)captureDraft();showSection("gallery");};
-  el("incompleteTab").onclick=()=>{if(currentIndex>=0)captureDraft();showSection("incomplete");};
+  el("incompleteTab").onclick=()=>{if(currentIndex>=0)captureDraft();showSection("manage");};
   el("uploadButton").onclick=()=>el("uploadPanel").hidden=!el("uploadPanel").hidden;
   el("previousPhoto").onclick=()=>openOrganizer(currentIndex-1);
   el("nextPhoto").onclick=()=>openOrganizer(currentIndex+1);

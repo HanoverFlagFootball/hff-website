@@ -253,3 +253,13 @@ button:disabled { opacity: .55; cursor: wait; }
 #pendingStatus { font-weight:bold; }
 @media(max-width:750px){.filter-grid{grid-template-columns:1fr 1fr;}}
 @media(max-width:500px){.filter-grid{grid-template-columns:1fr;}}
+
+/* v10: Manage Photos selection and bulk deletion */
+.manage-controls {display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:16px 0;}
+.manage-controls select {padding:9px;border:1px solid #ccc;border-radius:6px;}
+.manage-controls button {width:auto;margin:0;padding:10px 14px;}
+.manage-controls .danger {background:#a52424;color:white;}
+.manage-controls .select-all {display:flex;align-items:center;gap:7px;}
+.manage-controls input[type="checkbox"] {width:18px;height:18px;}
+.photo-select {position:absolute;top:10px;left:10px;z-index:2;width:23px;height:23px;cursor:pointer;accent-color:#222;}
+#manageMessage {white-space:pre-line;overflow-wrap:anywhere;}

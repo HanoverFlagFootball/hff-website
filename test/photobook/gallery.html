@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Family Photobook</title>
-  <link rel="stylesheet" href="photobook.css?v=9.2">
+  <link rel="stylesheet" href="photobook.css?v=10">
 </head>
 <body>
   <header class="gallery-header">
@@ -21,7 +21,7 @@
     </div>
     <nav class="photo-tabs" aria-label="Photobook sections">
       <button id="galleryTab" type="button" class="tab active">Gallery</button>
-      <button id="incompleteTab" type="button" class="tab" hidden>Incomplete <span id="incompleteCount"></span></button>
+      <button id="incompleteTab" type="button" class="tab" hidden>Manage Photos <span id="incompleteCount"></span></button>
     </nav>
     <section id="uploadPanel" class="upload-panel" hidden>
       <h2>Bulk Upload</h2>
@@ -49,14 +49,23 @@
       <p class="empty-gallery">No completed photographs yet.</p>
     </section>
     <section id="incompleteSection" hidden>
-      <p class="help-text">Select a photograph to add its date and tags, or permanently delete it.</p>
+      <h2>Manage Photos</h2>
+      <p class="help-text">Select photographs to delete, or click a photo to edit its details. This area includes completed and incomplete photographs.</p>
+      <div class="manage-controls">
+        <label for="manageView">Show</label>
+        <select id="manageView"><option value="all">All Photos</option><option value="incomplete">Incomplete</option><option value="complete">Complete</option></select>
+        <label class="select-all"><input type="checkbox" id="selectAllPhotos"> Select all shown</label>
+        <span id="selectedCount" role="status">0 selected</span>
+        <button type="button" id="deleteSelected" class="danger" disabled>Delete Selected Permanently</button>
+      </div>
+      <p id="manageMessage" role="status" aria-live="polite"></p>
       <div id="incompleteGallery" class="photo-gallery"></div>
     </section>
     <section id="organizer" class="organizer" hidden aria-label="Organize photograph">
       <div class="organizer-top"><h2>Organize Photo</h2><button type="button" id="closeOrganizer">Close</button></div>
       <p id="organizerPosition"></p>
       <img id="organizerImage" alt="Photograph being organized">
-      <p id="organizerFilename"></p>
+      
       <div class="upload-date">
         <div><label for="editMonth">Month (optional)</label><select id="editMonth">
           <option value="">Unknown</option>
@@ -82,6 +91,6 @@
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <script src="photobook.js?v=9.2"></script>
+  <script src="photobook.js?v=10"></script>
 </body>
 </html>
