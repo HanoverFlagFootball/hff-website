@@ -23,7 +23,7 @@ const signOutButton = document.getElementById("signOutButton");
 if (signOutButton) {
   const el = id => document.getElementById(id);
   let isPoster = false;
-  let completePhotos = [], incompletePhotos = [], allTags = [], links = {};
+  let galleryPhotos = [], incompletePhotos = [], allTags = [], links = {};
   let activeSection = "gallery", currentIndex = -1;
   let drafts = new Map(), hiddenIds = new Set(), carriedMonth = "", carriedYear = "";
   let saving = false, deleting = false, saveTimer = null, pickerInstances = {}, fillingForm = false;
@@ -31,7 +31,7 @@ if (signOutButton) {
   const BUCKET_LIMIT = 1000;
   const norm = s => s.trim().toLocaleLowerCase();
   const pending = () => el("pendingStatus").textContent = `${drafts.size} photo(s) waiting to save`;
-  const currentList = () => activeSection === "manage" ? managePhotos : completePhotos;
+  const currentList = () => activeSection === "manage" ? managePhotos : galleryPhotos;
 
   // Camera filenames such as 20230128_123456.jpg contain YYYYMMDD before '_'.
   // Validate the whole calendar date; never infer from a filename that does not match.
@@ -163,12 +163,12 @@ if (signOutButton) {
         const tag = tagMap.get(link.tag_id);
         if (tag) (links[link.photo_id] ||= []).push(tag);
       }
-      completePhotos = photos.filter(p => p.is_complete);
+      galleryPhotos = photos;
       incompletePhotos = isPoster ? photos.filter(p => !p.is_complete) : [];
       managePhotos = isPoster ? [...photos] : [];
       selectedIds = new Set([...selectedIds].filter(id => managePhotos.some(p => p.id === id)));
       el("incompleteCount").textContent = `(${incompletePhotos.length})`;
-      const years = [...new Set(completePhotos.map(p => p.photo_year).filter(Boolean))].sort((a,b) => b-a);
+      const years = [...new Set(galleryPhotos.map(p => p.photo_year).filter(Boolean))].sort((a,b) => b-a);
       const priorYear = el("filterYear").value;
       el("filterYear").replaceChildren(new Option("Any year", ""), ...years.map(y => new Option(String(y), String(y))));
       el("filterYear").value = priorYear;
@@ -182,7 +182,7 @@ if (signOutButton) {
     const theme = pickerInstances.filterTheme.get().map(norm);
     const other = pickerInstances.filterOther.get().map(norm);
     const year = el("filterYear").value, month = el("filterMonth").value;
-    return completePhotos.filter(p => {
+    return galleryPhotos.filter(p => {
       if (hiddenIds.has(p.id)) return false;
       if (year && String(p.photo_year) !== year) return false;
       if (month && String(p.photo_month) !== month) return false;
@@ -299,7 +299,7 @@ if (signOutButton) {
     if(remove.length){const {error}=await db.from("photo_tags").delete().eq("photo_id",id).in("tag_id",remove);if(error)throw error;}
     const {error}=await db.from("photos").update({photo_month:month,photo_year:year,caption:d.caption.trim()||null,is_complete:ids.length>0}).eq("id",id);
     if(error)throw error;
-    const photo=[...completePhotos,...incompletePhotos].find(p=>p.id===id);
+    const photo=galleryPhotos.find(p=>p.id===id);
     if(photo){photo.photo_month=month;photo.photo_year=year;photo.caption=d.caption.trim();photo.is_complete=ids.length>0;}
     links[id]=ids.map(x=>allTags.find(t=>t.id===x)).filter(Boolean);
   }
@@ -315,7 +315,7 @@ if (signOutButton) {
       pending();
     }
     const currentId=managePhotos[currentIndex]?.id;
-    completePhotos=managePhotos.filter(p=>p.is_complete);
+    galleryPhotos=[...managePhotos];
     incompletePhotos=managePhotos.filter(p=>!p.is_complete);
     el("incompleteCount").textContent=`(${incompletePhotos.length} incomplete)`;
     saving=false; el("savePhoto").disabled=false;
@@ -392,7 +392,7 @@ if (signOutButton) {
         removed++;
       }catch(e){errors.push(`${photo.original_filename || photo.id}: ${e.message}`);}
     }
-    completePhotos=managePhotos.filter(p=>p.is_complete);
+    galleryPhotos=[...managePhotos];
     incompletePhotos=managePhotos.filter(p=>!p.is_complete);
     el("incompleteCount").textContent=`(${incompletePhotos.length} incomplete)`;
     const next=managePhotos.findIndex(p=>p.id===activeId);
