@@ -33,6 +33,19 @@ if (signOutButton) {
   const pending = () => el("pendingStatus").textContent = `${drafts.size} photo(s) waiting to save`;
   const currentList = () => activeSection === "manage" ? managePhotos : completePhotos;
 
+  // Camera filenames such as 20230128_123456.jpg contain YYYYMMDD before '_'.
+  // Validate the whole calendar date; never infer from a filename that does not match.
+  function dateFromFilename(filename) {
+    const match = /^(\d{4})(\d{2})(\d{2})_/.exec(filename || "");
+    if (!match) return null;
+    const year = Number(match[1]), month = Number(match[2]), day = Number(match[3]);
+    if (year < 1800 || year > 2200) return null;
+    const date = new Date(Date.UTC(year, month - 1, day));
+    if (date.getUTCFullYear() !== year || date.getUTCMonth() + 1 !== month || date.getUTCDate() !== day) return null;
+    return { year, month };
+  }
+
+
   // A picker displays existing options, supports typing and selecting many values.
   function picker(id, category, allowCreate, onChange) {
     const root = el(id), selected = new Map();
@@ -81,9 +94,10 @@ if (signOutButton) {
   }
 
   function draftFor(photo) {
+    const filenameDate = dateFromFilename(photo.original_filename);
     return drafts.get(photo.id) || {
-      month: photo.photo_month == null ? carriedMonth : String(photo.photo_month),
-      year: photo.photo_year == null ? carriedYear : String(photo.photo_year),
+      month: photo.photo_month == null ? (filenameDate ? String(filenameDate.month) : carriedMonth) : String(photo.photo_month),
+      year: photo.photo_year == null ? (filenameDate ? String(filenameDate.year) : carriedYear) : String(photo.photo_year),
       caption: photo.caption || "",
       people: (links[photo.id] || []).filter(t => t.category === "person").map(t => t.name),
       theme: (links[photo.id] || []).filter(t => t.category === "theme").map(t => t.name),
@@ -249,6 +263,10 @@ if (signOutButton) {
     el("organizerPosition").textContent=`Photo ${index+1} of ${managePhotos.length}`;
     fillingForm=true;
     el("editMonth").value=d.month; el("editYear").value=d.year; el("editCaption").value=d.caption;
+    const filenameDate = dateFromFilename(photo.original_filename);
+    el("filenameDateNote").textContent = filenameDate
+      ? `Date detected from original filename: ${filenameDate.year}-${String(filenameDate.month).padStart(2,"0")}. You can change it.`
+      : "No valid date found in filename. You can enter a date or use the previous photo's date.";
     pickerInstances.editPeople.set(d.people); pickerInstances.editTheme.set(d.theme); pickerInstances.editTags.set(d.other);
     fillingForm=false;
     el("organizerMessage").textContent="";
@@ -321,13 +339,36 @@ if (signOutButton) {
       const path=`${crypto.randomUUID()}/${crypto.randomUUID()}`;
       const {error:uploadError}=await db.storage.from(BUCKET).upload(path,file,{contentType:file.type,upsert:false});
       if(uploadError){errors.push(`${file.name}: ${uploadError.message}`);continue;}
-      const {error}=await db.from("photos").insert({storage_path:path,original_filename:file.name,photo_month:null,photo_year:null,is_complete:false});
+      const filenameDate = dateFromFilename(file.name);
+      const {error}=await db.from("photos").insert({storage_path:path,original_filename:file.name,
+        photo_month:filenameDate?.month ?? null,photo_year:filenameDate?.year ?? null,is_complete:false});
       if(error){await db.storage.from(BUCKET).remove([path]);errors.push(`${file.name}: ${error.message}`);}else count++;
     }
     message.textContent=`${count} uploaded.`+(errors.length?` Errors: ${errors.join("; ")}`:"");
     el("submitPhotos").disabled=false;
     if(count){el("photoFiles").value="";await loadData();showSection("manage");}
   };
+  // One-time repair for already-uploaded photos. Never overwrite saved dates or pending edits.
+  el("fillMissingDates").onclick = async () => {
+    if (!isPoster || saving || deleting) return;
+    const eligible = managePhotos.map(photo => ({photo, date:dateFromFilename(photo.original_filename)}))
+      .filter(({photo,date}) => date && photo.photo_month == null && photo.photo_year == null && !drafts.has(photo.id));
+    const message = el("manageMessage");
+    if (!eligible.length) {message.textContent = "No photographs with missing dates and valid filename dates found.";return;}
+    if (!confirm(`Fill dates from filenames for ${eligible.length} photograph(s)? Existing dates and unsaved edits will not be changed.`)) return;
+    const button = el("fillMissingDates"); button.disabled = true;
+    let updated=0; const failures=[];
+    for (const {photo,date} of eligible) {
+      const {error} = await db.from("photos").update({photo_month:date.month,photo_year:date.year})
+        .eq("id",photo.id).is("photo_month",null).is("photo_year",null);
+      if (error) failures.push(`${photo.original_filename}: ${error.message}`);
+      else {photo.photo_month=date.month;photo.photo_year=date.year;updated++;}
+    }
+    button.disabled=false;
+    message.textContent=`Filled ${updated} missing date(s).` + (failures.length ? ` Errors: ${failures.join("; ")}` : "");
+    await renderGallery();
+  };
+
   // Delete originals from private Storage first, then remove metadata. A failure is reported,
   // not silently treated as a success. Database cascades remove photo_tags associations.
   async function deletePhotos(ids) {

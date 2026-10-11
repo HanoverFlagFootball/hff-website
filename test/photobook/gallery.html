@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Family Photobook</title>
-  <link rel="stylesheet" href="photobook.css?v=10">
+  <link rel="stylesheet" href="photobook.css?v=11">
 </head>
 <body>
   <header class="gallery-header">
@@ -58,6 +58,7 @@
         <span id="selectedCount" role="status">0 selected</span>
         <button type="button" id="deleteSelected" class="danger" disabled>Delete Selected Permanently</button>
       </div>
+      <button type="button" id="fillMissingDates">Fill Missing Dates from Filenames</button>
       <p id="manageMessage" role="status" aria-live="polite"></p>
       <div id="incompleteGallery" class="photo-gallery"></div>
     </section>
@@ -73,6 +74,7 @@
         </select></div>
         <div><label for="editYear">Year (optional)</label><input id="editYear" type="number" min="1800" max="2200" placeholder="Year"></div>
       </div>
+      <p id="filenameDateNote" class="help-text"></p>
       <label>People</label><div id="editPeople" class="tag-picker"></div>
       <label>Theme</label><div id="editTheme" class="tag-picker"></div>
       <label>Event Tags</label><div id="editTags" class="tag-picker"></div>
@@ -91,6 +93,6 @@
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <script src="photobook.js?v=10"></script>
+  <script src="photobook.js?v=11"></script>
 </body>
 </html>
