@@ -21,331 +21,360 @@ if (loginForm) {
 
 const signOutButton = document.getElementById("signOutButton");
 if (signOutButton) {
-  const status = document.getElementById("accountStatus");
-  const uploadButton = document.getElementById("uploadButton");
-  const uploadPanel = document.getElementById("uploadPanel");
-  const incompleteTab = document.getElementById("incompleteTab");
-  const galleryTab = document.getElementById("galleryTab");
-  const incompleteSection = document.getElementById("incompleteSection");
-  const photoGallery = document.getElementById("photoGallery");
-  const galleryMessage = document.getElementById("galleryMessage");
+  const el = id => document.getElementById(id);
   let isPoster = false;
-  let incompletePhotos = [];
-  let currentPhotoIndex = -1;
+  let completePhotos = [], incompletePhotos = [], allTags = [], links = {};
+  let activeSection = "gallery", currentIndex = -1;
+  let drafts = new Map(), hiddenIds = new Set(), carriedMonth = "", carriedYear = "";
+  let saving = false, saveTimer = null, pickerInstances = {}, fillingForm = false;
+  const BUCKET_LIMIT = 1000;
+  const norm = s => s.trim().toLocaleLowerCase();
+  const pending = () => el("pendingStatus").textContent = `${drafts.size} photo(s) waiting to save`;
+  const currentList = () => activeSection === "incomplete" ? incompletePhotos : completePhotos;
 
-  async function checkGallerySession() {
-    try {
-      const { data, error } = await db.auth.getUser();
-      if (error || !data.user) { window.location.replace("index.html"); return; }
-      const { data: membership, error: membershipError } = await db
-        .from("photobook_members").select("role")
-        .eq("user_id", data.user.id).single();
-      if (membershipError || !membership) {
-        await db.auth.signOut();
-        window.location.replace("index.html");
-        return;
+  // A picker displays existing options, supports typing and selecting many values.
+  function picker(id, category, allowCreate, onChange) {
+    const root = el(id), selected = new Map();
+    const chips = document.createElement("div"), input = document.createElement("input"), suggestions = document.createElement("div");
+    chips.className = "tag-chips"; suggestions.className = "tag-suggestions";
+    input.placeholder = allowCreate ? "Search or add a tag" : "Search existing tags";
+    root.replaceChildren(chips, input, suggestions);
+    function choose(name) { selected.set(norm(name), name); input.value = ""; draw(); onChange?.(); }
+    function draw() {
+      chips.replaceChildren(); suggestions.replaceChildren();
+      for (const [key, name] of selected) {
+        const chip = document.createElement("span"); chip.className = "tag-chip";
+        const label = document.createElement("span"); label.textContent = name;
+        const remove = document.createElement("button"); remove.type = "button"; remove.textContent = "×";
+        remove.setAttribute("aria-label", `Remove ${name}`);
+        remove.onclick = () => { selected.delete(key); draw(); onChange?.(); };
+        chip.append(label, remove); chips.append(chip);
       }
-      isPoster = membership.role === "poster";
-      status.textContent = isPoster ? "Poster" : "Viewer";
-      uploadButton.hidden = !isPoster;
-      incompleteTab.hidden = !isPoster;
-      await loadPhotos();
-    } catch (error) {
-      status.textContent = "Could not check account";
-      galleryMessage.textContent = error.message;
+      const q = norm(input.value);
+      const matches = allTags.filter(t => t.category === category && !selected.has(norm(t.name)) && norm(t.name).includes(q)).slice(0, 35);
+      for (const tag of matches) {
+        const b = document.createElement("button"); b.type = "button"; b.textContent = tag.name;
+        b.onclick = () => choose(tag.name); suggestions.append(b);
+      }
+      if (allowCreate && q && !allTags.some(t => norm(t.name) === q) && !selected.has(q)) {
+        const b = document.createElement("button"); b.type = "button";
+        b.textContent = `+ Create "${input.value.trim()}"`;
+        b.onclick = () => choose(input.value.trim()); suggestions.prepend(b);
+      }
     }
+    input.addEventListener("input", draw);
+    input.addEventListener("keydown", e => {
+      if (e.key === "Enter" || e.key === ",") {
+        e.preventDefault();
+        const exact = allTags.find(t => t.category === category && norm(t.name) === norm(input.value));
+        if (exact) choose(exact.name);
+        else if (allowCreate && input.value.trim()) choose(input.value.trim());
+      }
+    });
+    pickerInstances[id] = {
+      get: () => [...selected.values()],
+      set: values => { selected.clear(); for (const value of values) selected.set(norm(value), value); input.value = ""; draw(); },
+      refresh: draw
+    };
+    draw();
   }
 
-  function showSection(which) {
-    const incomplete = which === "incomplete" && isPoster;
-    incompleteSection.hidden = !incomplete;
-    photoGallery.hidden = incomplete;
-    galleryTab.classList.toggle("active", !incomplete);
-    incompleteTab.classList.toggle("active", incomplete);
+  function draftFor(photo) {
+    return drafts.get(photo.id) || {
+      month: photo.photo_month == null ? carriedMonth : String(photo.photo_month),
+      year: photo.photo_year == null ? carriedYear : String(photo.photo_year),
+      caption: photo.caption || "",
+      people: (links[photo.id] || []).filter(t => t.category === "person").map(t => t.name),
+      theme: (links[photo.id] || []).filter(t => t.category === "theme").map(t => t.name),
+      other: (links[photo.id] || []).filter(t => t.category === "other").map(t => t.name)
+    };
   }
-  galleryTab.addEventListener("click", () => showSection("gallery"));
-  incompleteTab.addEventListener("click", () => showSection("incomplete"));
-  uploadButton.addEventListener("click", () => {
-    if (isPoster) uploadPanel.hidden = !uploadPanel.hidden;
-  });
+  function captureDraft() {
+    const photo = currentList()[currentIndex];
+    if (fillingForm || !photo || !isPoster || el("organizer").hidden) return;
+    const data = {
+      month: el("editMonth").value, year: el("editYear").value.trim(),
+      caption: el("editCaption").value,
+      people: pickerInstances.editPeople.get(), theme: pickerInstances.editTheme.get(), other: pickerInstances.editTags.get()
+    };
+    carriedMonth = data.month; carriedYear = data.year;
+    const previous = draftFor(photo);
+    // Only mark a photo pending if values differ from its last loaded/saved state.
+    const baseline = {
+      month: photo.photo_month == null ? "" : String(photo.photo_month),
+      year: photo.photo_year == null ? "" : String(photo.photo_year),
+      caption: photo.caption || "",
+      people: (links[photo.id] || []).filter(t => t.category === "person").map(t => t.name),
+      theme: (links[photo.id] || []).filter(t => t.category === "theme").map(t => t.name),
+      other: (links[photo.id] || []).filter(t => t.category === "other").map(t => t.name)
+    };
+    const same = JSON.stringify(data) === JSON.stringify(baseline);
+    if (same) drafts.delete(photo.id); else drafts.set(photo.id, data);
+    pending();
+    if (!same) scheduleSave();
+  }
+  function scheduleSave() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => saveAll(false), 12000);
+  }
 
-  async function renderPhotos(rows, target, emptyText) {
+  async function signedImage(path) {
+    const { data, error } = await db.storage.from(BUCKET).createSignedUrl(path, 3600);
+    if (error) throw error;
+    return data.signedUrl;
+  }
+  async function loadData() {
+    el("galleryMessage").textContent = "Loading photographs...";
+    async function fetchAll(table, select, filters = fn => fn) {
+      let rows = [];
+      for (let offset = 0; ; offset += BUCKET_LIMIT) {
+        let query = db.from(table).select(select).range(offset, offset + BUCKET_LIMIT - 1);
+        query = filters(query);
+        const { data, error } = await query;
+        if (error) throw error;
+        rows.push(...data);
+        if (data.length < BUCKET_LIMIT) return rows;
+      }
+    }
+    try {
+      const [photos, tags, relations] = await Promise.all([
+        fetchAll("photos", "id,storage_path,photo_month,photo_year,caption,original_filename,is_complete,created_at", q => q.order("created_at", {ascending:false})),
+        fetchAll("tags", "id,name,category", q => q.order("name")),
+        fetchAll("photo_tags", "photo_id,tag_id")
+      ]);
+      allTags = tags; links = {};
+      const tagMap = new Map(tags.map(t => [t.id, t]));
+      for (const link of relations) {
+        const tag = tagMap.get(link.tag_id);
+        if (tag) (links[link.photo_id] ||= []).push(tag);
+      }
+      completePhotos = photos.filter(p => p.is_complete);
+      incompletePhotos = isPoster ? photos.filter(p => !p.is_complete) : [];
+      el("incompleteCount").textContent = `(${incompletePhotos.length})`;
+      const years = [...new Set(completePhotos.map(p => p.photo_year).filter(Boolean))].sort((a,b) => b-a);
+      const priorYear = el("filterYear").value;
+      el("filterYear").replaceChildren(new Option("Any year", ""), ...years.map(y => new Option(String(y), String(y))));
+      el("filterYear").value = priorYear;
+      Object.values(pickerInstances).forEach(p => p.refresh());
+      await renderGallery();
+      el("galleryMessage").textContent = "";
+    } catch (error) { el("galleryMessage").textContent = `Could not load photographs: ${error.message}`; }
+  }
+  function matchingGallery() {
+    const people = pickerInstances.filterPeople.get().map(norm);
+    const theme = pickerInstances.filterTheme.get().map(norm);
+    const other = pickerInstances.filterOther.get().map(norm);
+    const year = el("filterYear").value, month = el("filterMonth").value;
+    return completePhotos.filter(p => {
+      if (hiddenIds.has(p.id)) return false;
+      if (year && String(p.photo_year) !== year) return false;
+      if (month && String(p.photo_month) !== month) return false;
+      const ts = links[p.id] || [];
+      const has = (category, name) => ts.some(t => t.category === category && norm(t.name) === name);
+      if (people.length && !(el("peopleMode").value === "and" ? people.every(n => has("person",n)) : people.some(n => has("person",n)))) return false;
+      return theme.every(n => has("theme",n)) && other.every(n => has("other",n));
+    });
+  }
+  async function renderTiles(rows, target, editable) {
     target.replaceChildren();
-    if (!rows.length) {
-      const empty = document.createElement("p");
-      empty.className = "empty-gallery";
-      empty.textContent = emptyText;
-      target.appendChild(empty);
-      return;
-    }
-    // Signed URLs expire; request them again when the gallery reloads.
-    for (const photo of rows) {
-      const figure = document.createElement("figure");
-      figure.className = "photo-tile";
-      const image = document.createElement("img");
-      image.alt = photo.caption || photo.original_filename || "Family photograph";
-      image.loading = "lazy";
-      const { data, error } = await db.storage.from(BUCKET)
-        .createSignedUrl(photo.storage_path, 3600);
-      if (!error && data?.signedUrl) image.src = data.signedUrl;
+    if (!rows.length) { const p = document.createElement("p"); p.className="empty-gallery"; p.textContent="No photographs match."; target.append(p); return; }
+    const figures = rows.map(photo => {
+      const figure = document.createElement("figure"); figure.className="photo-tile";
+      const img = document.createElement("img"); img.loading="lazy"; img.alt=photo.caption || "Family photograph";
       const caption = document.createElement("figcaption");
-      const dateLabel = photo.photo_month && photo.photo_year ? ` · ${photo.photo_month}/${photo.photo_year}` : "";
-      caption.textContent = `${photo.original_filename || "Photograph"}${dateLabel}`;
-      if (target.id === "incompleteGallery" && isPoster) {
-        figure.classList.add("editable-tile");
-        figure.tabIndex = 0;
-        figure.setAttribute("role", "button");
-        figure.setAttribute("aria-label", `Organize ${photo.original_filename || "photograph"}`);
-        const open = () => openOrganizer(incompletePhotos.findIndex(item => item.id === photo.id));
-        figure.addEventListener("click", open);
-        figure.addEventListener("keydown", event => {
-          if (event.key === "Enter" || event.key === " ") { event.preventDefault(); open(); }
-        });
-      }
-      figure.append(image, caption);
-      target.appendChild(figure);
-    }
-  }
-
-  async function loadPhotos() {
-    galleryMessage.textContent = "Loading photographs...";
-    const { data: complete, error: completeError } = await db.from("photos")
-      .select("id, storage_path, photo_month, photo_year, caption, original_filename")
-      .eq("is_complete", true).order("created_at", { ascending: false }).limit(200);
-    if (completeError) { galleryMessage.textContent = completeError.message; return; }
-    await renderPhotos(complete, photoGallery, "No completed photographs yet.");
-    if (isPoster) {
-      const { data: incomplete, error: incompleteError } = await db.from("photos")
-        .select("id, storage_path, photo_month, photo_year, caption, original_filename")
-        .eq("is_complete", false).order("created_at", { ascending: false }).limit(200);
-      if (incompleteError) { galleryMessage.textContent = incompleteError.message; return; }
-      document.getElementById("incompleteCount").textContent = `(${incomplete.length}${incomplete.length === 200 ? "+" : ""})`;
-      incompletePhotos = incomplete;
-      await renderPhotos(incomplete, document.getElementById("incompleteGallery"), "No incomplete photographs.");
-    }
-    galleryMessage.textContent = "";
-  }
-
-  const submitPhotos = document.getElementById("submitPhotos");
-  submitPhotos.addEventListener("click", async () => {
-    if (!isPoster) return;
-    const files = Array.from(document.getElementById("photoFiles").files);
-    const message = document.getElementById("uploadMessage");
-    if (!files.length) { message.textContent = "Select at least one photograph."; return; }
-    submitPhotos.disabled = true;
-    let uploaded = 0;
-    const failures = [];
-    try {
-      for (const [index, file] of files.entries()) {
-        message.textContent = `Uploading ${index + 1} of ${files.length}...`;
-        if (!file.type.startsWith("image/")) {
-          failures.push(`${file.name}: not an image`);
-          continue;
-        }
-        const path = `${crypto.randomUUID()}/${crypto.randomUUID()}`;
-        const { error: uploadError } = await db.storage.from(BUCKET)
-          .upload(path, file, { contentType: file.type, upsert: false });
-        if (uploadError) { failures.push(`${file.name}: ${uploadError.message}`); continue; }
-        const { error: insertError } = await db.from("photos").insert({
-          storage_path: path,
-          original_filename: file.name,
-          photo_month: null,
-          photo_year: null,
-          is_complete: false
-        });
-        if (insertError) {
-          // Don't leave an untracked private file if saving its database row fails.
-          const { error: cleanupError } = await db.storage.from(BUCKET).remove([path]);
-          failures.push(`${file.name}: ${insertError.message}${cleanupError ? " (file cleanup also failed)" : ""}`);
-          continue;
-        }
-        uploaded++;
-      }
-      message.textContent = `${uploaded} photo(s) added to Incomplete.` +
-        (failures.length ? `\n${failures.length} failed:\n${failures.join("\n")}` : "");
-      if (uploaded) {
-        document.getElementById("photoFiles").value = "";
-        await loadPhotos();
-        showSection("incomplete");
-      }
-    } catch (error) {
-      message.textContent = `${uploaded} uploaded before an error: ${error.message}`;
-    } finally {
-      submitPhotos.disabled = false;
-    }
-  });
-
-  const organizer = document.getElementById("organizer");
-  const organizerMessage = document.getElementById("organizerMessage");
-  const editPeople = document.getElementById("editPeople");
-  const editTags = document.getElementById("editTags");
-  const editMonth = document.getElementById("editMonth");
-  const editYear = document.getElementById("editYear");
-  const editCaption = document.getElementById("editCaption");
-  const saveButton = document.getElementById("savePhoto");
-  const saveNextButton = document.getElementById("saveNextPhoto");
-  const deleteButton = document.getElementById("deletePhoto");
-  let organizerBusy = false;
-
-  function parseTags(value) {
-    return [...new Map(value.split(",").map(item => item.trim())
-      .filter(Boolean).map(item => [item.toLocaleLowerCase(), item])).values()];
-  }
-
-  async function openOrganizer(index) {
-    if (!isPoster || index < 0 || index >= incompletePhotos.length) return;
-    currentPhotoIndex = index;
-    const photo = incompletePhotos[index];
-    organizer.hidden = false;
-    organizerMessage.textContent = "Loading...";
-    document.getElementById("organizerPosition").textContent = `Incomplete ${index + 1} of ${incompletePhotos.length}`;
-    document.getElementById("organizerFilename").textContent = photo.original_filename || "Photograph";
-    editMonth.value = photo.photo_month ?? "";
-    editYear.value = photo.photo_year ?? "";
-    editCaption.value = photo.caption || "";
-    const image = document.getElementById("organizerImage");
-    image.removeAttribute("src");
-    const [urlResult, linksResult, tagsResult] = await Promise.all([
-      db.storage.from(BUCKET).createSignedUrl(photo.storage_path, 3600),
-      db.from("photo_tags").select("tag_id").eq("photo_id", photo.id),
-      db.from("tags").select("id,name,category").order("name")
-    ]);
-    if (urlResult.error || linksResult.error || tagsResult.error) {
-      organizerMessage.textContent = (urlResult.error || linksResult.error || tagsResult.error).message;
-      return;
-    }
-    image.src = urlResult.data.signedUrl;
-    const linked = new Set(linksResult.data.map(link => link.tag_id));
-    editPeople.value = tagsResult.data.filter(tag => linked.has(tag.id) && tag.category === "person")
-      .map(tag => tag.name).join(", ");
-    editTags.value = tagsResult.data.filter(tag => linked.has(tag.id) && tag.category !== "person")
-      .map(tag => tag.name).join(", ");
-    for (const [listId, category] of [["knownPeople", "person"], ["knownTags", "other"]]) {
-      const list = document.getElementById(listId);
-      list.replaceChildren();
-      tagsResult.data.filter(tag => tag.category === category).forEach(tag => {
-        const option = document.createElement("option");
-        option.value = tag.name;
-        list.appendChild(option);
-      });
-    }
-    organizerMessage.textContent = "";
-    organizer.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-
-  async function saveCurrentPhoto(moveNext) {
-    if (organizerBusy || currentPhotoIndex < 0) return;
-    const photo = incompletePhotos[currentPhotoIndex];
-    const month = editMonth.value ? Number(editMonth.value) : null;
-    const year = editYear.value ? Number(editYear.value) : null;
-    if ((month !== null && (month < 1 || month > 12)) ||
-        (year !== null && (year < 1800 || year > 2200))) {
-      organizerMessage.textContent = "Enter a valid month and year, or leave them blank.";
-      return;
-    }
-    const wanted = [
-      ...parseTags(editPeople.value).map(name => ({ name, category: "person" })),
-      ...parseTags(editTags.value).map(name => ({ name, category: "other" }))
-    ];
-    const distinct = [...new Map(wanted.map(tag => [tag.name.toLocaleLowerCase(), tag])).values()];
-    organizerBusy = true;
-    saveButton.disabled = saveNextButton.disabled = deleteButton.disabled = true;
-    organizerMessage.textContent = "Saving...";
-    try {
-      const tagIds = [];
-      for (const tag of distinct) {
-        let { data: existing, error } = await db.from("tags").select("id,category").eq("name", tag.name).maybeSingle();
-        if (error) throw error;
-        if (!existing) {
-          const result = await db.from("tags").insert(tag).select("id,category").single();
-          if (result.error) throw result.error;
-          existing = result.data;
-        }
-        tagIds.push(existing.id);
-      }
-      const { data: oldLinks, error: oldError } = await db.from("photo_tags").select("tag_id").eq("photo_id", photo.id);
-      if (oldError) throw oldError;
-      const previous = new Set(oldLinks.map(link => link.tag_id));
-      const desired = new Set(tagIds);
-      const add = tagIds.filter(id => !previous.has(id)).map(tag_id => ({ photo_id: photo.id, tag_id }));
-      if (add.length) {
-        const { error } = await db.from("photo_tags").insert(add);
-        if (error) throw error;
-      }
-      const remove = [...previous].filter(id => !desired.has(id));
-      if (remove.length) {
-        const { error } = await db.from("photo_tags").delete().eq("photo_id", photo.id).in("tag_id", remove);
-        if (error) throw error;
-      }
-      const { error: photoError } = await db.from("photos").update({
-        photo_month: month, photo_year: year,
-        caption: editCaption.value.trim() || null,
-        is_complete: distinct.length > 0
-      }).eq("id", photo.id);
-      if (photoError) throw photoError;
-      const oldIndex = currentPhotoIndex;
-      await loadPhotos();
-      if (distinct.length || moveNext) {
-        if (incompletePhotos.length) {
-          await openOrganizer(Math.min(oldIndex + (distinct.length ? 0 : 1), incompletePhotos.length - 1));
-        } else {
-          organizer.hidden = true;
-          currentPhotoIndex = -1;
-          showSection("gallery");
-        }
+      caption.textContent = photo.caption || "";
+      figure.append(img, caption);
+      if (editable) {
+        figure.classList.add("editable-tile"); figure.tabIndex=0; figure.setAttribute("role","button");
+        const open = () => openOrganizer(incompletePhotos.findIndex(p => p.id === photo.id));
+        figure.onclick=open; figure.onkeydown=e => { if (e.key === "Enter" || e.key === " ") {e.preventDefault();open();} };
       } else {
-        await openOrganizer(Math.min(oldIndex, incompletePhotos.length - 1));
+        const hide = document.createElement("button"); hide.type="button"; hide.className="hide-photo"; hide.textContent="×";
+        hide.title="Temporarily hide from these results"; hide.setAttribute("aria-label", "Hide photograph");
+        hide.onclick=() => {hiddenIds.add(photo.id); renderGallery();}; figure.append(hide);
       }
-      organizerMessage.textContent = organizer.hidden ? "" : "Saved.";
-    } catch (error) {
-      organizerMessage.textContent = `Could not save: ${error.message}`;
-    } finally {
-      organizerBusy = false;
-      saveButton.disabled = saveNextButton.disabled = deleteButton.disabled = false;
-    }
+      target.append(figure);
+      return {photo,img};
+    });
+    // Fetch signed URLs concurrently rather than waiting for each image sequentially.
+    await Promise.all(figures.map(async ({photo,img}) => {
+      try { img.src = await signedImage(photo.storage_path); } catch { img.alt = "Preview unavailable"; }
+    }));
   }
-
-  saveButton.addEventListener("click", () => saveCurrentPhoto(false));
-  saveNextButton.addEventListener("click", () => saveCurrentPhoto(true));
-  document.getElementById("previousPhoto").addEventListener("click", () => openOrganizer(currentPhotoIndex - 1));
-  document.getElementById("nextPhoto").addEventListener("click", () => openOrganizer(currentPhotoIndex + 1));
-  document.getElementById("closeOrganizer").addEventListener("click", () => {
-    organizer.hidden = true;
-    currentPhotoIndex = -1;
-  });
-  deleteButton.addEventListener("click", async () => {
-    if (!isPoster || organizerBusy || currentPhotoIndex < 0) return;
-    const photo = incompletePhotos[currentPhotoIndex];
-    if (!window.confirm(`Permanently delete ${photo.original_filename || "this photograph"}? This cannot be undone.`)) return;
-    organizerBusy = true;
-    deleteButton.disabled = true;
-    organizerMessage.textContent = "Deleting...";
-    // Remove the storage file first. If it fails, preserve the database record.
-    const { error: storageError } = await db.storage.from(BUCKET).remove([photo.storage_path]);
-    if (storageError) {
-      organizerMessage.textContent = storageError.message;
-      organizerBusy = false;
-      deleteButton.disabled = false;
-      return;
+  async function renderGallery() {
+    const visible = matchingGallery();
+    el("filterStatus").textContent = `${visible.length} visible · ${hiddenIds.size} temporarily hidden`;
+    await Promise.all([
+      renderTiles(visible,el("photoGallery"),false),
+      isPoster ? renderTiles(incompletePhotos,el("incompleteGallery"),true) : Promise.resolve()
+    ]);
+  }
+  function showSection(section) {
+    activeSection=section;
+    const incomplete=section==="incomplete" && isPoster;
+    el("incompleteSection").hidden=!incomplete;
+    el("photoGallery").hidden=incomplete;
+    el("filterPanel").hidden=incomplete;
+    el("galleryTab").classList.toggle("active",!incomplete);
+    el("incompleteTab").classList.toggle("active",incomplete);
+    el("organizer").hidden=true; currentIndex=-1;
+  }
+  function openOrganizer(index) {
+    if (!isPoster || index<0 || index>=incompletePhotos.length) return;
+    if (currentIndex>=0) captureDraft();
+    currentIndex=index;
+    const photo=incompletePhotos[index], d=draftFor(photo);
+    el("organizer").hidden=false;
+    el("organizerPosition").textContent=`Incomplete ${index+1} of ${incompletePhotos.length}`;
+    el("organizerFilename").textContent=photo.original_filename || "Photograph";
+    fillingForm=true;
+    el("editMonth").value=d.month; el("editYear").value=d.year; el("editCaption").value=d.caption;
+    pickerInstances.editPeople.set(d.people); pickerInstances.editTheme.set(d.theme); pickerInstances.editTags.set(d.other);
+    fillingForm=false;
+    el("organizerMessage").textContent="";
+    const image=el("organizerImage"); image.removeAttribute("src");
+    const id=photo.id;
+    signedImage(photo.storage_path).then(url => {if(currentList()[currentIndex]?.id===id) image.src=url;}).catch(e => el("organizerMessage").textContent=e.message);
+    pending();
+    el("organizer").scrollIntoView({block:"start",behavior:"instant"});
+  }
+  async function saveOne(id, d) {
+    const year=d.year ? Number(d.year) : null, month=d.month ? Number(d.month) : null;
+    if ((year!==null && (!Number.isInteger(year)||year<1800||year>2200)) || (month!==null && (month<1||month>12))) throw Error("Invalid month/year");
+    const selected=[...d.people.map(name=>({name,category:"person"})),...d.theme.map(name=>({name,category:"theme"})),...d.other.map(name=>({name,category:"other"}))];
+    const ids=[];
+    for(const tag of selected) {
+      let existing=allTags.find(t=>norm(t.name)===norm(tag.name));
+      if(existing && existing.category!==tag.category) throw Error(`"${tag.name}" already exists under ${existing.category}. Use a different name.`);
+      if(!existing) {
+        const {data,error}=await db.from("tags").insert(tag).select("id,name,category").single();
+        if(error) throw error; existing=data; allTags.push(existing);
+      }
+      ids.push(existing.id);
     }
-    const { error } = await db.from("photos").delete().eq("id", photo.id);
-    if (error) {
-      organizerMessage.textContent = `File deleted, but its database record could not be removed: ${error.message}`;
-    } else {
-      const index = currentPhotoIndex;
-      await loadPhotos();
-      if (incompletePhotos.length) await openOrganizer(Math.min(index, incompletePhotos.length - 1));
-      else { organizer.hidden = true; currentPhotoIndex = -1; }
+    const {data:old,error:readError}=await db.from("photo_tags").select("tag_id").eq("photo_id",id);
+    if(readError) throw readError;
+    const previous=new Set(old.map(t=>t.tag_id)), desired=new Set(ids);
+    const add=[...desired].filter(x=>!previous.has(x)).map(tag_id=>({photo_id:id,tag_id}));
+    const remove=[...previous].filter(x=>!desired.has(x));
+    if(add.length){const {error}=await db.from("photo_tags").insert(add);if(error)throw error;}
+    if(remove.length){const {error}=await db.from("photo_tags").delete().eq("photo_id",id).in("tag_id",remove);if(error)throw error;}
+    const {error}=await db.from("photos").update({photo_month:month,photo_year:year,caption:d.caption.trim()||null,is_complete:ids.length>0}).eq("id",id);
+    if(error)throw error;
+    const photo=[...completePhotos,...incompletePhotos].find(p=>p.id===id);
+    if(photo){photo.photo_month=month;photo.photo_year=year;photo.caption=d.caption.trim();photo.is_complete=ids.length>0;}
+    links[id]=ids.map(x=>allTags.find(t=>t.id===x)).filter(Boolean);
+  }
+  async function saveAll(manual=true) {
+    if(saving || !drafts.size) return;
+    saving=true; clearTimeout(saveTimer);
+    el("savePhoto").disabled=true;
+    let saved=0, failures=[];
+    const entries=[...drafts.entries()];
+    for(const [id,d] of entries) {
+      try {await saveOne(id,d); if(drafts.get(id)===d) drafts.delete(id); saved++;}
+      catch(e){failures.push(`${id.slice(0,8)}: ${e.message}`);}
+      pending();
     }
-    organizerBusy = false;
-    deleteButton.disabled = false;
-  });
-
-  signOutButton.addEventListener("click", async () => {
-    signOutButton.disabled = true;
-    signOutButton.textContent = "Signing out...";
-    await db.auth.signOut();
-    window.location.replace("index.html");
-  });
-  checkGallerySession();
+    completePhotos=[...completePhotos,...incompletePhotos.filter(p=>p.is_complete)];
+    incompletePhotos=incompletePhotos.filter(p=>!p.is_complete);
+    el("incompleteCount").textContent=`(${incompletePhotos.length})`;
+    saving=false; el("savePhoto").disabled=false;
+    el("organizerMessage").textContent=failures.length ? `Saved ${saved}; ${failures.length} failed: ${failures.join("; ")}` : `Saved ${saved} photograph(s).`;
+    if(currentIndex>=incompletePhotos.length) currentIndex=incompletePhotos.length-1;
+    if(currentIndex>=0 && !el("organizer").hidden) { const n=currentIndex; currentIndex=-1; openOrganizer(n); }
+    else if(!incompletePhotos.length) el("organizer").hidden=true;
+    await renderGallery();
+    if(drafts.size) scheduleSave();
+  }
+  // Bulk upload does not ask for month, year or tags.
+  el("submitPhotos").onclick=async()=>{
+    if(!isPoster)return;
+    const files=[...el("photoFiles").files], message=el("uploadMessage");
+    if(!files.length){message.textContent="Select photographs first.";return;}
+    el("submitPhotos").disabled=true;let count=0;const errors=[];
+    for(const [i,file] of files.entries()) {
+      message.textContent=`Uploading ${i+1} of ${files.length}...`;
+      if(!file.type.startsWith("image/")){errors.push(`${file.name}: not an image`);continue;}
+      const path=`${crypto.randomUUID()}/${crypto.randomUUID()}`;
+      const {error:uploadError}=await db.storage.from(BUCKET).upload(path,file,{contentType:file.type,upsert:false});
+      if(uploadError){errors.push(`${file.name}: ${uploadError.message}`);continue;}
+      const {error}=await db.from("photos").insert({storage_path:path,original_filename:file.name,photo_month:null,photo_year:null,is_complete:false});
+      if(error){await db.storage.from(BUCKET).remove([path]);errors.push(`${file.name}: ${error.message}`);}else count++;
+    }
+    message.textContent=`${count} uploaded.`+(errors.length?` Errors: ${errors.join("; ")}`:"");
+    el("submitPhotos").disabled=false;
+    if(count){el("photoFiles").value="";await loadData();showSection("incomplete");}
+  };
+  el("deletePhoto").onclick=async()=>{
+    if(!isPoster||saving||currentIndex<0)return;
+    const photo=incompletePhotos[currentIndex];
+    if(!confirm(`Permanently delete ${photo.original_filename || "photograph"}? This cannot be undone.`))return;
+    const {error:storageError}=await db.storage.from(BUCKET).remove([photo.storage_path]);
+    if(storageError){el("organizerMessage").textContent=storageError.message;return;}
+    const {error}=await db.from("photos").delete().eq("id",photo.id);
+    if(error){el("organizerMessage").textContent=`Storage removed, but database deletion failed: ${error.message}`;return;}
+    drafts.delete(photo.id); incompletePhotos.splice(currentIndex,1); el("incompleteCount").textContent=`(${incompletePhotos.length})`;
+    const next=Math.min(currentIndex,incompletePhotos.length-1);currentIndex=-1;
+    if(next>=0)openOrganizer(next);else el("organizer").hidden=true;
+    await renderGallery();pending();
+  };
+  el("downloadVisible").onclick=async()=>{
+    const rows=matchingGallery();
+    if(!rows.length){el("filterStatus").textContent="No visible photographs to download.";return;}
+    if(!window.JSZip){el("filterStatus").textContent="ZIP library unavailable. Try refreshing.";return;}
+    const btn=el("downloadVisible");btn.disabled=true;
+    const zip=new JSZip();let done=0;const failures=[];
+    for(const photo of rows) {
+      try {
+        const {data,error}=await db.storage.from(BUCKET).download(photo.storage_path);
+        if(error)throw error;
+        const original=photo.original_filename || "photograph.jpg";
+        const safe=original.replace(/[\\/:*?"<>|]/g,"_");
+        zip.file(`${String(done+1).padStart(4,"0")}_${photo.id.slice(0,8)}_${safe}`,data);
+        done++;
+      }catch(e){failures.push(photo.original_filename||photo.id);}
+      el("filterStatus").textContent=`Preparing originals ${done+failures.length} of ${rows.length}...`;
+    }
+    if(done){
+      try{
+        const blob=await zip.generateAsync({type:"blob",compression:"STORE"});
+        const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="family-photobook-selection.zip";a.click();
+        setTimeout(()=>URL.revokeObjectURL(url),60000);
+      }catch(e){el("filterStatus").textContent=`Could not build ZIP: ${e.message}`;btn.disabled=false;return;}
+    }
+    el("filterStatus").textContent=`${done} originals downloaded${failures.length?`; ${failures.length} failed (${failures.join(", ")})`:""}.`;
+    btn.disabled=false;
+  };
+  el("galleryTab").onclick=()=>{if(currentIndex>=0)captureDraft();showSection("gallery");};
+  el("incompleteTab").onclick=()=>{if(currentIndex>=0)captureDraft();showSection("incomplete");};
+  el("uploadButton").onclick=()=>el("uploadPanel").hidden=!el("uploadPanel").hidden;
+  el("previousPhoto").onclick=()=>openOrganizer(currentIndex-1);
+  el("nextPhoto").onclick=()=>openOrganizer(currentIndex+1);
+  el("closeOrganizer").onclick=()=>{captureDraft();el("organizer").hidden=true;currentIndex=-1;};
+  el("savePhoto").onclick=()=>{captureDraft();saveAll();};
+  el("clearFilters").onclick=()=>{
+    ["filterPeople","filterTheme","filterOther"].forEach(id=>pickerInstances[id].set([]));
+    el("filterYear").value="";el("filterMonth").value="";el("peopleMode").value="or";renderGallery();
+  };
+  el("restoreHidden").onclick=()=>{hiddenIds.clear();renderGallery();};
+  ["filterYear","filterMonth","peopleMode"].forEach(id=>el(id).onchange=renderGallery);
+  ["filterPeople","filterTheme","filterOther"].forEach((id,i)=>picker(id,["person","theme","other"][i],false,renderGallery));
+  ["editPeople","editTheme","editTags"].forEach((id,i)=>picker(id,["person","theme","other"][i],true,()=>{captureDraft();}));
+  ["editMonth","editYear","editCaption"].forEach(id=>el(id).addEventListener("input",captureDraft));
+  window.addEventListener("beforeunload",e=>{if(drafts.size){e.preventDefault();e.returnValue="";}});
+  signOutButton.onclick=async()=>{
+    if(drafts.size && !confirm("You have unsaved photo edits. Sign out anyway?"))return;
+    await db.auth.signOut();location.replace("index.html");
+  };
+  (async()=>{
+    const {data,error}=await db.auth.getUser();
+    if(error||!data.user){location.replace("index.html");return;}
+    const {data:membership,error:memberError}=await db.from("photobook_members").select("role").eq("user_id",data.user.id).single();
+    if(memberError||!membership){await db.auth.signOut();location.replace("index.html");return;}
+    isPoster=membership.role==="poster";
+    el("accountStatus").textContent=isPoster?"Poster":"Viewer";
+    el("uploadButton").hidden=!isPoster;el("incompleteTab").hidden=!isPoster;
+    await loadData();showSection("gallery");
+  })();
 }
