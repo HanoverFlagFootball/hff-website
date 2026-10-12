@@ -245,7 +245,7 @@ button:disabled { opacity: .55; cursor: wait; }
 .tag-chips { display:flex; gap:5px; flex-wrap:wrap; }
 .tag-chip { display:inline-flex; align-items:center; gap:5px; background:#eee; padding:5px 8px; border-radius:15px; font-size:13px; }
 .tag-chip button { background:none; color:#222; padding:0 2px; margin:0; width:auto; font-size:16px; }
-.tag-suggestions { max-height:175px; overflow-y:auto; border-top:1px solid #ddd; }
+.tag-suggestions { max-height: 175px; overflow-y: auto; overscroll-behavior: contain; border-top: 1px solid #ddd; }
 .tag-suggestions button { display:block; width:100%; text-align:left; background:white; color:#222; margin:0; padding:7px; border-radius:0; font-size:14px; }
 .tag-suggestions button:hover { background:#eee; }
 .photo-tile { position:relative; }
@@ -263,3 +263,19 @@ button:disabled { opacity: .55; cursor: wait; }
 .manage-controls input[type="checkbox"] {width:18px;height:18px;}
 .photo-select {position:absolute;top:10px;left:10px;z-index:2;width:23px;height:23px;cursor:pointer;accent-color:#222;}
 #manageMessage {white-space:pre-line;overflow-wrap:anywhere;}
+
+/* v13 search-first gallery and tag administration */
+.filter-actions label {align-self:center;font-size:14px;}
+.filter-actions select {padding:10px;border:1px solid #ccc;border-radius:6px;}
+#showPhotos {background:#222;color:#fff;}
+.tag-manager {margin:18px 0;padding:14px;border:1px solid #ddd;border-radius:8px;background:#fff;}
+.tag-manager summary {cursor:pointer;font-weight:bold;}
+.tag-manager label {display:block;margin:10px 0 4px;}
+.tag-manager input,.tag-manager select {padding:9px;width:100%;max-width:340px;border:1px solid #ccc;border-radius:6px;}
+.tag-manage-list {margin-top:12px;max-height:320px;overflow:auto;}
+.tag-manage-row {display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid #eee;}
+.tag-manage-row button {width:auto;margin:0;padding:7px 12px;background:#a52424;color:#fff;}
+
+/* v14: show at most five tag options before scrolling. */
+.tag-suggestions { max-height: 185px; overflow-y: auto; }
+.tag-suggestions button { box-sizing: border-box; height: 37px; min-height: 37px; padding: 7px 10px; }

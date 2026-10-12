@@ -28,6 +28,7 @@ if (signOutButton) {
   let drafts = new Map(), hiddenIds = new Set(), carriedMonth = "", carriedYear = "";
   let saving = false, deleting = false, saveTimer = null, pickerInstances = {}, fillingForm = false;
   let managePhotos = [], selectedIds = new Set();
+  let galleryMode = "random", galleryRenderVersion = 0;
   const BUCKET_LIMIT = 1000;
   const norm = s => s.trim().toLocaleLowerCase();
   const pending = () => el("pendingStatus").textContent = `${drafts.size} photo(s) waiting to save`;
@@ -65,7 +66,7 @@ if (signOutButton) {
         chip.append(label, remove); chips.append(chip);
       }
       const q = norm(input.value);
-      const matches = allTags.filter(t => t.category === category && !selected.has(norm(t.name)) && norm(t.name).includes(q)).slice(0, 35);
+      const matches = allTags.filter(t => t.category === category && !selected.has(norm(t.name)) && norm(t.name).includes(q));
       for (const tag of matches) {
         const b = document.createElement("button"); b.type = "button"; b.textContent = tag.name;
         b.onclick = () => choose(tag.name); suggestions.append(b);
@@ -173,6 +174,7 @@ if (signOutButton) {
       el("filterYear").replaceChildren(new Option("Any year", ""), ...years.map(y => new Option(String(y), String(y))));
       el("filterYear").value = priorYear;
       Object.values(pickerInstances).forEach(p => p.refresh());
+      renderTagManager();
       await renderGallery();
       el("galleryMessage").textContent = "";
     } catch (error) { el("galleryMessage").textContent = `Could not load photographs: ${error.message}`; }
@@ -224,13 +226,70 @@ if (signOutButton) {
       try { img.src = await signedImage(photo.storage_path); } catch { img.alt = "Preview unavailable"; }
     }));
   }
+  function sortedPhotos(rows) {
+    const result = [...rows];
+    const mode = el("sortPhotos").value;
+    if (mode === "random") {
+      for (let i = result.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [result[i], result[j]] = [result[j], result[i]];
+      }
+    } else if (mode === "oldest") result.reverse();
+    else if (mode === "dateNewest" || mode === "dateOldest") {
+      const dateKey = p => p.photo_year && p.photo_month ? p.photo_year * 12 + p.photo_month : -1;
+      result.sort((a,b) => mode === "dateNewest" ? dateKey(b)-dateKey(a) : dateKey(a)-dateKey(b));
+    }
+    return result;
+  }
   async function renderGallery() {
-    const visible = matchingGallery();
-    el("filterStatus").textContent = `${visible.length} visible · ${hiddenIds.size} temporarily hidden`;
-    await Promise.all([
-      renderTiles(visible,el("photoGallery"),false),
-      isPoster ? renderTiles(manageVisible(),el("incompleteGallery"),true) : Promise.resolve()
-    ]);
+    const version = ++galleryRenderVersion;
+    const matches = matchingGallery();
+    const visible = galleryMode === "random"
+      ? (matches.length ? [matches[Math.floor(Math.random() * matches.length)]] : [])
+      : sortedPhotos(matches);
+    el("filterStatus").textContent = galleryMode === "random"
+      ? (visible.length ? "One random photograph. Choose filters and click Show Photos for matching results." : "No photographs available.")
+      : `${visible.length} matching photograph(s) · ${hiddenIds.size} temporarily hidden`;
+    // Only request image URLs for the displayed set, not every photo on initial load.
+    await renderTiles(visible, el("photoGallery"), false);
+    if (version !== galleryRenderVersion) return;
+    if (isPoster && activeSection === "manage") {
+      await renderTiles(manageVisible(), el("incompleteGallery"), true);
+      updateSelection();
+    }
+  }
+  function renderTagManager() {
+    if (!isPoster) return;
+    const category = el("tagManageCategory").value;
+    const query = norm(el("tagManageSearch").value);
+    const root = el("tagManageList"); root.replaceChildren();
+    const tags = allTags.filter(t => t.category === category && norm(t.name).includes(query))
+      .sort((a,b) => a.name.localeCompare(b.name));
+    if (!tags.length) {root.textContent = "No matching tags."; return;}
+    for (const tag of tags) {
+      const row = document.createElement("div"); row.className = "tag-manage-row";
+      const count = Object.values(links).filter(list => list.some(t => t.id === tag.id)).length;
+      const name = document.createElement("span"); name.textContent = `${tag.name} (${count} photos)`;
+      const button = document.createElement("button"); button.type = "button";
+      button.className = "danger"; button.textContent = "Delete tag";
+      button.onclick = async () => {
+        if (saving || deleting || drafts.size) {
+          el("tagManageMessage").textContent = "Save pending photo changes before deleting tags.";
+          return;
+        }
+        if (!confirm(`Delete the tag "${tag.name}"?\n\nIt will be removed from ${count} photograph(s). The photographs themselves will NOT be deleted.`)) return;
+        button.disabled = true;
+        const { error } = await db.from("tags").delete().eq("id", tag.id);
+        if (error) {button.disabled = false; el("tagManageMessage").textContent = `Could not delete tag: ${error.message}`; return;}
+        allTags = allTags.filter(t => t.id !== tag.id);
+        for (const id of Object.keys(links)) links[id] = links[id].filter(t => t.id !== tag.id);
+        Object.values(pickerInstances).forEach(p => {p.set(p.get().filter(name => norm(name) !== norm(tag.name))); p.refresh();});
+        el("tagManageMessage").textContent = `Deleted tag "${tag.name}". Photographs were kept.`;
+        renderTagManager();
+        await renderGallery();
+      };
+      row.append(name,button);root.append(row);
+    }
   }
   function manageVisible() {
     const view=el("manageView").value;
@@ -252,7 +311,7 @@ if (signOutButton) {
     el("galleryTab").classList.toggle("active",!incomplete);
     el("incompleteTab").classList.toggle("active",incomplete);
     el("organizer").hidden=true; currentIndex=-1;
-    if(incomplete)updateSelection();
+    if(incomplete){updateSelection();renderTiles(manageVisible(),el("incompleteGallery"),true);renderTagManager();}
   }
   function openOrganizer(index) {
     if (!isPoster || index<0 || index>=managePhotos.length) return;
@@ -324,7 +383,7 @@ if (signOutButton) {
       const n=managePhotos.findIndex(p=>p.id===currentId);
       currentIndex=-1; if(n>=0)openOrganizer(n);
     }
-    await renderGallery(); updateSelection();
+    await renderGallery(); updateSelection(); renderTagManager();
     if(drafts.size) scheduleSave();
   }
   // Bulk upload does not ask for month, year or tags.
@@ -445,13 +504,18 @@ if (signOutButton) {
   el("nextPhoto").onclick=()=>openOrganizer(currentIndex+1);
   el("closeOrganizer").onclick=()=>{captureDraft();el("organizer").hidden=true;currentIndex=-1;};
   el("savePhoto").onclick=()=>{captureDraft();saveAll();};
+  el("showPhotos").onclick = () => {galleryMode = "results"; renderGallery();};
+  el("showRandom").onclick = () => {galleryMode = "random"; renderGallery();};
+  el("sortPhotos").onchange = () => {if (galleryMode === "results") renderGallery();};
+  el("tagManageCategory").onchange = renderTagManager;
+  el("tagManageSearch").oninput = renderTagManager;
   el("clearFilters").onclick=()=>{
     ["filterPeople","filterTheme","filterOther"].forEach(id=>pickerInstances[id].set([]));
-    el("filterYear").value="";el("filterMonth").value="";el("peopleMode").value="or";renderGallery();
+    el("filterYear").value="";el("filterMonth").value="";el("peopleMode").value="or";galleryMode="random";renderGallery();
   };
   el("restoreHidden").onclick=()=>{hiddenIds.clear();renderGallery();};
-  ["filterYear","filterMonth","peopleMode"].forEach(id=>el(id).onchange=renderGallery);
-  ["filterPeople","filterTheme","filterOther"].forEach((id,i)=>picker(id,["person","theme","other"][i],false,renderGallery));
+  ["filterYear","filterMonth","peopleMode"].forEach(id=>el(id).onchange=()=>{el("filterStatus").textContent="Filters changed. Click Show Photos to apply.";});
+  ["filterPeople","filterTheme","filterOther"].forEach((id,i)=>picker(id,["person","theme","other"][i],false,()=>{el("filterStatus").textContent="Filters changed. Click Show Photos to apply.";}));
   ["editPeople","editTheme","editTags"].forEach((id,i)=>picker(id,["person","theme","other"][i],true,()=>{captureDraft();}));
   ["editMonth","editYear","editCaption"].forEach(id=>el(id).addEventListener("input",captureDraft));
   window.addEventListener("beforeunload",e=>{if(drafts.size){e.preventDefault();e.returnValue="";}});

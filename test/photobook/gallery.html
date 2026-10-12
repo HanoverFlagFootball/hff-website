@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Family Photobook</title>
-  <link rel="stylesheet" href="photobook.css?v=12">
+  <link rel="stylesheet" href="photobook.css?v=14">
 </head>
 <body>
   <header class="gallery-header">
@@ -42,11 +42,11 @@
         <div><label for="filterMonth">Month</label><select id="filterMonth"><option value="">Any month</option><option value="1">January</option><option value="2">February</option><option value="3">March</option><option value="4">April</option><option value="5">May</option><option value="6">June</option><option value="7">July</option><option value="8">August</option><option value="9">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select></div>
         <div><label for="peopleMode">People matching</label><select id="peopleMode"><option value="or">Any selected person (OR)</option><option value="and">All selected people (AND)</option></select></div>
       </div>
-      <div class="filter-actions"><button id="clearFilters" type="button">Clear Filters</button><button id="restoreHidden" type="button">Restore Hidden</button><button id="downloadVisible" type="button">Download Visible ZIP</button></div>
+      <div class="filter-actions"><button id="showPhotos" type="button">Show Photos</button><button id="showRandom" type="button">Random Photo</button><label for="sortPhotos">Sort</label><select id="sortPhotos"><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="dateNewest">Photo date: newest</option><option value="dateOldest">Photo date: oldest</option><option value="random">Shuffle results</option></select><button id="clearFilters" type="button">Clear Filters</button><button id="restoreHidden" type="button">Restore Hidden</button><button id="downloadVisible" type="button">Download Visible ZIP</button></div>
       <p id="filterStatus" role="status"></p>
     </section>
-    <section id="photoGallery" class="photo-gallery" aria-label="Completed photographs">
-      <p class="empty-gallery">No completed photographs yet.</p>
+    <section id="photoGallery" class="photo-gallery" aria-label="Photographs">
+      <p class="empty-gallery">Choose filters and click Show Photos, or enjoy a random photograph.</p>
     </section>
     <section id="incompleteSection" hidden>
       <h2>Manage Photos</h2>
@@ -58,6 +58,14 @@
         <span id="selectedCount" role="status">0 selected</span>
         <button type="button" id="deleteSelected" class="danger" disabled>Delete Selected Permanently</button>
       </div>
+      <details class="tag-manager"><summary>Manage Tags (delete labels)</summary>
+        <p class="help-text">Delete a People, Theme, or Event Tag. Photographs are never deleted. Removing a tag also removes it from all photographs that use it.</p>
+        <label for="tagManageCategory">Category</label>
+        <select id="tagManageCategory"><option value="person">People</option><option value="theme">Theme</option><option value="other">Event Tags</option></select>
+        <label for="tagManageSearch">Search tags</label><input id="tagManageSearch" type="search" placeholder="Type to find a tag">
+        <div id="tagManageList" class="tag-manage-list"></div>
+        <p id="tagManageMessage" role="status" aria-live="polite"></p>
+      </details>
       <button type="button" id="fillMissingDates">Fill Missing Dates from Filenames</button>
       <p id="manageMessage" role="status" aria-live="polite"></p>
       <div id="incompleteGallery" class="photo-gallery"></div>
@@ -93,6 +101,6 @@
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <script src="photobook.js?v=12"></script>
+  <script src="photobook.js?v=14"></script>
 </body>
 </html>
