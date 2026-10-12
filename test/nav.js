@@ -11,15 +11,18 @@
     { label: "My HFF", href: "my-hff.html" }
   ];
 
-  // Separate the Register / Rep / My HFF group on wide desktop screens.
-  // On narrow screens, retain the original compact navigation layout.
+  // Centre the six main links in the space between the logo and the account links.
+  // Keep the mobile hamburger layout unchanged.
   const groupStyle = document.createElement("style");
   groupStyle.textContent = `
-    @media (min-width: 1250px) {
-      .hff-nav-links a.hff-nav-register { margin-left: 8.5em; }
+    @media (min-width: 981px) {
+      .hff-nav-links { flex: 1; min-width: 0; margin-left: 0; }
+      .hff-nav-main { display: flex; flex: 1; justify-content: center; align-items: stretch; min-width: 0; }
+      .hff-nav-account { display: flex; flex: 0 0 auto; align-items: stretch; }
+      .hff-nav-links a { padding-left: 9px; padding-right: 9px; }
     }
-    @media (min-width: 1050px) and (max-width: 1249px) {
-      .hff-nav-links a.hff-nav-register { margin-left: 2em; }
+    @media (max-width: 980px) {
+      .hff-nav-main, .hff-nav-account { display: contents; }
     }
   `;
   document.head.appendChild(groupStyle);
@@ -59,7 +62,12 @@
         <span></span><span></span><span></span>
       </button>
       <nav class="hff-nav-links" id="hffNavLinks" aria-label="Main navigation">
-        ${NAV_ITEMS.map(item => `<a href="${item.href}" class="${[item.href.toLowerCase() === current ? "active" : "", item.href === "register.html" ? "hff-nav-register" : ""].filter(Boolean).join(" ")}">${item.label}</a>`).join("")}
+        <div class="hff-nav-main">
+          ${NAV_ITEMS.slice(0, 6).map(item => `<a href="${item.href}" class="${item.href.toLowerCase() === current ? "active" : ""}">${item.label}</a>`).join("")}
+        </div>
+        <div class="hff-nav-account">
+          ${NAV_ITEMS.slice(6).map(item => `<a href="${item.href}" class="${item.href.toLowerCase() === current ? "active" : ""}">${item.label}</a>`).join("")}
+        </div>
       </nav>
     </div>
   `;
