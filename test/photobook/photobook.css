@@ -309,3 +309,6 @@ button:disabled { opacity: .55; cursor: wait; }
 .full-photo-controls button { width:auto; margin:0; padding:8px 14px; background:#fff; color:#111; }
 #fullPhotoStatus { position:absolute; color:#fff; }
 .photo-viewer-open { overflow:hidden; }
+
+/* v17: editor is an isolated view; hidden grids never load thumbnails. */
+#manageBrowse[hidden], #organizer[hidden] { display:none !important; }

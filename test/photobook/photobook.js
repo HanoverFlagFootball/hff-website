@@ -331,7 +331,7 @@ if (signOutButton) {
     // Only request image URLs for the displayed set, not every photo on initial load.
     await renderTiles(visible, el("photoGallery"), false);
     if (version !== galleryRenderVersion) return;
-    if (isPoster && activeSection === "manage") {
+    if (isPoster && activeSection === "manage" && el("organizer").hidden) {
       await renderTiles(manageVisible(), el("incompleteGallery"), true);
       updateSelection();
     }
@@ -389,6 +389,7 @@ if (signOutButton) {
     el("galleryTab").classList.toggle("active",!incomplete);
     el("incompleteTab").classList.toggle("active",incomplete);
     el("organizer").hidden=true; currentIndex=-1;
+    el("manageBrowse").hidden = !incomplete;
     if(incomplete){updateSelection();renderTiles(manageVisible(),el("incompleteGallery"),true);renderTagManager();}
   }
   function openOrganizer(index) {
@@ -397,6 +398,10 @@ if (signOutButton) {
     currentIndex=index;
     const photo=managePhotos[index], d=draftFor(photo);
     el("organizer").hidden=false;
+    // Hide the entire management grid while editing. Removing its thumbnails
+    // cancels their pending image loads and leaves only the active photo visible.
+    el("manageBrowse").hidden=true;
+    el("incompleteGallery").replaceChildren();
     el("organizerPosition").textContent=`Photo ${index+1} of ${managePhotos.length}`;
     fillingForm=true;
     el("editMonth").value=d.month; el("editYear").value=d.year; el("editCaption").value=d.caption;
@@ -459,9 +464,12 @@ if (signOutButton) {
     el("organizerMessage").textContent=failures.length ? `Saved ${saved}; ${failures.length} failed: ${failures.join("; ")}` : `Saved ${saved} photograph(s).`;
     if(currentId && !el("organizer").hidden) {
       const n=managePhotos.findIndex(p=>p.id===currentId);
-      currentIndex=-1; if(n>=0)openOrganizer(n);
+      // Keep the currently displayed image; refresh fields without refetching it.
+      if(n>=0) currentIndex=n;
     }
-    await renderGallery(); updateSelection(); renderTagManager();
+    // Do not rebuild hundreds of thumbnails after each save while editing.
+    if (el("organizer").hidden) await renderGallery();
+    updateSelection(); renderTagManager();
     if(drafts.size) scheduleSave();
   }
   // Bulk upload does not ask for month, year or tags.
@@ -580,7 +588,13 @@ if (signOutButton) {
   el("uploadButton").onclick=()=>el("uploadPanel").hidden=!el("uploadPanel").hidden;
   el("previousPhoto").onclick=()=>openOrganizer(currentIndex-1);
   el("nextPhoto").onclick=()=>openOrganizer(currentIndex+1);
-  el("closeOrganizer").onclick=()=>{captureDraft();el("organizer").hidden=true;currentIndex=-1;};
+  el("closeOrganizer").onclick=()=>{
+    captureDraft();
+    el("organizer").hidden=true;currentIndex=-1;
+    el("manageBrowse").hidden=false;
+    renderTiles(manageVisible(),el("incompleteGallery"),true);
+    updateSelection();
+  };
   el("savePhoto").onclick=()=>{captureDraft();saveAll();};
   el("showPhotos").onclick = () => {galleryMode = "results"; renderGallery();};
   el("showRandom").onclick = () => {galleryMode = "random"; renderGallery();};
