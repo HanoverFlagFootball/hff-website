@@ -22,14 +22,14 @@
         sb.from('homepage_settings').select('*').eq('id', 'hero').maybeSingle()
       ]);
 
-      if (!newsErr && news && news.length) {
+      if (!newsErr && news) {
         document.getElementById('latestStories').innerHTML = news.map(item => {
           const body = `<img src="${esc(mediaUrl(item.image_url))}" alt="${esc(item.image_alt || item.title || 'HFF update')}" loading="lazy"><div class="story-copy">${item.eyebrow ? `<div class="eyebrow">${esc(item.eyebrow)}</div>` : ''}<h3>${esc(item.title || '')}</h3>${item.description ? `<p>${esc(item.description)}</p>` : ''}</div>`;
           return `<article class="story-card">${item.link_url ? `<a href="${esc(safeHref(item.link_url))}" style="text-decoration:none">${body}</a>` : body}</article>`;
-        }).join('');
+        }).join('') || '<p>No recent announcements.</p>';
       }
 
-      if (!datesErr && dates && dates.length) {
+      if (!datesErr && dates) {
         document.getElementById('importantDatesList').innerHTML = dates.map(item => `
           <div class="date-item">
             <div class="date-thumb">${item.image_url ? `<img src="${esc(mediaUrl(item.image_url))}" alt="${esc(item.image_alt || item.title || 'Important date')}" loading="lazy">` : ''}</div>
@@ -37,7 +37,7 @@
               <h3>${item.link_url ? `<a href="${esc(safeHref(item.link_url))}" style="text-decoration:none">${esc(item.title || '')}</a>` : esc(item.title || '')}</h3>
               ${item.description ? `<p>${esc(item.description)}</p>` : ''}
             </div>
-          </div>`).join('');
+          </div>`).join('') || '<p>No upcoming important dates.</p>';
       }
 
       if (!settingsErr && settings) {
