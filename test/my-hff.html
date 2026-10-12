@@ -2,6 +2,12 @@
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>My HFF | Hanover Flag Football</title><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><link rel="stylesheet" href="site-theme.css?v=20260927"><style>
 *{box-sizing:border-box}body{margin:0;background:#f5f5f5;color:#111;font-family:Arial,sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:42px 20px 70px}.page-head{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;padding-bottom:20px;border-bottom:4px solid #111}.eyebrow{font-size:.76rem;font-weight:900;letter-spacing:.16em;text-transform:uppercase;color:#666;margin-bottom:7px}.page-head h1{margin:0;font-size:clamp(2rem,5vw,3.2rem);line-height:1;font-weight:900;letter-spacing:-.04em}.accountline{font-size:.88rem;color:#666;margin-top:9px}.btn{border:2px solid #111;background:#111;color:#fff;padding:10px 16px;border-radius:4px;font-weight:800;text-decoration:none;cursor:pointer}.section-title{margin:34px 0 14px;font-size:1.15rem;font-weight:900;text-transform:uppercase;letter-spacing:.08em}.players{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.player-card{display:block;background:#fff;border:1px solid #d7d7d7;border-top:5px solid #111;padding:22px;text-decoration:none;color:#111;transition:transform .15s,border-color .15s}.player-card.link:hover{transform:translateY(-2px);border-color:#111}.player-name{font-size:1.55rem;font-weight:900;letter-spacing:-.02em;margin-bottom:12px}.team-name{font-size:1rem;font-weight:800}.team-meta{color:#666;font-size:.88rem;margin-top:4px}.open{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:22px;padding-top:14px;border-top:1px solid #e3e3e3;font-size:.82rem;font-weight:900;text-transform:uppercase;letter-spacing:.06em}.arrow{font-size:1.35rem}.unassigned{color:#777;font-weight:700}.announcements{margin-top:34px}.announcement-panel{background:#fff;border:1px solid #d7d7d7;border-top:5px solid #111;padding:22px}.announcement-panel h3{margin:0 0 7px;font-size:1.15rem}.announcement-panel p{margin:0;color:#666;line-height:1.5}.utility{margin-top:38px;padding-top:22px;border-top:1px solid #ccc;color:#666;font-size:.9rem}.utility button{border:0;background:none;padding:0;color:#111;text-decoration:underline;font-weight:800;cursor:pointer}.request{display:none;margin-top:14px;max-width:560px}.request.opened{display:block}.request p{line-height:1.45}.request-row{display:flex;gap:8px}.request input{flex:1;min-width:0;padding:11px;border:1px solid #aaa;border-radius:4px;font-size:16px}.smallbtn{border:0;background:#111;color:#fff;padding:10px 13px;border-radius:4px;font-weight:800;cursor:pointer}.msg{font-size:.83rem;margin-top:8px}.status{margin-top:28px;padding:18px 0;color:#555}.empty{background:#fff;border:1px solid #ddd;padding:24px;margin-top:18px}@media(max-width:650px){.wrap{padding:28px 16px 55px}.page-head{align-items:flex-start;flex-direction:column}.players{grid-template-columns:1fr}.request-row{flex-direction:column}}
 .season-tools{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:22px 0 4px}.season-tools select{padding:9px 12px;border:1px solid #999;background:#fff;font-size:1rem}.history-toggle{border:0;background:none;text-decoration:underline;font-weight:800;cursor:pointer;padding:9px 0;color:#111}.history-list{margin-top:12px;padding-top:10px;border-top:1px solid #ddd}.history-item{margin:7px 0;font-size:.87rem;color:#555}.former-label{font-size:.78rem;font-weight:800;color:#666;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}.player-card.former{border-top-color:#aaa}.player-card.former .player-name{font-size:1.3rem}.season-note{color:#666;font-size:.88rem;margin:6px 0 18px}
+
+/* Team artwork: the same mascot files and smoky, muted treatment as the team page. */
+.player-card.team-art{position:relative;isolation:isolate;overflow:hidden;background:#f0f0f0}
+.player-card.team-art::before{content:"";position:absolute;inset:0;z-index:-2;pointer-events:none;background-image:var(--team-art);background-position:center;background-size:cover;background-repeat:no-repeat;filter:contrast(.88) brightness(.82) saturate(.95)}
+.player-card.team-art::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at 14% 18%,rgba(245,245,245,.82),rgba(215,215,215,.58) 40%,transparent 75%),radial-gradient(ellipse at 82% 24%,rgba(95,95,95,.18),rgba(175,175,175,.23) 45%,transparent 80%),linear-gradient(118deg,rgba(245,245,245,.85),rgba(235,235,235,.72) 45%,rgba(245,245,245,.85))}
+.player-card.team-art .player-name,.player-card.team-art .team-name,.player-card.team-art .team-meta,.player-card.team-art .former-label,.player-card.team-art .open,.player-card.team-art .history-toggle{position:relative}
 </style></head><body><div id="site-nav"></div><main class="wrap"><header class="page-head"><div><div class="eyebrow">Hanover Flag Football</div><h1>My HFF</h1><div class="accountline" id="accountEmail"></div></div><button class="btn" id="signOut">Sign Out</button></header><div id="content" class="status">Loading your players…</div></main><script src="nav.js"></script><script>
 const sb=supabase.createClient('https://wnhzgxnwlmohfldnhhyt.supabase.co','sb_publishable_x5Xkl7tfpUwhz_ENftiaqQ_am915vqY');const $=id=>document.getElementById(id);const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function connectAccount(user){const email=(user.email||'').trim().toLowerCase(),m=user.user_metadata||{};const {data:existingProfile}=await sb.from('hff_profiles').select('user_id,first_name,last_name').eq('user_id',user.id).maybeSingle();if(!existingProfile){await sb.from('hff_profiles').insert({user_id:user.id,email,first_name:m.first_name||null,last_name:m.last_name||null})}else{const profileUpdate={email};if(!existingProfile.first_name&&m.first_name)profileUpdate.first_name=m.first_name;if(!existingProfile.last_name&&m.last_name)profileUpdate.last_name=m.last_name;await sb.from('hff_profiles').update(profileUpdate).eq('user_id',user.id)}await sb.from('hff_player_guardians').update({user_id:user.id}).is('user_id',null).ilike('guardian_email',email);await sb.from('hff_team_staff').update({user_id:user.id}).is('user_id',null).ilike('email',email)}
@@ -9,6 +15,59 @@ function requestBox(){return `<div class="utility"><span>Don't see one of your p
 let portalData=null;
 function seasonTeams(teams,year){return teams.filter(x=>Number(x.hff_teams.season)===Number(year))}
 function teamSummary(x){const t=x.hff_teams;return `${esc(t.team_name)} · ${[t.division,t.season,t.program].filter(Boolean).map(esc).join(' · ')}${x.jersey_number?' · #'+esc(x.jersey_number):''}`}
+
+function teamLogoFile(teamName){
+  const clean=String(teamName||'')
+    .replace(/\([^)]*\)/g,' ')
+    .replace(/\bU\d+\b/gi,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+
+  const aliases={
+    'arizona cardinals':'Cardinals','cardinals':'Cardinals',
+    'atlanta falcons':'Falcons','falcons':'Falcons',
+    'baltimore ravens':'Ravens','ravens':'Ravens',
+    'buffalo bills':'Bills','bills':'Bills',
+    'carolina panthers':'Panthers','panthers':'Panthers',
+    'chicago bears':'Bears','bears':'Bears',
+    'cincinnati bengals':'Bengals','bengals':'Bengals',
+    'cleveland browns':'Browns','browns':'Browns',
+    'dallas cowboys':'Cowboys','cowboys':'Cowboys',
+    'denver broncos':'Broncos','broncos':'Broncos',
+    'detroit lions':'Lions','lions':'Lions',
+    'green bay packers':'Packers','packers':'Packers',
+    'houston texans':'Texans','texans':'Texans',
+    'indianapolis colts':'Colts','colts':'Colts',
+    'jacksonville jaguars':'Jaguars','jaguars':'Jaguars',
+    'kansas city chiefs':'Chiefs','chiefs':'Chiefs',
+    'las vegas raiders':'Raiders','raiders':'Raiders',
+    'los angeles chargers':'Chargers','chargers':'Chargers',
+    'los angeles rams':'Rams','rams':'Rams',
+    'miami dolphins':'Dolphins','dolphins':'Dolphins',
+    'minnesota vikings':'Vikings','vikings':'Vikings',
+    'new england patriots':'Patriots','patriots':'Patriots',
+    'new orleans saints':'Saints','saints':'Saints',
+    'new york giants':'Giants','giants':'Giants',
+    'new york jets':'Jets','jets':'Jets',
+    'philadelphia eagles':'Eagles','eagles':'Eagles',
+    'pittsburgh steelers':'Steelers','steelers':'Steelers',
+    'san francisco 49ers':'49ers','49ers':'49ers',
+    'seattle seahawks':'Seahawks','seahawks':'Seahawks',
+    'tampa bay buccaneers':'Buccaneers','buccaneers':'Buccaneers',
+    'tennessee titans':'Titans','titans':'Titans',
+    'washington commanders':'Commanders','commanders':'Commanders'
+  };
+
+  const key=clean.toLowerCase();
+  const mascot=aliases[key] || aliases[key.split(' ').pop()];
+  return mascot ? `${mascot}.png` : '';
+}
+function teamArtClass(team){
+ const file=teamLogoFile(team?.team_name);
+ // File names are generated only from the fixed team-name lookup above.
+ return file ? ` team-art" style="--team-art:url('${file}')` : '';
+}
+
 function renderPortal(year){
  const {playerMap,memberships,coaching,seasons}=portalData;
  const selected=Number(year);
@@ -21,7 +80,7 @@ function renderPortal(year){
   for(const {id,p,all,current} of players){
    const primary=current[0];const former=!current.length;const latest=all[0];const previous=all.filter(x=>Number(x.hff_teams.season)!==selected);
    const historyId='history-'+id.replace(/[^a-zA-Z0-9_-]/g,'');
-   html+=`<div class="player-card ${former?'former':''}"><div class="player-name">${esc(p.first_name)} ${esc(p.last_name||'')}</div>${former?'<div class="former-label">Not on this season’s roster</div>':''}`;
+   html+=`<div class="player-card ${former?'former':''}${teamArtClass((primary||latest)?.hff_teams)}"><div class="player-name">${esc(p.first_name)} ${esc(p.last_name||'')}</div>${former?'<div class="former-label">Not on this season’s roster</div>':''}`;
    if(current.length){for(const x of current){html+=`<div style="margin-top:10px"><div class="team-name">${esc(x.hff_teams.team_name)}</div><div class="team-meta">${[x.hff_teams.division,x.hff_teams.season].filter(Boolean).map(esc).join(' · ')}${x.jersey_number?' · #'+esc(x.jersey_number):''}</div><a class="history-toggle" href="player.html?player=${encodeURIComponent(id)}&team=${encodeURIComponent(x.hff_teams.id)}">View player →</a></div>`}}
    else if(latest){html+=`<div class="team-meta">Last played ${esc(latest.hff_teams.season)} · ${esc(latest.hff_teams.team_name)} · ${esc(latest.hff_teams.division||'')}</div>`}
    else{html+='<div class="unassigned">No team assignment yet</div>'}
@@ -32,7 +91,7 @@ function renderPortal(year){
  }
  const currentCoaches=coaching.filter(x=>Number(x.hff_teams.season)===selected);
  const oldCoaches=coaching.filter(x=>Number(x.hff_teams.season)!==selected);
- if(coaching.length){html+='<h2 class="section-title">Coaching</h2>';if(currentCoaches.length){html+='<section class="players">';for(const c of currentCoaches){const t=c.hff_teams;html+=`<a class="player-card link" href="team.html?team=${encodeURIComponent(t.id)}"><div class="player-name">${esc(t.team_name)}</div><div class="team-name">${esc(c.role==='assistant_coach'?'Assistant Coach':'Coach')}</div><div class="team-meta">${[t.division,t.season].filter(Boolean).map(esc).join(' · ')}</div><div class="open"><span>View team</span><span class="arrow">→</span></div></a>`}html+='</section>'}else{html+='<p class="season-note">No coaching assignments for this season.</p>'}if(oldCoaches.length){html+=`<button class="history-toggle" type="button" data-history="coachHistory" aria-expanded="false">View previous coaching assignments (${oldCoaches.length})</button><div class="history-list" id="coachHistory" hidden>${oldCoaches.map(c=>`<div class="history-item">${esc(c.hff_teams.season)} · ${esc(c.hff_teams.team_name)} · ${esc(c.hff_teams.division||'')} · ${esc(c.role)} — <a href="team.html?team=${encodeURIComponent(c.hff_teams.id)}">View team</a></div>`).join('')}</div>`}}
+ if(coaching.length){html+='<h2 class="section-title">Coaching</h2>';if(currentCoaches.length){html+='<section class="players">';for(const c of currentCoaches){const t=c.hff_teams;html+=`<a class="player-card link${teamArtClass(t)}" href="team.html?team=${encodeURIComponent(t.id)}"><div class="player-name">${esc(t.team_name)}</div><div class="team-name">${esc(c.role==='assistant_coach'?'Assistant Coach':'Coach')}</div><div class="team-meta">${[t.division,t.season].filter(Boolean).map(esc).join(' · ')}</div><div class="open"><span>View team</span><span class="arrow">→</span></div></a>`}html+='</section>'}else{html+='<p class="season-note">No coaching assignments for this season.</p>'}if(oldCoaches.length){html+=`<button class="history-toggle" type="button" data-history="coachHistory" aria-expanded="false">View previous coaching assignments (${oldCoaches.length})</button><div class="history-list" id="coachHistory" hidden>${oldCoaches.map(c=>`<div class="history-item">${esc(c.hff_teams.season)} · ${esc(c.hff_teams.team_name)} · ${esc(c.hff_teams.division||'')} · ${esc(c.role)} — <a href="team.html?team=${encodeURIComponent(c.hff_teams.id)}">View team</a></div>`).join('')}</div>`}}
  html+=requestBox();$('content').className='';$('content').innerHTML=html;
  $('seasonSelect').onchange=e=>renderPortal(e.target.value);
  $('showRequest').onclick=()=>$('requestBox').classList.toggle('opened');
