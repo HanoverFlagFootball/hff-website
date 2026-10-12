@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Family Photobook</title>
-  <link rel="stylesheet" href="photobook.css?v=17">
+  <link rel="stylesheet" href="photobook.css?v=19">
 </head>
 <body>
   <header class="gallery-header">
@@ -73,9 +73,14 @@
       </div>
     </section>
     <section id="organizer" class="organizer" hidden aria-label="Organize photograph">
-      <div class="organizer-top"><h2>Organize Photo</h2><button type="button" id="closeOrganizer">Close</button></div>
+      <div class="organizer-top"><h2>Organize Photo</h2><div class="organizer-top-actions"><button id="deletePhoto" class="danger" type="button">Delete Permanently</button><button type="button" id="closeOrganizer">Close</button></div></div>
       <p id="organizerPosition"></p>
       <img id="organizerImage" alt="Photograph being organized">
+      <div class="organizer-actions">
+        <button id="previousPhoto" type="button">← Previous</button>
+        <button id="savePhoto" type="button">Save All Changes</button>
+        <button id="nextPhoto" type="button">Next →</button>
+      </div>
       
       <div class="upload-date">
         <div><label for="editMonth">Month (optional)</label><select id="editMonth">
@@ -92,12 +97,6 @@
       <p class="help-text">At least one tag moves a photo to Gallery. Without tags it remains Incomplete.</p>
       <p id="organizerMessage" role="status" aria-live="polite"></p>
       <p id="pendingStatus" role="status"></p>
-      <div class="organizer-actions">
-        <button id="previousPhoto" type="button">← Previous</button>
-        <button id="savePhoto" type="button">Save All Changes</button>
-        <button id="nextPhoto" type="button">Next →</button>
-        <button id="deletePhoto" class="danger" type="button">Delete Permanently</button>
-      </div>
     </section>
     <p id="galleryMessage" role="status" aria-live="polite"></p>
     <div id="fullPhotoViewer" class="full-photo-viewer" role="dialog" aria-modal="true" aria-label="Full-resolution photograph" hidden>
@@ -106,11 +105,14 @@
         <button id="closeFullPhoto" type="button" aria-label="Close photograph">Close ×</button>
       </div>
       <p id="fullPhotoStatus" role="status"></p>
+      <button id="fullPhotoPrevious" class="full-photo-arrow previous" type="button" aria-label="Previous photograph">&#8249;</button>
       <img id="fullPhotoImage" alt="Full-resolution photograph">
+      <button id="fullPhotoNext" class="full-photo-arrow next" type="button" aria-label="Next photograph">&#8250;</button>
+      <span id="fullPhotoPosition" class="full-photo-position" aria-live="polite"></span>
     </div>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <script src="photobook.js?v=17"></script>
+  <script src="photobook.js?v=19"></script>
 </body>
 </html>

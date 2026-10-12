@@ -29,6 +29,7 @@ if (signOutButton) {
   let saving = false, deleting = false, saveTimer = null, pickerInstances = {}, fillingForm = false;
   let managePhotos = [], selectedIds = new Set();
   let galleryMode = "random", galleryRenderVersion = 0;
+  let visibleGalleryPhotos = [], fullPhotoIndex = -1, fullPhotoRequest = 0, touchStartX = null;
   const BUCKET_LIMIT = 1000;
   const norm = s => s.trim().toLocaleLowerCase();
   const pending = () => el("pendingStatus").textContent = `${drafts.size} photo(s) waiting to save`;
@@ -263,6 +264,10 @@ if (signOutButton) {
   // Full-resolution viewer. The file is requested from private Supabase Storage
   // only after a photo is clicked, not for every gallery thumbnail.
   async function openFullPhoto(photo) {
+    const index = visibleGalleryPhotos.findIndex(p => p.id === photo.id);
+    if (index < 0) return;
+    fullPhotoIndex = index;
+    const request = ++fullPhotoRequest;
     const viewer = el("fullPhotoViewer");
     const image = el("fullPhotoImage");
     const status = el("fullPhotoStatus");
@@ -273,29 +278,52 @@ if (signOutButton) {
     originalLink.hidden = true;
     viewer.hidden = false;
     document.body.classList.add("photo-viewer-open");
+    el("fullPhotoPosition").textContent = `${index + 1} / ${visibleGalleryPhotos.length}`;
+    el("fullPhotoPrevious").disabled = index === 0;
+    el("fullPhotoNext").disabled = index === visibleGalleryPhotos.length - 1;
     try {
       const url = await signedImage(photo.storage_path);
-      if (viewer.hidden) return;
+      if (viewer.hidden || request !== fullPhotoRequest) return;
       image.src = url;
       originalLink.href = url;
       originalLink.hidden = false;
       status.textContent = "";
     } catch (error) {
-      status.textContent = `Unable to load original: ${error.message}`;
+      if (request === fullPhotoRequest) status.textContent = `Unable to load original: ${error.message}`;
     }
   }
+  function moveFullPhoto(step) {
+    const next = fullPhotoIndex + step;
+    if (next >= 0 && next < visibleGalleryPhotos.length) openFullPhoto(visibleGalleryPhotos[next]);
+  }
   function closeFullPhoto() {
+    ++fullPhotoRequest;
+    fullPhotoIndex = -1;
     el("fullPhotoViewer").hidden = true;
     el("fullPhotoImage").removeAttribute("src");
     document.body.classList.remove("photo-viewer-open");
   }
   el("closeFullPhoto").onclick = closeFullPhoto;
+  el("fullPhotoPrevious").onclick = () => moveFullPhoto(-1);
+  el("fullPhotoNext").onclick = () => moveFullPhoto(1);
   el("fullPhotoViewer").addEventListener("click", event => {
     if (event.target === el("fullPhotoViewer")) closeFullPhoto();
   });
   document.addEventListener("keydown", event => {
-    if (event.key === "Escape" && !el("fullPhotoViewer").hidden) closeFullPhoto();
+    if (el("fullPhotoViewer").hidden) return;
+    if (event.key === "Escape") closeFullPhoto();
+    if (event.key === "ArrowLeft") { event.preventDefault(); moveFullPhoto(-1); }
+    if (event.key === "ArrowRight") { event.preventDefault(); moveFullPhoto(1); }
   });
+  el("fullPhotoViewer").addEventListener("touchstart", event => {
+    touchStartX = event.touches.length === 1 ? event.touches[0].clientX : null;
+  }, {passive:true});
+  el("fullPhotoViewer").addEventListener("touchend", event => {
+    if (touchStartX === null || !event.changedTouches.length) return;
+    const distance = event.changedTouches[0].clientX - touchStartX;
+    touchStartX = null;
+    if (Math.abs(distance) > 55) moveFullPhoto(distance < 0 ? 1 : -1);
+  }, {passive:true});
 
   function sortedPhotos(rows) {
     const result = [...rows];
@@ -325,6 +353,7 @@ if (signOutButton) {
           return choices.slice(0, 3);
         })()
       : sortedPhotos(matches);
+    visibleGalleryPhotos = visible.filter(p => !hiddenIds.has(p.id));
     el("filterStatus").textContent = galleryMode === "random"
       ? (visible.length ? "Three random photographs. Choose filters and click Show Photos for matching results." : "No photographs available.")
       : `${visible.length} matching photograph(s) · ${hiddenIds.size} temporarily hidden`;
@@ -585,7 +614,14 @@ if (signOutButton) {
   };
   el("galleryTab").onclick=()=>{if(currentIndex>=0)captureDraft();showSection("gallery");};
   el("incompleteTab").onclick=()=>{if(currentIndex>=0)captureDraft();showSection("manage");};
-  el("uploadButton").onclick=()=>el("uploadPanel").hidden=!el("uploadPanel").hidden;
+  el("uploadButton").onclick=()=>{
+    const panel = el("uploadPanel");
+    panel.hidden = !panel.hidden;
+    el("uploadButton").setAttribute("aria-expanded", String(!panel.hidden));
+    if (!panel.hidden) {
+      panel.scrollIntoView({behavior:"smooth",block:"start"});
+    }
+  };
   el("previousPhoto").onclick=()=>openOrganizer(currentIndex-1);
   el("nextPhoto").onclick=()=>openOrganizer(currentIndex+1);
   el("closeOrganizer").onclick=()=>{

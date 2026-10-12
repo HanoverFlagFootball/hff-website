@@ -312,3 +312,31 @@ button:disabled { opacity: .55; cursor: wait; }
 
 /* v17: editor is an isolated view; hidden grids never load thumbnails. */
 #manageBrowse[hidden], #organizer[hidden] { display:none !important; }
+
+/* v18: photo organizer control placement */
+.organizer-top-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.organizer-top-actions .danger { background: #a52424; }
+.organizer-actions { justify-content: center; margin: 4px 0 18px; }
+.organizer-actions button { margin-top: 0; }
+
+/* v19: full-screen gallery navigation and mobile-first upload access. */
+.full-photo-arrow { position:absolute; top:50%; transform:translateY(-50%); z-index:2; width:48px; height:64px; padding:0; border:0; border-radius:8px; background:rgba(255,255,255,.85); color:#111; font-size:46px; line-height:1; cursor:pointer; }
+.full-photo-arrow.previous { left:12px; }
+.full-photo-arrow.next { right:12px; }
+.full-photo-arrow:disabled { opacity:.2; cursor:default; }
+.full-photo-position { position:absolute; bottom:12px; left:50%; transform:translateX(-50%); color:white; background:rgba(0,0,0,.6); padding:5px 12px; border-radius:18px; font-size:13px; }
+@media (max-width:700px) {
+  .gallery-actions { display:flex; flex-direction:column; align-items:stretch; gap:8px; }
+  .gallery-actions #accountStatus { margin:0; font-size:13px; }
+  .gallery-actions #uploadButton:not([hidden]) { display:block; width:100%; min-height:50px; font-size:17px; font-weight:700; }
+  .upload-panel { padding:16px; scroll-margin-top:12px; }
+  #photoFiles { min-height:52px; }
+  #submitPhotos { min-height:52px; width:100%; font-size:16px; }
+  .full-photo-viewer { padding:58px 5px 45px; }
+  .full-photo-viewer img { max-height:calc(100dvh - 110px); }
+  .full-photo-arrow { width:38px; height:56px; font-size:36px; background:rgba(255,255,255,.7); }
+  .full-photo-arrow.previous { left:2px; }
+  .full-photo-arrow.next { right:2px; }
+  .full-photo-controls { right:8px; left:8px; justify-content:flex-end; gap:8px; }
+  .full-photo-controls a { font-size:12px; }
+}
