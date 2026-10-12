@@ -1,32 +1,114 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Family Photobook — Sign In</title>
-  <link rel="stylesheet" href="photobook.css">
+  <title>Family Photobook</title>
+  <link rel="stylesheet" href="photobook.css?v=16">
 </head>
 <body>
-  <main class="login-page">
-    <section class="login-card">
-      <h1>Family Photobook</h1>
-      <p class="subtitle">A place for our family memories.</p>
-
-      <form id="loginForm">
-        <label for="email">Email</label>
-        <input type="email" id="email" required autocomplete="username">
-
-        <label for="password">Password</label>
-        <input type="password" id="password" required autocomplete="current-password">
-
-        <button type="submit">Sign In</button>
-        <p id="loginMessage" role="status"></p>
-      </form>
+  <header class="gallery-header">
+    <h1>Family Photobook</h1>
+    <button id="signOutButton" type="button">Sign Out</button>
+  </header>
+  <main class="gallery-page">
+    <div class="gallery-toolbar">
+      <h2>Our Memories</h2>
+      <div class="gallery-actions">
+        <p id="accountStatus">Checking your account...</p>
+        <button id="uploadButton" type="button" hidden>+ Upload Photos</button>
+      </div>
+    </div>
+    <nav class="photo-tabs" aria-label="Photobook sections">
+      <button id="galleryTab" type="button" class="tab active">Gallery</button>
+      <button id="incompleteTab" type="button" class="tab" hidden>Manage Photos <span id="incompleteCount"></span></button>
+    </nav>
+    <section id="uploadPanel" class="upload-panel" hidden>
+      <h2>Bulk Upload</h2>
+      <p>Select multiple photographs. No tags are needed now; all uploads go to Incomplete.</p>
+      <label for="photoFiles">Select photographs</label>
+      <input id="photoFiles" type="file" accept="image/*" multiple>
+      <p class="help-text">Dates and tags can be added later in Incomplete.</p>
+      <button id="submitPhotos" type="button">Upload Selected Photos</button>
+      <p id="uploadMessage" role="status" aria-live="polite"></p>
     </section>
+    <section id="filterPanel" class="filter-panel">
+      <h3>Filter photographs</h3>
+      <div class="filter-grid">
+        <div><label>People</label><div id="filterPeople" class="tag-picker"></div></div>
+        <div><label>Theme</label><div id="filterTheme" class="tag-picker"></div></div>
+        <div><label>Event Tags</label><div id="filterOther" class="tag-picker"></div></div>
+        <div><label for="filterYear">Year</label><select id="filterYear"><option value="">Any year</option></select></div>
+        <div><label for="filterMonth">Month</label><select id="filterMonth"><option value="">Any month</option><option value="1">January</option><option value="2">February</option><option value="3">March</option><option value="4">April</option><option value="5">May</option><option value="6">June</option><option value="7">July</option><option value="8">August</option><option value="9">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select></div>
+        <div><label for="peopleMode">People matching</label><select id="peopleMode"><option value="or">Any selected person (OR)</option><option value="and">All selected people (AND)</option></select></div>
+      </div>
+      <div class="filter-actions"><button id="showPhotos" type="button">Show Photos</button><button id="showRandom" type="button">Random Three</button><label for="sortPhotos">Sort</label><select id="sortPhotos"><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="dateNewest">Photo date: newest</option><option value="dateOldest">Photo date: oldest</option><option value="random">Shuffle results</option></select><button id="clearFilters" type="button">Clear Filters</button><button id="restoreHidden" type="button">Restore Hidden</button><button id="downloadVisible" type="button">Download Visible ZIP</button></div>
+      <p id="filterStatus" role="status"></p>
+    </section>
+    <section id="photoGallery" class="photo-gallery" aria-label="Photographs">
+      <p class="empty-gallery">Choose filters and click Show Photos, or enjoy three random photographs.</p>
+    </section>
+    <section id="incompleteSection" hidden>
+      <h2>Manage Photos</h2>
+      <p class="help-text">Select photographs to delete, or click a photo to edit its details. This area includes completed and incomplete photographs.</p>
+      <div class="manage-controls">
+        <label for="manageView">Show</label>
+        <select id="manageView"><option value="all">All Photos</option><option value="incomplete">Incomplete</option><option value="complete">Complete</option></select>
+        <label class="select-all"><input type="checkbox" id="selectAllPhotos"> Select all shown</label>
+        <span id="selectedCount" role="status">0 selected</span>
+        <button type="button" id="deleteSelected" class="danger" disabled>Delete Selected Permanently</button>
+      </div>
+      <details class="tag-manager"><summary>Manage Tags (delete labels)</summary>
+        <p class="help-text">Delete a People, Theme, or Event Tag. Photographs are never deleted. Removing a tag also removes it from all photographs that use it.</p>
+        <label for="tagManageCategory">Category</label>
+        <select id="tagManageCategory"><option value="person">People</option><option value="theme">Theme</option><option value="other">Event Tags</option></select>
+        <label for="tagManageSearch">Search tags</label><input id="tagManageSearch" type="search" placeholder="Type to find a tag">
+        <div id="tagManageList" class="tag-manage-list"></div>
+        <p id="tagManageMessage" role="status" aria-live="polite"></p>
+      </details>
+      <button type="button" id="fillMissingDates">Fill Missing Dates from Filenames</button>
+      <p id="manageMessage" role="status" aria-live="polite"></p>
+      <div id="incompleteGallery" class="photo-gallery"></div>
+    </section>
+    <section id="organizer" class="organizer" hidden aria-label="Organize photograph">
+      <div class="organizer-top"><h2>Organize Photo</h2><button type="button" id="closeOrganizer">Close</button></div>
+      <p id="organizerPosition"></p>
+      <img id="organizerImage" alt="Photograph being organized">
+      
+      <div class="upload-date">
+        <div><label for="editMonth">Month (optional)</label><select id="editMonth">
+          <option value="">Unknown</option>
+          <option value="1">January</option><option value="2">February</option><option value="3">March</option><option value="4">April</option><option value="5">May</option><option value="6">June</option><option value="7">July</option><option value="8">August</option><option value="9">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option>
+        </select></div>
+        <div><label for="editYear">Year (optional)</label><input id="editYear" type="number" min="1800" max="2200" placeholder="Year"></div>
+      </div>
+      <p id="filenameDateNote" class="help-text"></p>
+      <label>People</label><div id="editPeople" class="tag-picker"></div>
+      <label>Theme</label><div id="editTheme" class="tag-picker"></div>
+      <label>Event Tags</label><div id="editTags" class="tag-picker"></div>
+      <label for="editCaption">Caption (optional)</label><input id="editCaption" type="text" placeholder="A memory worth keeping">
+      <p class="help-text">At least one tag moves a photo to Gallery. Without tags it remains Incomplete.</p>
+      <p id="organizerMessage" role="status" aria-live="polite"></p>
+      <p id="pendingStatus" role="status"></p>
+      <div class="organizer-actions">
+        <button id="previousPhoto" type="button">← Previous</button>
+        <button id="savePhoto" type="button">Save All Changes</button>
+        <button id="nextPhoto" type="button">Next →</button>
+        <button id="deletePhoto" class="danger" type="button">Delete Permanently</button>
+      </div>
+    </section>
+    <p id="galleryMessage" role="status" aria-live="polite"></p>
+    <div id="fullPhotoViewer" class="full-photo-viewer" role="dialog" aria-modal="true" aria-label="Full-resolution photograph" hidden>
+      <div class="full-photo-controls">
+        <a id="fullPhotoOriginal" target="_blank" rel="noopener noreferrer" hidden>Open original size</a>
+        <button id="closeFullPhoto" type="button" aria-label="Close photograph">Close ×</button>
+      </div>
+      <p id="fullPhotoStatus" role="status"></p>
+      <img id="fullPhotoImage" alt="Full-resolution photograph">
+    </div>
   </main>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="photobook.js?v=9.2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="photobook.js?v=16"></script>
 </body>
 </html>

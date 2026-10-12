@@ -200,9 +200,43 @@ if (signOutButton) {
     const figures = rows.map(photo => {
       const figure = document.createElement("figure"); figure.className="photo-tile";
       const img = document.createElement("img"); img.loading="lazy"; img.alt=photo.caption || "Family photograph";
-      const caption = document.createElement("figcaption");
-      caption.textContent = photo.caption || "";
-      figure.append(img, caption);
+      // Metadata appears over the photograph on hover, focus, or touch.
+      const tags = links[photo.id] || [];
+      const byCategory = category => tags.filter(t => t.category === category).map(t => t.name).join(", ");
+      const details = document.createElement("figcaption");
+      details.className = "photo-details";
+      const lines = [
+        ["Who", byCategory("person")],
+        ["When", photo.photo_month && photo.photo_year
+          ? new Date(Date.UTC(photo.photo_year, photo.photo_month - 1, 1)).toLocaleString("en-CA", {month:"long",year:"numeric",timeZone:"UTC"})
+          : (photo.photo_year ? String(photo.photo_year) : "")],
+        ["Theme", byCategory("theme")],
+        ["Event", byCategory("other")],
+        ["Caption", photo.caption || ""]
+      ];
+      for (const [label,value] of lines) {
+        if (!value) continue;
+        const line = document.createElement("div");
+        const heading = document.createElement("strong"); heading.textContent = `${label}: `;
+        line.append(heading, document.createTextNode(value));
+        details.append(line);
+      }
+      if (!details.childNodes.length) details.textContent = "No details added yet";
+      figure.append(img, details);
+      if (!editable) {
+        // The preview is a thumbnail, but the viewer uses the original stored file.
+        img.tabIndex = 0;
+        img.setAttribute("role", "button");
+        img.setAttribute("aria-label", "View photograph at original resolution");
+        img.style.cursor = "zoom-in";
+        img.addEventListener("click", () => openFullPhoto(photo));
+        img.addEventListener("keydown", event => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            openFullPhoto(photo);
+          }
+        });
+      }
       if (editable) {
         const choose = document.createElement("input"); choose.type="checkbox";
         choose.className="photo-select"; choose.checked=selectedIds.has(photo.id);
@@ -226,6 +260,43 @@ if (signOutButton) {
       try { img.src = await signedImage(photo.storage_path); } catch { img.alt = "Preview unavailable"; }
     }));
   }
+  // Full-resolution viewer. The file is requested from private Supabase Storage
+  // only after a photo is clicked, not for every gallery thumbnail.
+  async function openFullPhoto(photo) {
+    const viewer = el("fullPhotoViewer");
+    const image = el("fullPhotoImage");
+    const status = el("fullPhotoStatus");
+    const originalLink = el("fullPhotoOriginal");
+    image.removeAttribute("src");
+    image.alt = photo.caption || "Full-resolution family photograph";
+    status.textContent = "Loading original photograph...";
+    originalLink.hidden = true;
+    viewer.hidden = false;
+    document.body.classList.add("photo-viewer-open");
+    try {
+      const url = await signedImage(photo.storage_path);
+      if (viewer.hidden) return;
+      image.src = url;
+      originalLink.href = url;
+      originalLink.hidden = false;
+      status.textContent = "";
+    } catch (error) {
+      status.textContent = `Unable to load original: ${error.message}`;
+    }
+  }
+  function closeFullPhoto() {
+    el("fullPhotoViewer").hidden = true;
+    el("fullPhotoImage").removeAttribute("src");
+    document.body.classList.remove("photo-viewer-open");
+  }
+  el("closeFullPhoto").onclick = closeFullPhoto;
+  el("fullPhotoViewer").addEventListener("click", event => {
+    if (event.target === el("fullPhotoViewer")) closeFullPhoto();
+  });
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && !el("fullPhotoViewer").hidden) closeFullPhoto();
+  });
+
   function sortedPhotos(rows) {
     const result = [...rows];
     const mode = el("sortPhotos").value;
@@ -245,10 +316,17 @@ if (signOutButton) {
     const version = ++galleryRenderVersion;
     const matches = matchingGallery();
     const visible = galleryMode === "random"
-      ? (matches.length ? [matches[Math.floor(Math.random() * matches.length)]] : [])
+      ? (() => {
+          const choices = [...matches];
+          for (let i = choices.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [choices[i], choices[j]] = [choices[j], choices[i]];
+          }
+          return choices.slice(0, 3);
+        })()
       : sortedPhotos(matches);
     el("filterStatus").textContent = galleryMode === "random"
-      ? (visible.length ? "One random photograph. Choose filters and click Show Photos for matching results." : "No photographs available.")
+      ? (visible.length ? "Three random photographs. Choose filters and click Show Photos for matching results." : "No photographs available.")
       : `${visible.length} matching photograph(s) · ${hiddenIds.size} temporarily hidden`;
     // Only request image URLs for the displayed set, not every photo on initial load.
     await renderTiles(visible, el("photoGallery"), false);
