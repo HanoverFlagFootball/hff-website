@@ -11,14 +11,24 @@
     { label: "My HFF", href: "my-hff.html" }
   ];
 
-  // Centre the six main links in the space between the logo and the account links.
-  // Keep the mobile hamburger layout unchanged.
+  // Centre the main six tabs on the page itself, independent of side groups.
+  // Only the desktop layout changes; mobile retains the existing hamburger menu.
   const groupStyle = document.createElement("style");
   groupStyle.textContent = `
     @media (min-width: 981px) {
-      .hff-nav-links { flex: 1; min-width: 0; margin-left: 0; }
-      .hff-nav-main { display: flex; flex: 1; justify-content: center; align-items: stretch; min-width: 0; }
-      .hff-nav-account { display: flex; flex: 0 0 auto; align-items: stretch; }
+      .hff-nav-inner { position: relative; }
+      .hff-nav-links { flex: 1; min-width: 0; margin-left: 0; justify-content: flex-end; }
+      .hff-nav-main {
+        position: absolute;
+        left: 50%;
+        top: 0;
+        height: 100%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: stretch;
+        justify-content: center;
+      }
+      .hff-nav-account { display: flex; align-items: stretch; margin-left: auto; }
       .hff-nav-links a { padding-left: 9px; padding-right: 9px; }
     }
     @media (max-width: 980px) {
