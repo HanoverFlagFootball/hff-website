@@ -1,4 +1,4 @@
-console.log("scores-strip.js loaded v13");
+console.log("scores-strip.js loaded v14");
 
 function stripDivision(teamName) {
   return String(teamName || '')
@@ -133,6 +133,26 @@ function buildStripGames() {
   return output;
 }
 
+// Show only complete score boxes. Recalculate after each rotation and resize.
+function fitScoreStripBoxes(scoreRow) {
+  const boxes = Array.from(scoreRow.children);
+  if (!boxes.length) return;
+
+  // Reset inline hiding so the first box can be measured correctly.
+  boxes.forEach(function (box) { box.style.display = ''; });
+
+  const firstWidth = boxes[0].getBoundingClientRect().width;
+  const rowStyle = window.getComputedStyle(scoreRow);
+  const gap = parseFloat(rowStyle.columnGap || rowStyle.gap) || 0;
+  const available = scoreRow.clientWidth;
+  if (!firstWidth || !available) return;
+
+  const count = Math.max(1, Math.floor((available + gap + 0.5) / (firstWidth + gap)));
+  boxes.forEach(function (box, index) {
+    if (index >= count) box.style.display = 'none';
+  });
+}
+
 function renderScoreStrip(targetId) {
   const scoreRow = document.getElementById(targetId || 'scoreRow');
   if (!scoreRow) return false;
@@ -171,11 +191,18 @@ function renderScoreStrip(targetId) {
     scoreRow.appendChild(box);
   });
 
+  fitScoreStripBoxes(scoreRow);
+  if (!window.__hffScoreStripResizeBound) {
+    window.__hffScoreStripResizeBound = true;
+    window.addEventListener('resize', function () { fitScoreStripBoxes(scoreRow); });
+  }
+
   if (scoreRow.children.length > 1 && !window.__hffScoreStripRotator) {
     window.__hffScoreStripRotator = setInterval(function () {
       const firstBox = scoreRow.firstElementChild;
       if (firstBox) {
         scoreRow.appendChild(firstBox);
+        fitScoreStripBoxes(scoreRow);
       }
     }, 5000);
   }
