@@ -40,7 +40,7 @@
           </div>`).join('') || '<p>No upcoming important dates.</p>';
       }
 
-      if (!settingsErr && settings) {
+      if (!window.HFF_HERO_LOCAL_OVERRIDE && !settingsErr && settings) {
         const hero = document.querySelector('.hero-feature');
         const video = document.getElementById('heroVideo');
         const fallback = document.getElementById('heroFallback');
