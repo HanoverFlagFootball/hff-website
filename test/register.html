@@ -380,8 +380,9 @@
 
   <script>
     // registration open/closed toggle
-    document.body.classList.add('registration-closed');
-    HFFSeasonal.get('hff_registration_open').then(open=>{ REGISTRATION_OPEN=open; document.body.classList.toggle('registration-closed',!open); });
+    // TEST PAGE ONLY: Force registration open while Supabase is unavailable.
+REGISTRATION_OPEN = true;
+document.body.classList.remove('registration-closed');
 
     // sponsor rotation
     const sponsorTrack = document.getElementById('sponsorTrack');
