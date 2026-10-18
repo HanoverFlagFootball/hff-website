@@ -382,8 +382,9 @@
 
   <script>
     // registration open/closed toggle
-    document.body.classList.add('registration-closed');
-    HFFSeasonal.get('hff_registration_open').then(open=>{ REGISTRATION_OPEN=open; document.body.classList.toggle('registration-closed',!open); });
+    // Temporarily enable registration for testing
+REGISTRATION_OPEN = true;
+document.body.classList.remove('registration-closed');
 
     // sponsor rotation
     const sponsorTrack = document.getElementById('sponsorTrack');
