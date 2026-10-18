@@ -192,11 +192,17 @@
     const ageGroup = reg.ageGroup; // "U6" or "7plus"
     fee = (ageGroup === 'U6') ? 80 : 185;
 
+    const division = ['U6', 'U9', 'U12', 'U16', 'U18'].includes(reg.tentativeDivision)
+      ? reg.tentativeDivision : null;
     lineItemName = isGirlsTeam
       ? 'Girls U18 Team Registration'
-      : (ageGroup === 'U6')
-        ? 'Player Registration (U6)'
-        : 'Player Registration (Age 6+)';
+      : (reg.seasonYear === 2027 && division)
+        ? (division === 'U6'
+            ? 'Hanover Flag Football 2027 U6 Registration'
+            : 'Hanover Flag Football 2027 Registration - ' + division)
+        : (ageGroup === 'U6')
+          ? 'Player Registration (U6)'
+          : 'Player Registration (Age 6+)';
   }
 }
 

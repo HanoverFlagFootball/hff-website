@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Register - Flag Football League</title>
+  <title>2027 Registration - Hanover Flag Football</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root { --ink:#fff; --line:#333; --black:#000; }
@@ -174,12 +174,12 @@
 
   <section class="register-page" id="register">
     <div class="register-wrapper">
-      <h1>Player Registration</h1>
+      <h1>Hanover Flag Football 2027 Registration</h1>
       <p class="register-intro">
-        Our season runs for 8 weeks (May to early July), including playoffs. Each week players have both a practice and a game.
+        Our season runs for approximately 8 weeks (May to early July), including playoffs. Games and practices are held on Saturdays, mostly mornings, at Rail Lands Leisure Park in Hanover.
       </p>
       <p class="register-details">
-        Registration fees: <strong>U6 – $80</strong> &nbsp; | &nbsp; <strong>Age 6+ – $185</strong>.
+        Registration fees: <strong>U6 – $80</strong> &nbsp; | &nbsp; <strong>Other divisions – $185</strong>.<br>Jersey, flag belt and flags included. Optional apparel is available through the shop.
       </p>
 
       <div class="credit-banner" id="creditBanner">
@@ -188,7 +188,7 @@
       </div>
 
       <div class="closed-message" id="closedMessage">
-        2026 registration is now closed.
+        2027 registration is currently closed.
       </div>
 
       <form id="registrationForm" novalidate>
@@ -234,8 +234,7 @@
         <div class="form-section">
           <h2>Player Information</h2>
           <p class="info-note">
-            Age divisions will be decided based on registration numbers. No youth division will span more than three
-            birth years, and we aim for two-year groupings (U6, U8, U10, U12, U14, U16, U18).
+            Divisions are tentatively assigned by age as of July 31, 2027. Final age divisions may be adjusted based on registration numbers.
           </p>
 
           <div class="form-grid">
@@ -253,11 +252,9 @@
             </div>
 
             <div class="form-row">
-              <label>Registration Category<span class="required">*</span></label>
-              <div class="radio-group">
-                <label><input type="radio" name="ageGroup" value="U6" /> U6</label>
-                <label><input type="radio" name="ageGroup" value="7plus" /> Age 6+ (U8–U18)</label>
-              </div>
+              <label for="assignedDivision">Tentative Division (automatically assigned)</label>
+              <input type="text" id="assignedDivision" readonly value="Enter date of birth above" aria-live="polite" />
+              <div class="info-note" id="divisionExplanation" style="margin-top:0.4rem;">Age as of July 31, 2027.</div>
             </div>
 
             <div class="form-row">
@@ -352,6 +349,13 @@
           </div>
         </div>
 
+        <div class="form-section" id="registrationSummary" style="display:none;">
+          <h2>Registration Summary</h2>
+          <p><strong id="summaryProduct"></strong></p>
+          <p>Tentative division: <strong id="summaryDivision"></strong></p>
+          <p>Registration fee: <strong id="summaryFee"></strong></p>
+          <p class="info-note">Final divisions may be adjusted based on registration numbers.</p>
+        </div>
         <div class="submit-row">
           <button type="submit" class="submit-btn">Submit &amp; Continue to Payment</button>
           <div class="small-note">You’ll review your details and complete secure payment on the next step.</div>
@@ -446,6 +450,44 @@
       });
     })();
 
+    // Tentative 2027 divisions: player age on July 31, 2027.
+    function get2027Division(value) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(value || '')) return null;
+      const [year, month, day] = value.split('-').map(Number);
+      const date = new Date(Date.UTC(year, month - 1, day));
+      if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null;
+      const age = 2027 - year - ((month > 7 || (month === 7 && day > 31)) ? 1 : 0);
+      if (age < 0 || age >= 18) return null;
+      const division = age < 6 ? 'U6' : age < 9 ? 'U9' : age < 12 ? 'U12' : age < 16 ? 'U16' : 'U18';
+      return { age, division, ageGroup: division === 'U6' ? 'U6' : '7plus', fee: division === 'U6' ? 80 : 185 };
+    }
+    function updateDivisionDisplay() {
+      const dob = document.getElementById('playerDob').value;
+      const result = get2027Division(dob);
+      const assigned = document.getElementById('assignedDivision');
+      const explanation = document.getElementById('divisionExplanation');
+      const summary = document.getElementById('registrationSummary');
+      if (!dob) {
+        assigned.value = 'Enter date of birth above';
+        explanation.textContent = 'Age as of July 31, 2027.';
+        summary.style.display = 'none';
+      } else if (!result) {
+        assigned.value = 'Check date of birth / ineligible';
+        explanation.textContent = 'Please enter a valid date of birth for a player under 18 on July 31, 2027.';
+        summary.style.display = 'none';
+      } else {
+        assigned.value = result.division;
+        explanation.textContent = 'Age ' + result.age + ' on July 31, 2027.';
+        document.getElementById('summaryProduct').textContent = 'Hanover Flag Football 2027 ' + (result.division === 'U6' ? 'U6 ' : '') + 'Registration';
+        document.getElementById('summaryDivision').textContent = result.division;
+        document.getElementById('summaryFee').textContent = '$' + result.fee.toFixed(2) + ' CAD';
+        summary.style.display = 'block';
+      }
+    }
+    document.getElementById('playerDob').addEventListener('input', updateDivisionDisplay);
+    document.getElementById('playerDob').addEventListener('change', updateDivisionDisplay);
+    updateDivisionDisplay();
+
     // submit handler
     document.addEventListener('DOMContentLoaded', () => {
       const form = document.getElementById('registrationForm');
@@ -459,7 +501,7 @@
         const liabilityWaiver = document.getElementById('liabilityWaiver');
         const riskAck = document.getElementById('riskAck');
         const photoPermission = document.querySelector('input[name="photoPermission"]:checked');
-        const ageGroupRadio = document.querySelector('input[name="ageGroup"]:checked');
+        const divisionResult = get2027Division(document.getElementById('playerDob').value);
 
         const shirtSizeEl = document.getElementById('shirtSize');
         if (!shirtSizeEl || !shirtSizeEl.value) {
@@ -468,8 +510,9 @@
           return;
         }
 
-        if (!ageGroupRadio) {
-          alert('Please select whether this registration is for U6 or Age 6+.');
+        if (!divisionResult) {
+          document.getElementById('playerDob').focus();
+          alert('Please enter an eligible date of birth for 2027.');
           return;
         }
 
@@ -511,7 +554,10 @@
             shirtSize: document.getElementById('shirtSize').value,
             experience: document.getElementById('experience').value
           },
-          ageGroup: ageGroupRadio.value,
+          ageGroup: divisionResult.ageGroup, // Existing checkout price category
+          tentativeDivision: divisionResult.division,
+          seasonYear: 2027,
+          ageCutoffDate: '2027-07-31',
           coachInterest: document.getElementById('coachInterest').value || null,
           health: { concerns: document.getElementById('healthConcerns').value.trim() },
           buddyRequest: document.getElementById('buddyRequest').value.trim(),
