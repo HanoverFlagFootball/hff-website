@@ -105,6 +105,11 @@
     textarea { min-height:80px; resize:vertical; }
     .checkbox-row, .radio-row { margin-bottom:0.6rem; font-size:0.85rem; color:#333; }
     .checkbox-row input, .radio-row input { margin-right:0.35rem; }
+    /* Consistent checkbox column and hanging text indentation */
+    .checkbox-row .consent-label { display:grid; grid-template-columns:18px minmax(0,1fr); column-gap:9px; align-items:start; margin:0; line-height:1.5; }
+    .checkbox-row .consent-label input[type="checkbox"] { width:16px; height:16px; margin:2px 0 0; }
+    .checkbox-row .consent-description { display:block; font-size:0.8rem; color:#555; font-weight:normal; margin-top:0.3rem; }
+
     .radio-group { display:flex; gap:1.5rem; align-items:center; flex-wrap:wrap; }
     .required { color:#c00; margin-left:0.1rem; }
     .signature-note { font-size:0.8rem; color:#555; margin-bottom:0.5rem; }
@@ -301,42 +306,32 @@
           <h2>Waivers & Permissions</h2>
 
           <div class="checkbox-row">
-            <label>
+            <label class="consent-label">
               <input type="checkbox" id="liabilityWaiver" name="liabilityWaiver" />
-              I am the parent/guardian of the player and I understand and accept that participation in flag football
+              <span>I am the parent/guardian of the player and I understand and accept that participation in flag football
               involves inherent risks of injury. I have read and agree to the terms of the
-              <a href="Waiver and Release of Liability.pdf" target="_blank" rel="noopener noreferrer">
-                Waiver and Release of Liability
-              </a>,
-              and I release the league, organizers, and coaches from liability to the fullest extent permitted by law.
-              <span class="required">*</span>
+              <a href="Waiver and Release of Liability.pdf" target="_blank" rel="noopener noreferrer">Waiver and Release of Liability</a>,
+              and I release the league, organizers, and coaches from liability to the fullest extent permitted by law.<span class="required">*</span></span>
             </label>
           </div>
 
           <div class="checkbox-row">
-            <label>
+            <label class="consent-label">
               <input type="checkbox" id="riskAck" name="riskAck" />
-              I acknowledge that I have reviewed the league rules and risk information, and I agree to support safe play
-              and sportsmanship.<span class="required">*</span>
+              <span>I acknowledge that I have reviewed the league rules and risk information, and I agree to support safe play
+              and sportsmanship.<span class="required">*</span></span>
             </label>
           </div>
-<div class="checkbox-row">
-  <label style="display:flex; align-items:center; gap:8px; font-weight:600;">
-    <input type="checkbox" id="photoConsent" name="photoConsent" required
-           style="margin:0; flex-shrink:0;" />
-    Photo &amp; Video Consent<span class="required">*</span>
-  </label>
 
-  <p class="info-note" style="margin:0.4rem 0 0 26px;">
-    I understand and agree that Hanover Flag Football may photograph
-    or record my child during league games, practices, tournaments,
-    and other events. I authorize Hanover Flag Football to use these
-    photographs and recordings on its website, social media accounts,
-    and in promotional materials without additional permission or
-    compensation.
-  </p>
-</div>
-</div>
+          <div class="checkbox-row">
+            <label class="consent-label">
+              <input type="checkbox" id="photoConsent" name="photoConsent" required />
+              <span><strong>Photo &amp; Video Consent</strong><span class="required">*</span>
+                <span class="consent-description">I understand and agree that Hanover Flag Football may photograph or record my child during league games, practices, tournaments, and other events. I authorize Hanover Flag Football to use these photographs and recordings on its website, social media accounts, and in promotional materials without additional permission or compensation.</span>
+              </span>
+            </label>
+          </div>
+        </div>
 
         <div class="form-section">
           <h2>Parent / Guardian Signature</h2>
