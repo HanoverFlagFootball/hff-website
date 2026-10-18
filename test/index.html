@@ -51,6 +51,12 @@
   .hero-description { font-size: .67rem; }
   .hero-cta { padding: 9px 14px; font-size: .72rem; }
 }
+
+/* TEST ONLY: configurable hero buttons */
+.hero-actions{display:flex;gap:9px;flex-wrap:wrap;pointer-events:auto}
+.hero-actions .hero-cta{padding:11px 16px}
+.hero-actions .hero-cta.secondary{background:#000;color:#fff;border:2px solid #fff}
+@media(max-width:700px){.hero-actions{gap:5px}.hero-actions .hero-cta{font-size:.61rem;padding:7px 8px}}
 </style>
   <link rel="stylesheet" href="site-theme.css?v=20260913">
 </head>
@@ -77,7 +83,7 @@
             <h1 class="hero-headline" id="heroHeadline"></h1>
             <p class="hero-description" id="heroDescription"></p>
           </div>
-          <a class="hero-cta" id="heroCta" href="#"></a>
+          <div class="hero-actions" id="heroActions"><a class="hero-cta" id="heroCta" href="#"></a></div>
         </div>
       </article>
 
@@ -245,6 +251,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="hero-config.js?v=20261017a"></script>
   <script src="homepage-content.js?v=20261017a"></script>
+  <script src="hero-preview.js?v=1"></script>
 
   <!-- Shared hamburger nav -->
   <script src="nav.js"></script>
