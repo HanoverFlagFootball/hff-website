@@ -321,12 +321,10 @@
             </label>
           </div>
 
-          <div class="radio-row">
-            <div>Photo / Video Permission<span class="required">*</span></div>
-            <div class="radio-group">
-              <label><input type="radio" name="photoPermission" value="yes" /> Yes, I give permission for my child to appear in league photos and videos.</label>
-              <label><input type="radio" name="photoPermission" value="no" /> No, please do not include my child in photos or videos.</label>
-            </div>
+          <div class="checkbox-row">
+            <div style="font-weight:600; margin-bottom:0.4rem;">Photo &amp; Video Consent<span class="required">*</span></div>
+            <p class="info-note">I understand and agree that Hanover Flag Football may photograph or record my child during league games, practices, tournaments, and other events. I authorize Hanover Flag Football to use these photographs and recordings on its website, social media accounts, and in promotional materials without additional permission or compensation.</p>
+            <label><input type="checkbox" id="photoConsent" name="photoConsent" required /> I acknowledge and consent.<span class="required">*</span></label>
           </div>
         </div>
 
@@ -382,9 +380,8 @@
 
   <script>
     // registration open/closed toggle
-    // Temporarily enable registration for testing
-REGISTRATION_OPEN = true;
-document.body.classList.remove('registration-closed');
+    document.body.classList.add('registration-closed');
+    HFFSeasonal.get('hff_registration_open').then(open=>{ REGISTRATION_OPEN=open; document.body.classList.toggle('registration-closed',!open); });
 
     // sponsor rotation
     const sponsorTrack = document.getElementById('sponsorTrack');
@@ -501,7 +498,7 @@ document.body.classList.remove('registration-closed');
 
         const liabilityWaiver = document.getElementById('liabilityWaiver');
         const riskAck = document.getElementById('riskAck');
-        const photoPermission = document.querySelector('input[name="photoPermission"]:checked');
+        const photoConsent = document.getElementById('photoConsent');
         const divisionResult = get2027Division(document.getElementById('playerDob').value);
 
         const shirtSizeEl = document.getElementById('shirtSize');
@@ -522,8 +519,9 @@ document.body.classList.remove('registration-closed');
           return;
         }
 
-        if (!photoPermission) {
-          alert('Please select a photo/video permission option.');
+        if (!photoConsent.checked) {
+          photoConsent.focus();
+          alert('Please acknowledge and consent to the photo/video terms to continue.');
           return;
         }
 
@@ -565,7 +563,8 @@ document.body.classList.remove('registration-closed');
           waivers: {
             liabilityWaiver: liabilityWaiver.checked,
             riskAcknowledgement: riskAck.checked,
-            photoPermission: photoPermission.value
+            photoPermission: photoConsent.checked ? 'yes' : 'no', // preserve existing backend field
+            photoConsent: photoConsent.checked
           },
           signature: {
             name: document.getElementById('signatureName').value.trim(),
