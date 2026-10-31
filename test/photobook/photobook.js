@@ -37,20 +37,22 @@ if (signOutButton) {
   const signedCache = new Map(); // Session-only URLs; no private files persisted on shared computers.
   const photoSelect = "id,storage_path,photo_month,photo_year,caption,original_filename,is_complete,created_at,has_thumbnail";
   const thumbnailPath = photo => `${photo.storage_path}.thumb.webp`;
+  // A missing thumbnail must NEVER trigger an original download in a grid.
+  // Free-plan image transformations cannot be relied upon.
   const previewURL = async photo => {
-    // New uploads have actual tiny thumbnail files. Older photos use Supabase image transformations.
-    // Never silently fall back to original bytes in a grid.
-    const isNew = photo.has_thumbnail === true;
-    const path = isNew ? thumbnailPath(photo) : photo.storage_path;
-    const key = (isNew ? 'thumb:' : 'transform:') + path;
+    if (photo.has_thumbnail !== true) return null;
+    const path = thumbnailPath(photo);
+    const key = 'thumb:' + path;
     const cached = signedCache.get(key);
     if (cached && cached.expires > Date.now()) return cached.url;
-    const options = isNew ? undefined : {transform:{width:480,height:360,resize:'contain',quality:65}};
-    const {data,error} = await db.storage.from(BUCKET).createSignedUrl(path, 3600, options);
+    const {data,error} = await db.storage.from(BUCKET).createSignedUrl(path, 3600);
     if (error) throw error;
     signedCache.set(key,{url:data.signedUrl,expires:Date.now()+50*60*1000});
     return data.signedUrl;
   };
+  // Local placeholder: no request to Supabase or an external image host.
+  const missingPreview = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="480" height="360" viewBox="0 0 480 360"><rect width="480" height="360" fill="#e9ecef"/><path d="M150 140h180v110H150z" fill="none" stroke="#8b949e" stroke-width="8"/><circle cx="205" cy="173" r="15" fill="#8b949e"/><path d="m163 237 58-47 43 32 28-21 26 36" fill="none" stroke="#8b949e" stroke-width="7"/><text x="240" y="290" font-family="Arial,sans-serif" font-size="18" text-anchor="middle" fill="#586069">Preview not generated</text></svg>');
   async function attachTags(rows) {
     const ids = rows.map(p=>p.id);
     if (!ids.length) return;
@@ -264,7 +266,7 @@ if (signOutButton) {
     if (!rows.length) { const p = document.createElement("p"); p.className="empty-gallery"; p.textContent="No photographs match."; target.append(p); return; }
     const figures = rows.map(photo => {
       const figure = document.createElement("figure"); figure.className="photo-tile";
-      const img = document.createElement("img"); img.loading="lazy"; img.alt=photo.caption || "Family photograph";
+      const img = document.createElement("img"); img.loading="lazy"; img.alt=photo.caption || "Family photograph"; img.onerror=()=>{img.onerror=null;img.src=missingPreview;};
       // Metadata appears over the photograph on hover, focus, or touch.
       const tags = links[photo.id] || [];
       const byCategory = category => tags.filter(t => t.category === category).map(t => t.name).join(", ");
@@ -326,8 +328,8 @@ if (signOutButton) {
     await Promise.all(Array.from({length:Math.min(4,figures.length)},async()=>{
       while(next<figures.length){
         const {photo,img}=figures[next++];
-        try { const url=await previewURL(photo);if(img.isConnected)img.src=url; }
-        catch {img.alt='Thumbnail unavailable. Open to view original.';}
+        try { const url=await previewURL(photo);if(img.isConnected)img.src=url || missingPreview; }
+        catch {if(img.isConnected)img.src=missingPreview;img.alt='Thumbnail unavailable. Open to view original.';}
       }
     }));
   }
@@ -491,7 +493,12 @@ if (signOutButton) {
     el("organizerMessage").textContent="";
     const image=el("organizerImage"); image.removeAttribute("src");
     const id=photo.id;
-    previewURL(photo).then(url => {if(currentList()[currentIndex]?.id===id) image.src=url;}).catch(e => el("organizerMessage").textContent=e.message);
+    previewURL(photo).then(url => {
+      if(currentList()[currentIndex]?.id===id) {
+        image.src=url || missingPreview;
+        if(!url) el("organizerMessage").textContent="This older photo needs a thumbnail. Close the organizer and use Create 3 Thumbnails in Manage Photos. Original remains safely stored.";
+      }
+    }).catch(e => {image.src=missingPreview;el("organizerMessage").textContent=e.message;});
     pending();
     el("organizer").scrollIntoView({block:"start",behavior:"instant"});
   }
@@ -576,7 +583,7 @@ if (signOutButton) {
         const {error:thumbError}=await db.storage.from(BUCKET).upload(`${path}.thumb.webp`,thumbnail,{contentType:'image/webp',upsert:false});
         if(thumbError)throw thumbError;
         thumbReady=true;
-      }catch(e){errors.push(`${file.name}: thumbnail not created (${e.message}); transformed previews will be used.`);}
+      }catch(e){errors.push(`${file.name}: thumbnail not created (${e.message}); the photo will show a placeholder until a thumbnail is generated.`);}
       const filenameDate = dateFromFilename(file.name);
       const {error}=await db.from("photos").insert({storage_path:path,has_thumbnail:thumbReady,original_filename:file.name,
         photo_month:filenameDate?.month ?? null,photo_year:filenameDate?.year ?? null,is_complete:false});
@@ -711,9 +718,9 @@ if (signOutButton) {
   el("manageRefresh").onclick=()=>loadManage(true);
   el('makeLegacyThumbs').onclick=async()=>{
     if(!isPoster || saving || deleting)return;
-    const photos=managePhotos.filter(p=>!p.has_thumbnail).slice(0,20);
+    const photos=managePhotos.filter(p=>!p.has_thumbnail).slice(0,3);
     if(!photos.length){el('manageMessage').textContent='All loaded photos already have thumbnails.';return;}
-    if(!confirm(`Create small thumbnails for ${photos.length} loaded photograph(s)? This ONE-TIME operation downloads each original once, which uses Supabase egress. Do it in small batches after checking your quota. Originals will not be changed.`))return;
+    if(!confirm(`Create thumbnails for ${photos.length} older photograph(s)? This will download each original ONCE (approximately 3–12 MB total for three typical photographs), using Supabase egress. The originals will not be changed. Continue?`))return;
     const button=el('makeLegacyThumbs');button.disabled=true;
     let success=0,failures=[];
     for(const [i,photo] of photos.entries()){
@@ -727,7 +734,7 @@ if (signOutButton) {
         const {error:updateError}=await db.from('photos').update({has_thumbnail:true}).eq('id',photo.id);
         if(updateError)throw updateError;
         photo.has_thumbnail=true;
-        signedCache.delete('transform:'+photo.storage_path);
+        signedCache.delete('thumb:'+thumbnailPath(photo));
         success++;
       }catch(e){failures.push(`${photo.id.slice(0,8)}: ${e.message}`);}
     }

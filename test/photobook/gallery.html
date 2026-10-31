@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Family Photobook</title>
-  <link rel="stylesheet" href="photobook.css?v=20">
+  <link rel="stylesheet" href="photobook.css?v=21">
 </head>
 <body>
   <header class="gallery-header">
@@ -70,7 +70,7 @@
       </details>
       <button type="button" id="fillMissingDates">Fill Missing Dates from Filenames</button>
       <p id="manageMessage" role="status" aria-live="polite"></p>
-      <div id="incompleteGallery" class="photo-gallery"></div><div class="load-actions"><button id="manageLoadMore" type="button" hidden>Load 20 More</button><button id="manageRefresh" type="button">Refresh Queue</button><button id="makeLegacyThumbs" type="button">Create Thumbnails for Loaded Photos</button></div>
+      <p class="help-text">Older photos without thumbnails display placeholders, not full-size originals. Use Create 3 Thumbnails to convert them in controlled batches; each conversion downloads its original once.</p><div id="incompleteGallery" class="photo-gallery"></div><div class="load-actions"><button id="manageLoadMore" type="button" hidden>Load 20 More</button><button id="manageRefresh" type="button">Refresh Queue</button><button id="makeLegacyThumbs" type="button">Create 3 Thumbnails (Uses Egress)</button></div>
       </div>
     </section>
     <section id="organizer" class="organizer" hidden aria-label="Organize photograph">
@@ -114,6 +114,6 @@
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <script src="photobook.js?v=20"></script>
+  <script src="photobook.js?v=21"></script>
 </body>
 </html>
