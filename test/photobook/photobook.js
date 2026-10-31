@@ -170,11 +170,6 @@ if (signOutButton) {
     saveTimer = setTimeout(() => saveAll(false), 12000);
   }
 
-  async function signedImage(path) {
-    const { data, error } = await db.storage.from(BUCKET).createSignedUrl(path, 3600);
-    if (error) throw error;
-    return data.signedUrl;
-  }
   async function loadData() {
     // Only tags are loaded globally. Photo rows and relationships are page-scoped.
     const {data,error}=await db.from('tags').select('id,name,category').order('name');
@@ -291,10 +286,10 @@ if (signOutButton) {
       if (!details.childNodes.length) details.textContent = "No details added yet";
       figure.append(img, details);
       if (!editable) {
-        // The preview is a thumbnail, but the viewer uses the original stored file.
+        // Viewer and grid both use the same optimized thumbnail; never fetch originals.
         img.tabIndex = 0;
         img.setAttribute("role", "button");
-        img.setAttribute("aria-label", "View photograph at original resolution");
+        img.setAttribute("aria-label", "Enlarge thumbnail photograph");
         img.style.cursor = "zoom-in";
         img.addEventListener("click", () => openFullPhoto(photo));
         img.addEventListener("keydown", event => {
@@ -329,12 +324,11 @@ if (signOutButton) {
       while(next<figures.length){
         const {photo,img}=figures[next++];
         try { const url=await previewURL(photo);if(img.isConnected)img.src=url || missingPreview; }
-        catch {if(img.isConnected)img.src=missingPreview;img.alt='Thumbnail unavailable. Open to view original.';}
+        catch {if(img.isConnected)img.src=missingPreview;img.alt='Thumbnail unavailable.';}
       }
     }));
   }
-  // Full-resolution viewer. The file is requested from private Supabase Storage
-  // only after a photo is clicked, not for every gallery thumbnail.
+  // Thumbnail-only viewer: opening a photograph never fetches the original.
   async function openFullPhoto(photo) {
     const index = visibleGalleryPhotos.findIndex(p => p.id === photo.id);
     if (index < 0) return;
@@ -345,8 +339,8 @@ if (signOutButton) {
     const status = el("fullPhotoStatus");
     const originalLink = el("fullPhotoOriginal");
     image.removeAttribute("src");
-    image.alt = photo.caption || "Full-resolution family photograph";
-    status.textContent = "Loading original photograph...";
+    image.alt = photo.caption || "Family photograph thumbnail";
+    status.textContent = "Loading thumbnail...";
     originalLink.hidden = true;
     viewer.hidden = false;
     document.body.classList.add("photo-viewer-open");
@@ -354,14 +348,14 @@ if (signOutButton) {
     el("fullPhotoPrevious").disabled = index === 0;
     el("fullPhotoNext").disabled = index === visibleGalleryPhotos.length - 1;
     try {
-      const url = await signedImage(photo.storage_path);
+      const url = await previewURL(photo);
       if (viewer.hidden || request !== fullPhotoRequest) return;
-      image.src = url;
-      originalLink.href = url;
-      originalLink.hidden = false;
-      status.textContent = "";
+      image.src = url || missingPreview;
+      originalLink.removeAttribute("href");
+      originalLink.hidden = true;
+      status.textContent = url ? "" : "Preview not generated";
     } catch (error) {
-      if (request === fullPhotoRequest) status.textContent = `Unable to load original: ${error.message}`;
+      if (request === fullPhotoRequest) status.textContent = `Unable to load thumbnail: ${error.message}`;
     }
   }
   function moveFullPhoto(step) {
@@ -656,33 +650,7 @@ if (signOutButton) {
     for(const p of manageVisible()) {if(e.target.checked)selectedIds.add(p.id);else selectedIds.delete(p.id);}
     el("incompleteGallery").querySelectorAll(".photo-select").forEach(input=>{input.checked=e.target.checked;});updateSelection();
   };
-  el("downloadVisible").onclick=async()=>{
-    const rows=visibleGalleryPhotos; // Only loaded/visible photographs, never entire archive.
-    if(!rows.length){el("filterStatus").textContent="No visible photographs to download.";return;}
-    if(!window.JSZip){el("filterStatus").textContent="ZIP library unavailable. Try refreshing.";return;}
-    const btn=el("downloadVisible");btn.disabled=true;
-    const zip=new JSZip();let done=0;const failures=[];
-    for(const photo of rows) {
-      try {
-        const {data,error}=await db.storage.from(BUCKET).download(photo.storage_path);
-        if(error)throw error;
-        const original=photo.original_filename || "photograph.jpg";
-        const safe=original.replace(/[\\/:*?"<>|]/g,"_");
-        zip.file(`${String(done+1).padStart(4,"0")}_${photo.id.slice(0,8)}_${safe}`,data);
-        done++;
-      }catch(e){failures.push(photo.original_filename||photo.id);}
-      el("filterStatus").textContent=`Preparing originals ${done+failures.length} of ${rows.length}...`;
-    }
-    if(done){
-      try{
-        const blob=await zip.generateAsync({type:"blob",compression:"STORE"});
-        const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="family-photobook-selection.zip";a.click();
-        setTimeout(()=>URL.revokeObjectURL(url),60000);
-      }catch(e){el("filterStatus").textContent=`Could not build ZIP: ${e.message}`;btn.disabled=false;return;}
-    }
-    el("filterStatus").textContent=`${done} originals downloaded${failures.length?`; ${failures.length} failed (${failures.join(", ")})`:""}.`;
-    btn.disabled=false;
-  };
+  // No original ZIP download. The originals remain archived in Supabase.
   el("galleryTab").onclick=()=>{if(currentIndex>=0)captureDraft();showSection("gallery");};
   el("incompleteTab").onclick=()=>{if(currentIndex>=0)captureDraft();showSection("manage");};
   el("uploadButton").onclick=()=>{
