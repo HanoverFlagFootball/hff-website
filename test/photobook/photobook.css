@@ -340,3 +340,8 @@ button:disabled { opacity: .55; cursor: wait; }
   .full-photo-controls { right:8px; left:8px; justify-content:flex-end; gap:8px; }
   .full-photo-controls a { font-size:12px; }
 }
+
+/* v20: low-egress page controls */
+.load-actions {display:flex;gap:10px;justify-content:center;margin:20px 0 30px;flex-wrap:wrap;}
+.load-actions button {width:auto;margin:0;padding:12px 20px;}
+#galleryLoadActions[hidden] {display:none!important;}

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Family Photobook</title>
-  <link rel="stylesheet" href="photobook.css?v=19">
+  <link rel="stylesheet" href="photobook.css?v=20">
 </head>
 <body>
   <header class="gallery-header">
@@ -48,13 +48,14 @@
     <section id="photoGallery" class="photo-gallery" aria-label="Photographs">
       <p class="empty-gallery">Choose filters and click Show Photos, or enjoy three random photographs.</p>
     </section>
+    <div id="galleryLoadActions" class="load-actions"><button id="galleryLoadMore" type="button" hidden>Load 40 More</button></div>
     <section id="incompleteSection" hidden>
       <h2>Manage Photos</h2>
       <p class="help-text">Select photographs to delete, or click a photo to edit its details. This area includes completed and incomplete photographs.</p>
       <div id="manageBrowse">
       <div class="manage-controls">
         <label for="manageView">Show</label>
-        <select id="manageView"><option value="all">All Photos</option><option value="incomplete">Incomplete</option><option value="complete">Complete</option></select>
+        <select id="manageView"><option value="incomplete" selected>Incomplete</option><option value="all">All Photos</option><option value="complete">Complete</option></select>
         <label class="select-all"><input type="checkbox" id="selectAllPhotos"> Select all shown</label>
         <span id="selectedCount" role="status">0 selected</span>
         <button type="button" id="deleteSelected" class="danger" disabled>Delete Selected Permanently</button>
@@ -69,7 +70,7 @@
       </details>
       <button type="button" id="fillMissingDates">Fill Missing Dates from Filenames</button>
       <p id="manageMessage" role="status" aria-live="polite"></p>
-      <div id="incompleteGallery" class="photo-gallery"></div>
+      <div id="incompleteGallery" class="photo-gallery"></div><div class="load-actions"><button id="manageLoadMore" type="button" hidden>Load 20 More</button><button id="manageRefresh" type="button">Refresh Queue</button><button id="makeLegacyThumbs" type="button">Create Thumbnails for Loaded Photos</button></div>
       </div>
     </section>
     <section id="organizer" class="organizer" hidden aria-label="Organize photograph">
@@ -113,6 +114,6 @@
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <script src="photobook.js?v=19"></script>
+  <script src="photobook.js?v=20"></script>
 </body>
 </html>
