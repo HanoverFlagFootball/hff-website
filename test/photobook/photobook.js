@@ -218,6 +218,25 @@ if (signOutButton) {
       p_month:el('filterMonth').value?Number(el('filterMonth').value):null,
       p_sort:galleryMode==='random'?'random':el('sortPhotos').value};
   }
+  // Infinite scroll observes a lightweight sentinel, not all photographs.
+  // Only one 40-photo page can be in flight at a time.
+  let galleryScrollObserver = null;
+  function updateGalleryScroll() {
+    const sentinel = el('galleryScrollSentinel');
+    if (!sentinel) return;
+    sentinel.hidden = !(activeSection === 'gallery' && galleryMode === 'results' && galleryHasMore);
+    if (galleryScrollObserver) galleryScrollObserver.disconnect();
+    if (!sentinel.hidden && 'IntersectionObserver' in window) {
+      galleryScrollObserver = new IntersectionObserver(entries => {
+        if (entries.some(entry => entry.isIntersecting) && !galleryLoading && galleryHasMore && activeSection === 'gallery') {
+          loadGalleryPage(false);
+        }
+      }, {rootMargin:'250px 0px', threshold:0});
+      galleryScrollObserver.observe(sentinel);
+    }
+    // Manual button remains available only if IntersectionObserver is unsupported.
+    el('galleryLoadMore').hidden = !galleryHasMore || galleryMode !== 'results' || ('IntersectionObserver' in window);
+  }
   async function loadGalleryPage(reset=false) {
     if(galleryLoading)return;
     if(reset){galleryGeneration++;galleryOffset=0;galleryHasMore=true;visibleGalleryPhotos=[];el('photoGallery').replaceChildren();}
@@ -233,13 +252,13 @@ if (signOutButton) {
       for(const photo of rows){links[photo.id]=(photo.tag_ids||[]).map(id=>allTags.find(t=>t.id===id)).filter(Boolean);}
       upsertPhotos(rows);
       galleryOffset+=rows.length;
-      galleryHasMore=galleryMode!=='random' && el('sortPhotos').value!=='random' && galleryOffset<galleryTotal;
+      galleryHasMore=galleryMode!=='random' && galleryOffset<galleryTotal;
       const shown=rows.filter(p=>!hiddenIds.has(p.id));
       visibleGalleryPhotos.push(...shown);
       if(activeSection==='gallery')await renderTiles(shown,el('photoGallery'),false,true);
       el('filterStatus').textContent=galleryMode==='random'?'Three random photographs. Apply filters and click Show Photos for more.':`${galleryTotal} matching photograph(s) · ${visibleGalleryPhotos.length} loaded`;
     }catch(e){el('filterStatus').textContent=`Unable to load gallery: ${e.message}. Run the included SQL setup first.`;}
-    finally{galleryLoading=false;el('galleryLoadMore').hidden=!galleryHasMore;el('galleryLoadMore').disabled=false;}
+    finally{galleryLoading=false;el('galleryLoadMore').disabled=false;updateGalleryScroll();}
   }
   function matchingGallery() {
     const people = pickerInstances.filterPeople.get().map(norm);
@@ -459,6 +478,7 @@ if (signOutButton) {
     el("photoGallery").hidden=incomplete;
     el("filterPanel").hidden=incomplete;
     el("galleryLoadActions").hidden=incomplete;
+    updateGalleryScroll();
     el("galleryTab").classList.toggle("active",!incomplete);
     el("incompleteTab").classList.toggle("active",incomplete);
     el("organizer").hidden=true; currentIndex=-1;
@@ -490,7 +510,7 @@ if (signOutButton) {
     previewURL(photo).then(url => {
       if(currentList()[currentIndex]?.id===id) {
         image.src=url || missingPreview;
-        if(!url) el("organizerMessage").textContent="This older photo needs a thumbnail. Close the organizer and use Create 3 Thumbnails in Manage Photos. Original remains safely stored.";
+        if(!url) el("organizerMessage").textContent="This older photo needs a thumbnail. Use Convert Remaining in Manage Photos. Original remains safely stored.";
       }
     }).catch(e => {image.src=missingPreview;el("organizerMessage").textContent=e.message;});
     pending();
@@ -684,31 +704,73 @@ if (signOutButton) {
   el("galleryLoadMore").onclick=()=>loadGalleryPage(false);
   el("manageLoadMore").onclick=()=>loadManage(false);
   el("manageRefresh").onclick=()=>loadManage(true);
-  el('makeLegacyThumbs').onclick=async()=>{
-    if(!isPoster || saving || deleting)return;
-    const photos=managePhotos.filter(p=>!p.has_thumbnail).slice(0,3);
-    if(!photos.length){el('manageMessage').textContent='All loaded photos already have thumbnails.';return;}
-    if(!confirm(`Create thumbnails for ${photos.length} older photograph(s)? This will download each original ONCE (approximately 3–12 MB total for three typical photographs), using Supabase egress. The originals will not be changed. Continue?`))return;
-    const button=el('makeLegacyThumbs');button.disabled=true;
-    let success=0,failures=[];
-    for(const [i,photo] of photos.entries()){
-      el('manageMessage').textContent=`Creating thumbnail ${i+1} of ${photos.length}...`;
-      try{
-        const {data,error}=await db.storage.from(BUCKET).download(photo.storage_path);
-        if(error)throw error;
-        const thumb=await makeThumbnail(data);
-        const {error:uploadError}=await db.storage.from(BUCKET).upload(thumbnailPath(photo),thumb,{contentType:'image/webp',upsert:false});
-        if(uploadError)throw uploadError;
-        const {error:updateError}=await db.from('photos').update({has_thumbnail:true}).eq('id',photo.id);
-        if(updateError)throw updateError;
-        photo.has_thumbnail=true;
-        signedCache.delete('thumb:'+thumbnailPath(photo));
-        success++;
-      }catch(e){failures.push(`${photo.id.slice(0,8)}: ${e.message}`);}
+  // One-time, resumable legacy migration. Fetch only records lacking thumbnails;
+  // never request originals during Gallery/Manage browsing.
+  let bulkThumbRunning = false, bulkThumbStop = false;
+  el('stopLegacyThumbs').onclick = () => {
+    if (bulkThumbRunning) {
+      bulkThumbStop = true;
+      el('bulkThumbStatus').textContent += ' Stopping after current photograph...';
     }
-    button.disabled=false;
-    el('manageMessage').textContent=`Created ${success} thumbnail(s). ${failures.length} failed. ${failures.join('; ')}`;
-    if(activeSection==='manage' && el('organizer').hidden)await renderTiles(managePhotos,el('incompleteGallery'),true);
+  };
+  el('makeLegacyThumbs').onclick = async () => {
+    if (!isPoster || saving || deleting || bulkThumbRunning) return;
+    if (!confirm('Convert ALL older photos missing thumbnails? Each original will be downloaded once from Supabase and count toward egress. Existing originals will remain unchanged. You can stop after any photo and resume later.')) return;
+    bulkThumbRunning = true; bulkThumbStop = false;
+    const start = el('makeLegacyThumbs'), stop = el('stopLegacyThumbs'), status = el('bulkThumbStatus');
+    start.disabled = true; stop.hidden = false; stop.disabled = false;
+    let created = 0, repaired = 0, attempted = 0, failure = null;
+    const update = (message='') => {status.textContent = `${created} created, ${repaired} existing repaired, ${attempted} checked. ${message}`;};
+    try {
+      // Re-query each batch because successful rows leave the has_thumbnail=false set.
+      // No offset: prevents skipping rows as the set shrinks.
+      while (!bulkThumbStop) {
+        const {data:photos,error:queryError} = await db.from('photos')
+          .select('id,storage_path,has_thumbnail').eq('has_thumbnail',false)
+          .order('created_at',{ascending:true}).limit(10);
+        if (queryError) throw Error(`Could not fetch remaining photos: ${queryError.message}`);
+        if (!photos || !photos.length) {update('All photos now have thumbnails.');break;}
+        for (const photo of photos) {
+          if (bulkThumbStop) break;
+          attempted++; update(`Processing photo ${attempted}...`);
+          try {
+            const path = thumbnailPath(photo);
+            // If a previous run uploaded a thumbnail but failed before updating its flag,
+            // reuse that file instead of downloading the original again.
+            const {data:existing,error:listError} = await db.storage.from(BUCKET)
+              .list(photo.storage_path.split('/').slice(0,-1).join('/'), {search:photo.storage_path.split('/').pop()+'.thumb.webp',limit:10});
+            if (listError) throw Error(`Storage lookup: ${listError.message}`);
+            const exists = (existing||[]).some(f=>f.name===photo.storage_path.split('/').pop()+'.thumb.webp');
+            if (!exists) {
+              const {data:original,error:downloadError} = await db.storage.from(BUCKET).download(photo.storage_path);
+              if (downloadError) throw Error(`Original download: ${downloadError.message}`);
+              const thumb = await makeThumbnail(original);
+              const {error:uploadError} = await db.storage.from(BUCKET).upload(path,thumb,{contentType:'image/webp',upsert:false});
+              if (uploadError) throw Error(`Thumbnail upload: ${uploadError.message}`);
+            }
+            const {data:updated,error:updateError} = await db.from('photos')
+              .update({has_thumbnail:true}).eq('id',photo.id).select('id');
+            if (updateError) throw Error(`Database update: ${updateError.message}`);
+            if (!updated || updated.length!==1) throw Error('Database update affected no row. Check RLS permissions.');
+            signedCache.delete('thumb:'+path);
+            if (exists) repaired++; else created++;
+            update();
+          } catch(e) {
+            failure = `${photo.id.slice(0,8)}: ${e.message}`;
+            bulkThumbStop = true;
+            update(`Stopped on error: ${failure}`);
+            break;
+          }
+        }
+        // Yield to the browser between groups of ten; allow user to press Stop.
+        await new Promise(resolve=>setTimeout(resolve,100));
+      }
+      if (!failure && bulkThumbStop) update('Stopped by user. Click Convert Remaining to resume.');
+    } catch(e) {failure=e.message;update(`Stopped on error: ${failure}`);}
+    finally {
+      bulkThumbRunning=false;start.disabled=false;stop.hidden=true;
+      if(activeSection==='manage' && el('organizer').hidden) await loadManage(true);
+    }
   };
   ["filterYear","filterMonth","peopleMode"].forEach(id=>el(id).onchange=()=>{el("filterStatus").textContent="Filters changed. Click Show Photos to apply.";});
   ["filterPeople","filterTheme","filterOther"].forEach((id,i)=>picker(id,["person","theme","other"][i],false,()=>{el("filterStatus").textContent="Filters changed. Click Show Photos to apply.";}));

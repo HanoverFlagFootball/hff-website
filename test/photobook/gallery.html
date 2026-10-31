@@ -48,6 +48,7 @@
     <section id="photoGallery" class="photo-gallery" aria-label="Photographs">
       <p class="empty-gallery">Choose filters and click Show Photos, or enjoy three random photographs.</p>
     </section>
+    <div id="galleryScrollSentinel" hidden aria-hidden="true" style="height:1px"></div>
     <div id="galleryLoadActions" class="load-actions"><button id="galleryLoadMore" type="button" hidden>Load 40 More</button></div>
     <section id="incompleteSection" hidden>
       <h2>Manage Photos</h2>
@@ -70,7 +71,7 @@
       </details>
       <button type="button" id="fillMissingDates">Fill Missing Dates from Filenames</button>
       <p id="manageMessage" role="status" aria-live="polite"></p>
-      <p class="help-text">Older photos without thumbnails display placeholders, not full-size originals. Use Create 3 Thumbnails to convert them in controlled batches; each conversion downloads its original once.</p><div id="incompleteGallery" class="photo-gallery"></div><div class="load-actions"><button id="manageLoadMore" type="button" hidden>Load 20 More</button><button id="manageRefresh" type="button">Refresh Queue</button><button id="makeLegacyThumbs" type="button">Create 3 Thumbnails (Uses Egress)</button></div>
+      <p class="help-text">Older photos without thumbnails display placeholders. Convert Remaining downloads each missing original once and creates a small WebP thumbnail. You can stop and resume; originals are preserved.</p><div id="incompleteGallery" class="photo-gallery"></div><div class="load-actions"><button id="manageLoadMore" type="button" hidden>Load 20 More</button><button id="manageRefresh" type="button">Refresh Queue</button><button id="makeLegacyThumbs" type="button">Convert Remaining (Uses Egress)</button><button id="stopLegacyThumbs" type="button" hidden>Stop After Current Photo</button></div><p id="bulkThumbStatus" role="status" aria-live="polite"></p>
       </div>
     </section>
     <section id="organizer" class="organizer" hidden aria-label="Organize photograph">
