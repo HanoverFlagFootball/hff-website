@@ -28,6 +28,7 @@ if (signOutButton) {
   let drafts = new Map(), hiddenIds = new Set(), carriedMonth = "", carriedYear = "";
   let saving = false, deleting = false, saveTimer = null, pickerInstances = {}, fillingForm = false;
   let managePhotos = [], selectedIds = new Set();
+  let facetOptions = null, facetRequest = 0, facetTimer = null;
   let galleryMode = "random", galleryRenderVersion = 0;
   let visibleGalleryPhotos = [], fullPhotoIndex = -1, fullPhotoRequest = 0, touchStartX = null;
   const GALLERY_PAGE = 40, MANAGE_PAGE = 20;
@@ -102,7 +103,9 @@ if (signOutButton) {
         chip.append(label, remove); chips.append(chip);
       }
       const q = norm(input.value);
-      const matches = allTags.filter(t => t.category === category && !selected.has(norm(t.name)) && norm(t.name).includes(q));
+      const facetKey = category === "person" ? "people" : category === "theme" ? "themes" : "events";
+      const allowed = facetOptions ? new Set(facetOptions[facetKey] || []) : null;
+      const matches = allTags.filter(t => t.category === category && !selected.has(norm(t.name)) && (!allowed || allowed.has(t.id)) && norm(t.name).includes(q));
       for (const tag of matches) {
         const b = document.createElement("button"); b.type = "button"; b.textContent = tag.name;
         b.onclick = () => choose(tag.name); suggestions.append(b);
@@ -182,6 +185,7 @@ if (signOutButton) {
       const select=el('filterYear');const old=select.value;
       select.replaceChildren(new Option('Any year',''),...years.data.map(y=>new Option(String(y),String(y))));select.value=old;
     }
+    await updateFacetOptions();
     await renderGallery(true);
   }
   async function loadManage(reset=false) {
@@ -217,6 +221,39 @@ if (signOutButton) {
       p_people_mode:el('peopleMode').value,p_year:el('filterYear').value?Number(el('filterYear').value):null,
       p_month:el('filterMonth').value?Number(el('filterMonth').value):null,
       p_sort:galleryMode==='random'?'random':el('sortPhotos').value};
+  }
+  // Facet queries contain metadata only; no image egress. Each category ignores its
+  // own selection so users can add more values and always remove existing chips.
+  async function updateFacetOptions() {
+    const request = ++facetRequest;
+    try {
+      const {p_sort, ...params} = filterParameters();
+      const {data,error} = await db.rpc('photobook_filter_options', params);
+      if (error) throw error;
+      if (request !== facetRequest) return;
+      facetOptions = data;
+      ['filterPeople','filterTheme','filterOther'].forEach(id=>pickerInstances[id].refresh());
+      const yearSelect=el('filterYear'), oldYear=yearSelect.value;
+      const years=[...(data.years||[])].map(Number).filter(Number.isInteger).sort((a,b)=>b-a);
+      yearSelect.replaceChildren(new Option('Any year',''), ...years.map(y=>new Option(String(y),String(y))));
+      if (oldYear && !years.includes(Number(oldYear))) yearSelect.add(new Option(oldYear,oldYear));
+      yearSelect.value=oldYear;
+      const monthSelect=el('filterMonth'), oldMonth=monthSelect.value;
+      const months=new Set((data.months||[]).map(Number));
+      monthSelect.replaceChildren(new Option('Any month',''));
+      for(let m=1;m<=12;m++) if(months.has(m)||String(m)===oldMonth)
+        monthSelect.add(new Option(new Date(Date.UTC(2020,m-1,1)).toLocaleString('en-CA',{month:'long',timeZone:'UTC'}),String(m)));
+      monthSelect.value=oldMonth;
+    } catch(e) {
+      // Do not silently present incomplete filter options if the SQL is missing.
+      facetOptions=null;
+      ['filterPeople','filterTheme','filterOther'].forEach(id=>pickerInstances[id].refresh());
+      el('filterStatus').textContent='Dynamic filter options unavailable: '+e.message;
+    }
+  }
+  function scheduleFacetUpdate() {
+    clearTimeout(facetTimer);
+    facetTimer=setTimeout(updateFacetOptions,180);
   }
   // Infinite scroll observes a lightweight sentinel, not all photographs.
   // Only one 40-photo page can be in flight at a time.
@@ -698,7 +735,7 @@ if (signOutButton) {
   el("tagManageSearch").oninput = renderTagManager;
   el("clearFilters").onclick=()=>{
     ["filterPeople","filterTheme","filterOther"].forEach(id=>pickerInstances[id].set([]));
-    el("filterYear").value="";el("filterMonth").value="";el("peopleMode").value="or";galleryMode="random";renderGallery();
+    el("filterYear").value="";el("filterMonth").value="";el("peopleMode").value="or";galleryMode="random";scheduleFacetUpdate();renderGallery();
   };
   el("restoreHidden").onclick=()=>{hiddenIds.clear();renderGallery();};
   el("galleryLoadMore").onclick=()=>loadGalleryPage(false);
@@ -772,8 +809,8 @@ if (signOutButton) {
       if(activeSection==='manage' && el('organizer').hidden) await loadManage(true);
     }
   };
-  ["filterYear","filterMonth","peopleMode"].forEach(id=>el(id).onchange=()=>{el("filterStatus").textContent="Filters changed. Click Show Photos to apply.";});
-  ["filterPeople","filterTheme","filterOther"].forEach((id,i)=>picker(id,["person","theme","other"][i],false,()=>{el("filterStatus").textContent="Filters changed. Click Show Photos to apply.";}));
+  ["filterYear","filterMonth","peopleMode"].forEach(id=>el(id).onchange=()=>{el("filterStatus").textContent="Filters changed. Click Show Photos to apply.";scheduleFacetUpdate();});
+  ["filterPeople","filterTheme","filterOther"].forEach((id,i)=>picker(id,["person","theme","other"][i],false,()=>{el("filterStatus").textContent="Filters changed. Click Show Photos to apply.";scheduleFacetUpdate();}));
   ["editPeople","editTheme","editTags"].forEach((id,i)=>picker(id,["person","theme","other"][i],true,()=>{captureDraft();}));
   ["editMonth","editYear","editCaption"].forEach(id=>el(id).addEventListener("input",captureDraft));
   window.addEventListener("beforeunload",e=>{if(drafts.size){e.preventDefault();e.returnValue="";}});
