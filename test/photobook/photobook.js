@@ -84,6 +84,43 @@ if (signOutButton) {
   }
 
 
+  // Compact, multi-select dropdown for Gallery filters only. Editor pickers stay unchanged.
+  function compactFilterPicker(id, category, onChange) {
+    const root = el(id), selected = new Map();
+    root.classList.add('compact-filter-picker');
+    const toggle = document.createElement('button');
+    toggle.type = 'button'; toggle.className = 'compact-filter-toggle';
+    toggle.setAttribute('aria-expanded', 'false');
+    const menu = document.createElement('div'); menu.className = 'compact-filter-menu'; menu.hidden = true;
+    const search = document.createElement('input'); search.type = 'search';
+    search.placeholder = 'Search…'; search.setAttribute('aria-label', 'Search '+category);
+    const choices = document.createElement('div'); choices.className = 'compact-filter-choices';
+    menu.append(search, choices); root.replaceChildren(toggle, menu);
+    const key = category === 'person' ? 'people' : category === 'theme' ? 'themes' : 'events';
+    function close() {menu.hidden = true; toggle.setAttribute('aria-expanded','false');}
+    function draw() {
+      const values = [...selected.values()];
+      toggle.textContent = values.length ? (values.length === 1 ? values[0] : values.length+' selected')+' ▾' : 'Any '+(category === 'person'?'person':category === 'theme'?'theme':'event')+' ▾';
+      choices.replaceChildren();
+      const allowed = facetOptions ? new Set(facetOptions[key] || []) : null;
+      const q = norm(search.value);
+      const matches = allTags.filter(t => t.category === category && (selected.has(norm(t.name)) || !allowed || allowed.has(t.id)) && norm(t.name).includes(q));
+      for (const tag of matches) {
+        const label = document.createElement('label'); label.className='compact-filter-option';
+        const check = document.createElement('input'); check.type='checkbox'; check.checked=selected.has(norm(tag.name));
+        check.onchange=()=>{ if(check.checked)selected.set(norm(tag.name),tag.name);else selected.delete(norm(tag.name));draw();onChange?.();};
+        const span=document.createElement('span');span.textContent=tag.name;label.append(check,span);choices.append(label);
+      }
+      if(!matches.length) {const empty=document.createElement('p');empty.className='compact-filter-empty';empty.textContent='No matching options';choices.append(empty);}
+    }
+    toggle.onclick=()=>{const open=menu.hidden;document.querySelectorAll('.compact-filter-menu').forEach(m=>m.hidden=true);document.querySelectorAll('.compact-filter-toggle').forEach(b=>b.setAttribute('aria-expanded','false'));menu.hidden=!open;toggle.setAttribute('aria-expanded',String(open));if(open){search.value='';draw();search.focus();}};
+    search.oninput=draw;
+    document.addEventListener('click', e=>{if(!root.contains(e.target))close();});
+    root.addEventListener('keydown',e=>{if(e.key==='Escape'){close();toggle.focus();}});
+    pickerInstances[id]={get:()=>[...selected.values()],set:values=>{selected.clear();for(const value of values)selected.set(norm(value),value);search.value='';draw();},refresh:draw};
+    draw();
+  }
+
   // A picker displays existing options, supports typing and selecting many values.
   function picker(id, category, allowCreate, onChange) {
     const root = el(id), selected = new Map();
@@ -104,7 +141,7 @@ if (signOutButton) {
       }
       const q = norm(input.value);
       const facetKey = category === "person" ? "people" : category === "theme" ? "themes" : "events";
-      const allowed = facetOptions ? new Set(facetOptions[facetKey] || []) : null;
+      const allowed = id.startsWith("filter") && facetOptions ? new Set(facetOptions[facetKey] || []) : null;
       const matches = allTags.filter(t => t.category === category && !selected.has(norm(t.name)) && (!allowed || allowed.has(t.id)) && norm(t.name).includes(q));
       for (const tag of matches) {
         const b = document.createElement("button"); b.type = "button"; b.textContent = tag.name;
@@ -810,7 +847,7 @@ if (signOutButton) {
     }
   };
   ["filterYear","filterMonth","peopleMode"].forEach(id=>el(id).onchange=()=>{el("filterStatus").textContent="Filters changed. Click Show Photos to apply.";scheduleFacetUpdate();});
-  ["filterPeople","filterTheme","filterOther"].forEach((id,i)=>picker(id,["person","theme","other"][i],false,()=>{el("filterStatus").textContent="Filters changed. Click Show Photos to apply.";scheduleFacetUpdate();}));
+  ["filterPeople","filterTheme","filterOther"].forEach((id,i)=>compactFilterPicker(id,["person","theme","other"][i],()=>{el("filterStatus").textContent="Filters changed. Click Show Photos to apply.";scheduleFacetUpdate();}));
   ["editPeople","editTheme","editTags"].forEach((id,i)=>picker(id,["person","theme","other"][i],true,()=>{captureDraft();}));
   ["editMonth","editYear","editCaption"].forEach(id=>el(id).addEventListener("input",captureDraft));
   window.addEventListener("beforeunload",e=>{if(drafts.size){e.preventDefault();e.returnValue="";}});
