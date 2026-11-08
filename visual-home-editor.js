@@ -32,60 +32,15 @@ async function renderDynamic(){
  if(newsError)status('Could not load Hustle stories: '+newsError.message);
  if(datesError)status('Could not load important dates: '+datesError.message);
 
- // The public HFF homepage has its own hero editor. Only Rep mode manages
- // the production Rep hero stored in rep_settings, id='hero'.
+ // Rep homepage uses a simple, always-editable image hero.
  if(rep){
-  const hero=$('.hero-feature');
-  const fallback=$('#heroFallback');
-  const video=$('#heroVideo');
-  if(hero&&fallback){
-   if(settings?.poster_url){
-    fallback.src=settings.poster_url;
-    fallback.style.display='block'
-   }else{
-    fallback.removeAttribute('src');
-    fallback.style.display='none'
-   }
-   if(video){
-    if(settings?.video_enabled&&settings?.video_url){
-     video.src=settings.video_url;
-     video.style.display='block'
-    }else{
-     video.pause?.();
-     video.style.display='none'
-    }
-   }
-   if(settingsError){
-    status('Hero settings could not be loaded: '+settingsError.message)
-   }else{
-    mediaControls(hero,async file=>{
-     try{
-      status('Uploading Hustle hero image…');
-      const url=await upload(file,`${cfg.page}/hero`);
-      const {error}=await sb.from(tables.settings).upsert({
-       id:'hero',poster_url:url,video_enabled:false,updated_at:new Date().toISOString()
-      });
-      if(error)throw error;
-      fallback.src=url;
-      fallback.style.display='block';
-      if(video){video.pause?.();video.style.display='none'}
-      status('Hustle hero image published')
-     }catch(error){showError('Could not publish Hustle hero image',error)}
-    },async()=>{
-     if(!confirm('Remove the Hustle hero image?'))return;
-     try{
-      const {error}=await sb.from(tables.settings).upsert({
-       id:'hero',poster_url:null,video_enabled:false,updated_at:new Date().toISOString()
-      });
-      if(error)throw error;
-      fallback.removeAttribute('src');
-      fallback.style.display='none';
-      if(video){video.pause?.();video.style.display='none'}
-      status('Hustle hero image removed')
-     }catch(error){showError('Could not remove Hustle hero image',error)}
-    },'image/*')
-   }
+  const fallback=$('#heroFallback'), video=$('#heroVideo');
+  if(fallback){
+   if(settings?.poster_url){fallback.src=settings.poster_url;fallback.style.display='block'}
+   else{fallback.removeAttribute('src');fallback.style.display='none'}
   }
+  if(video){video.pause?.();video.removeAttribute('src');video.style.display='none'}
+  if(settingsError)status('Hero image could not be loaded: '+settingsError.message);
  }
  renderDates(dates||[]);
  renderNews(news||[])
@@ -118,6 +73,36 @@ async function addDate(){
 }
 function renderNews(items){const root=$('#latestStories');if(!root)return;root.innerHTML='';items.forEach(x=>{const card=document.createElement('article');card.className='story-card ve-card';if(x.image_url){const m=document.createElement('div');m.className='ve-media';m.innerHTML=`<img src="${esc(x.image_url)}" alt="${esc(x.title||'')}">`;mediaControls(m,async f=>{try{const url=await upload(f,`${cfg.page}/news`);await sb.from(tables.news).update({image_url:url}).eq('id',x.id);renderDynamic();status('Image published')}catch(e){status(e.message)}},async()=>{await sb.from(tables.news).update({image_url:null}).eq('id',x.id);renderDynamic()});card.appendChild(m)}else{const add=document.createElement('div');add.className='ve-add';add.innerHTML='<div>+<small>Add image</small></div>';add.onclick=()=>filePick('image/*',async f=>{const url=await upload(f,`${cfg.page}/news`);await sb.from(tables.news).update({image_url:url}).eq('id',x.id);renderDynamic()});card.appendChild(add)}const copy=document.createElement('div');copy.className='story-copy';copy.innerHTML=`<div class="eyebrow">${esc(x.eyebrow||'')}</div><h3>${esc(x.title||'')}</h3><p>${esc(x.description||'')}</p>`;editable(copy.querySelector('.eyebrow'),'eyebrow',x.id,tables.news);editable(copy.querySelector('h3'),'title',x.id,tables.news);editable(copy.querySelector('p'),'description',x.id,tables.news);card.appendChild(copy);const del=document.createElement('button');del.className='ve-delete';del.textContent='×';del.title='Delete story';del.onclick=async()=>{if(confirm('Delete this story?')){await sb.from(tables.news).delete().eq('id',x.id);renderDynamic()}};card.appendChild(del);root.appendChild(card)});const add=document.createElement('div');add.className='ve-add';add.innerHTML='<div>+<small>Add story</small></div>';add.onclick=addNews;root.appendChild(add)}
 async function addNews(){status('Adding story…');const {error}=await sb.from(tables.news).insert({eyebrow:rep?'Hanover Hustle':'HFF Update',title:'New Story',description:'Click here to add the story.',sort_order:999,published:true});if(error)return showError('Could not add story',error);await renderDynamic();status('New story added — click its text to edit')}
-async function init(){if(!(await isAdmin())){login();return}toolbar();await loadText();markText();setTimeout(renderDynamic,350)}
+function enableRepHero(){
+ if(!rep)return;
+ const hero=$('.rep-hero'), fallback=$('#heroFallback'), video=$('#heroVideo');
+ if(!hero||!fallback)return;
+ // Controls are installed immediately, regardless of whether the database read succeeds.
+ mediaControls(hero,async file=>{
+  try{
+   status('Uploading Hustle hero image…');
+   const url=await upload(file,`${cfg.page}/hero`);
+   const {error}=await sb.from(tables.settings).upsert({
+    id:'hero',poster_url:url,video_enabled:false,updated_at:new Date().toISOString()
+   });
+   if(error)throw error;
+   fallback.src=url;fallback.style.display='block';
+   if(video){video.pause?.();video.removeAttribute('src');video.style.display='none'}
+   status('Hustle hero image published');
+  }catch(error){showError('Could not publish Hustle hero image',error)}
+ },async()=>{
+  if(!confirm('Remove the Hustle hero image?'))return;
+  try{
+   const {error}=await sb.from(tables.settings).upsert({
+    id:'hero',poster_url:null,video_enabled:false,updated_at:new Date().toISOString()
+   });
+   if(error)throw error;
+   fallback.removeAttribute('src');fallback.style.display='none';
+   if(video){video.pause?.();video.removeAttribute('src');video.style.display='none'}
+   status('Hustle hero image removed');
+  }catch(error){showError('Could not remove Hustle hero image',error)}
+ });
+}
+async function init(){if(!(await isAdmin())){login();return}toolbar();enableRepHero();await loadText();markText();setTimeout(renderDynamic,350)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
