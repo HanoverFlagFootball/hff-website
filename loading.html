@@ -84,7 +84,7 @@
     }
   </style>
   <link rel="stylesheet" href="site-theme.css?v=20260913">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="seasonal-settings.js?v=23"></script></head>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="seasonal-settings.js?v=24"></script></head>
 
 <body>
   <div class="top-banner">
@@ -141,6 +141,13 @@
         (parsed.data && parsed.data.parent && parsed.data.player) ||
         (parsed.parent && parsed.player) ||
         (parsed.data && parsed.data.flow === 'adult_flag');
+
+      const registrationData = isRegistration ? (parsed.data || parsed) : null;
+      const registrationFlow = String(registrationData?.flow || '').trim().toLowerCase();
+      const registrationProgram = String(registrationData?.program || '').trim().toLowerCase();
+      const isHouseLeagueRegistration = isRegistration &&
+        !['adult_flag', 'girls_team', 'u18_team'].includes(registrationFlow) &&
+        registrationProgram !== 'rep team';
 
       if (mainTxt) {
         mainTxt.textContent = isRegistration
@@ -236,6 +243,15 @@
       }
 
       try {
+        // House League registration uses its own Seasonal Controls switch.
+        // Rep, Adult Flag and U18 team registrations are not affected.
+        if (isHouseLeagueRegistration) {
+          const registrationOpen = await HFFSeasonal.get('hff_registration_open');
+          if (!registrationOpen) {
+            throw new Error('HFF registration is currently closed. Please return to the registration page.');
+          }
+        }
+
         if (parsed && parsed.cart) {
           const shopOpen = await HFFSeasonal.get('shop_open');
           if (!shopOpen) throw new Error('The League Shop is currently closed.');

@@ -28,9 +28,11 @@
       font-weight: 700;
       border-radius: 0.4rem;
     }
+    .registration-checking .closed-message,
     .registration-closed .closed-message {
       display: block;
     }
+    .registration-checking #registrationForm,
     .registration-closed #registrationForm {
       display: none;
     }
@@ -150,10 +152,10 @@
   </style>
   <link rel="stylesheet" href="site-theme.css?v=20260913">
 </head>
-<body>
+<body class="registration-checking">
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="seasonal-settings.js?v=23"></script>
+<script src="seasonal-settings.js?v=24"></script>
 <script>let REGISTRATION_OPEN=false;</script>
 
   <div class="scores-strip">
@@ -193,8 +195,8 @@
         <span id="creditCodeText"></span>
       </div>
 
-      <div class="closed-message" id="closedMessage">
-        2027 registration is currently closed.
+      <div class="closed-message" id="closedMessage" role="status" aria-live="polite">
+        Checking registration status...
       </div>
 
       <form id="registrationForm" novalidate>
@@ -381,10 +383,34 @@
   </div>
 
   <script>
-    // registration open/closed toggle
-    // TEST PAGE ONLY: Force registration open while Supabase is unavailable.
-REGISTRATION_OPEN = true;
-document.body.classList.remove('registration-closed');
+    // Read the live Seasonal Controls setting. Fail closed if it cannot be verified.
+    async function refreshRegistrationStatus() {
+      const closedMessage = document.getElementById('closedMessage');
+      document.body.classList.add('registration-checking');
+      if (closedMessage) closedMessage.textContent = 'Checking registration status...';
+
+      let isOpen = false;
+      try {
+        if (!window.HFFSeasonal || typeof window.HFFSeasonal.get !== 'function') {
+          throw new Error('Seasonal Controls could not be loaded.');
+        }
+        isOpen = (await window.HFFSeasonal.get('hff_registration_open')) === true;
+      } catch (error) {
+        console.warn('Could not verify HFF registration status:', error);
+        isOpen = false;
+      }
+
+      REGISTRATION_OPEN = isOpen;
+      document.body.classList.remove('registration-checking');
+      document.body.classList.toggle('registration-closed', !isOpen);
+      if (closedMessage) {
+        closedMessage.textContent = 'REGISTRATION UNDER CONSTRUCTION — Please check back soon.';
+      }
+      return isOpen;
+    }
+
+    // Do not display the form until the live setting has been checked.
+    refreshRegistrationStatus();
 
     // sponsor rotation
     const sponsorTrack = document.getElementById('sponsorTrack');
@@ -498,6 +524,14 @@ document.body.classList.remove('registration-closed');
         e.preventDefault();
         e.stopPropagation();
         e.stopImmediatePropagation();
+
+        // Recheck immediately before accepting the form, in case an administrator
+        // closed registration while this page was already open.
+        const registrationIsOpen = await refreshRegistrationStatus();
+        if (!registrationIsOpen) {
+          alert('REGISTRATION UNDER CONSTRUCTION — Please check back soon.');
+          return;
+        }
 
         const liabilityWaiver = document.getElementById('liabilityWaiver');
         const riskAck = document.getElementById('riskAck');
