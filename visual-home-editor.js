@@ -13,10 +13,82 @@ async function loadText(){const {data}=await sb.from('hff_page_text').select('*'
 async function saveText(){if(!dirtyText.size){status('No unsaved heading changes. Important Dates and stories save automatically.');return}status('Saving…');const rows=[...dirtyText].map(([content_key,content_value])=>({page:cfg.page,content_key,content_value,updated_at:new Date().toISOString()}));const {error}=await sb.from('hff_page_text').upsert(rows,{onConflict:'page,content_key'});if(error){status(error.message);return}dirtyText.clear();status('Heading changes saved and published')}
 async function upload(file,folder){const ext=(file.name.split('.').pop()||'bin').replace(/[^a-z0-9]/gi,'');const path=`${folder}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;const {error}=await sb.storage.from('homepage-media').upload(path,file);if(error)throw error;return sb.storage.from('homepage-media').getPublicUrl(path).data.publicUrl}
 function filePick(accept,cb){const i=document.createElement('input');i.type='file';i.accept=accept;i.className='ve-hidden-input';document.body.appendChild(i);i.onchange=async()=>{if(i.files[0])await cb(i.files[0]);i.remove()};i.click()}
-function mediaControls(container,onReplace,onRemove,accept='image/*'){container.classList.add('ve-media');const c=document.createElement('div');c.className='ve-media-controls';c.innerHTML='<button class="ve-icon" title="Replace">+</button><button class="ve-icon" title="Remove">×</button>';c.children[0].onclick=e=>{e.preventDefault();e.stopPropagation();filePick(accept,onReplace)};c.children[1].onclick=e=>{e.preventDefault();e.stopPropagation();onRemove()};container.appendChild(c)}
-async function renderDynamic(){const [{data:news},{data:dates},{data:settings}]=await Promise.all([sb.from(tables.news).select('*').order('sort_order').order('created_at',{ascending:false}),sb.from(tables.dates).select('*').order('sort_order').order('event_date'),sb.from(tables.settings).select('*').eq('id','hero').maybeSingle()]);
- // Hero editing is managed by hero-editor-supabase.js (test-only hero_test row).
- renderDates(dates||[]);renderNews(news||[])
+function mediaControls(container,onReplace,onRemove,accept='image/*'){
+ if(container.querySelector('.ve-media-controls'))return;
+ container.classList.add('ve-media');
+ const c=document.createElement('div');
+ c.className='ve-media-controls';
+ c.innerHTML='<button class="ve-icon" type="button" title="Replace hero image">+</button><button class="ve-icon" type="button" title="Remove hero image">×</button>';
+ c.children[0].onclick=e=>{e.preventDefault();e.stopPropagation();filePick(accept,onReplace)};
+ c.children[1].onclick=e=>{e.preventDefault();e.stopPropagation();onRemove()};
+ container.appendChild(c)
+}
+async function renderDynamic(){
+ const [{data:news,error:newsError},{data:dates,error:datesError},{data:settings,error:settingsError}]=await Promise.all([
+  sb.from(tables.news).select('*').order('sort_order').order('created_at',{ascending:false}),
+  sb.from(tables.dates).select('*').order('sort_order').order('event_date'),
+  sb.from(tables.settings).select('*').eq('id','hero').maybeSingle()
+ ]);
+ if(newsError)status('Could not load Hustle stories: '+newsError.message);
+ if(datesError)status('Could not load important dates: '+datesError.message);
+
+ // The public HFF homepage has its own hero editor. Only Rep mode manages
+ // the production Rep hero stored in rep_settings, id='hero'.
+ if(rep){
+  const hero=$('.hero-feature');
+  const fallback=$('#heroFallback');
+  const video=$('#heroVideo');
+  if(hero&&fallback){
+   if(settings?.poster_url){
+    fallback.src=settings.poster_url;
+    fallback.style.display='block'
+   }else{
+    fallback.removeAttribute('src');
+    fallback.style.display='none'
+   }
+   if(video){
+    if(settings?.video_enabled&&settings?.video_url){
+     video.src=settings.video_url;
+     video.style.display='block'
+    }else{
+     video.pause?.();
+     video.style.display='none'
+    }
+   }
+   if(settingsError){
+    status('Hero settings could not be loaded: '+settingsError.message)
+   }else{
+    mediaControls(hero,async file=>{
+     try{
+      status('Uploading Hustle hero image…');
+      const url=await upload(file,`${cfg.page}/hero`);
+      const {error}=await sb.from(tables.settings).upsert({
+       id:'hero',poster_url:url,video_enabled:false,updated_at:new Date().toISOString()
+      });
+      if(error)throw error;
+      fallback.src=url;
+      fallback.style.display='block';
+      if(video){video.pause?.();video.style.display='none'}
+      status('Hustle hero image published')
+     }catch(error){showError('Could not publish Hustle hero image',error)}
+    },async()=>{
+     if(!confirm('Remove the Hustle hero image?'))return;
+     try{
+      const {error}=await sb.from(tables.settings).upsert({
+       id:'hero',poster_url:null,video_enabled:false,updated_at:new Date().toISOString()
+      });
+      if(error)throw error;
+      fallback.removeAttribute('src');
+      fallback.style.display='none';
+      if(video){video.pause?.();video.style.display='none'}
+      status('Hustle hero image removed')
+     }catch(error){showError('Could not remove Hustle hero image',error)}
+    },'image/*')
+   }
+  }
+ }
+ renderDates(dates||[]);
+ renderNews(news||[])
 }
 function editable(el,field,id,table){el.contentEditable='true';el.classList.add('ve-edit');el.onblur=async()=>{const v=el.textContent.trim();const {error}=await sb.from(table).update({[field]:v}).eq('id',id);status(error?error.message:'Change published')}}
 function imageBox(url,alt,onReplace,onRemove){const wrap=document.createElement('div');wrap.className='date-thumb ve-media';if(url)wrap.innerHTML=`<img src="${esc(url)}" alt="${esc(alt||'')}">`;else{wrap.classList.add('ve-add');wrap.innerHTML='<div>+<small>Add image</small></div>'}wrap.onclick=e=>{if(!url){e.preventDefault();filePick('image/*',onReplace)}};if(url)mediaControls(wrap,onReplace,onRemove);return wrap}
