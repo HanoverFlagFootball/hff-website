@@ -1,0 +1,5 @@
+Shared visual files:
+ - site-theme.css (site-wide visual system)
+ - nav.js (site-wide header/navigation)
+
+All HTML pages include both shared files. The homepage uses the MLB-style card layout from the approved preview. Existing functionality files and assets are preserved.

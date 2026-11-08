@@ -3,122 +3,106 @@
     { label: "Home", href: "index.html" },
     { label: "Scores & Schedules", href: "scores&schedules.html" },
     { label: "Standings", href: "standings.html" },
-    { label: "Register", href: "register.html" },
     { label: "Shop", href: "shop.html" },
     { label: "Rules & Info", href: "rules.html" },
-    { label: "About HFF", href: "aboutHFF.html" }
+    { label: "About HFF", href: "aboutHFF.html" },
+    { label: "Register", href: "register.html" },
+    { label: "Rep", href: "rep-home.html" },
+    { label: "My HFF", href: "my-hff.html" }
   ];
 
-  const current = (location.pathname.split("/").pop() || "").toLowerCase();
-  const host = document.getElementById("site-nav");
-  if (!host) return;
+  // Centre the main six tabs on the page itself, independent of side groups.
+  // Only the desktop layout changes; mobile retains the existing hamburger menu.
+  const groupStyle = document.createElement("style");
+  groupStyle.textContent = `
+    @media (min-width: 981px) {
+      .hff-nav-inner { position: relative; }
+      .hff-nav-links { flex: 1; min-width: 0; margin-left: 0; justify-content: flex-end; }
+      .hff-nav-main {
+        position: absolute;
+        left: 50%;
+        top: 0;
+        height: 100%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: stretch;
+        justify-content: center;
+      }
+      .hff-nav-account { display: flex; align-items: stretch; margin-left: auto; }
+      .hff-nav-links a { padding-left: 9px; padding-right: 9px; }
+    }
+    @media (max-width: 980px) {
+      .hff-nav-main, .hff-nav-account { display: contents; }
+    }
+  `;
+  document.head.appendChild(groupStyle);
+
+  const current = (location.pathname.split("/").pop() || "index.html").toLowerCase();
+  let host = document.getElementById("site-nav");
+  let header = document.querySelector(".hff-global-header");
+  if (!header && host && host.parentElement && host.parentElement.classList.contains("site-header")) {
+    header = host.parentElement;
+    header.classList.add("hff-global-header");
+  }
+
+  if (!header) {
+    header = document.createElement("header");
+    header.className = "hff-global-header";
+    if (host) {
+      host.parentNode && host.parentNode.removeChild(host);
+      header.appendChild(host);
+    } else {
+      host = document.createElement("div");
+      host.id = "site-nav";
+      header.appendChild(host);
+    }
+    document.body.insertBefore(header, document.body.firstChild);
+  } else if (!host) {
+    host = document.createElement("div");
+    host.id = "site-nav";
+    header.appendChild(host);
+  }
 
   host.innerHTML = `
-    <style>
-      /* anchor to banner */
-      #site-nav {
-        position: absolute;
-        bottom: 6px;
-        left: 10px;
-        z-index: 1000;
-      }
-
-      .hambtn {
-        width: 34px;
-        height: 28px;
-        border: 1px solid #fff;
-        background: rgba(0,0,0,0.3);
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        gap: 4px;
-        cursor: pointer;
-        padding: 0;
-      }
-
-      .hambtn span {
-        display: block;
-        height: 2px;
-        background: #fff;
-      }
-
-      .menu {
-        position: absolute;
-        top: calc(100% + 4px);
-        left: 0;
-        background: #111;
-        border: 1px solid #333;
-        border-radius: 0.5rem;
-        display: none;
-        flex-direction: column;
-        min-width: 180px;
-      }
-
-      .menu.open {
-        display: flex;
-      }
-
-      .menu a {
-        color: #fff;
-        text-decoration: none;
-        padding: 0.6rem 0.8rem;
-        border-bottom: 1px solid #222;
-        font-size: 0.9rem;
-      }
-
-      .menu a:last-child {
-        border-bottom: none;
-      }
-
-      .menu a.active {
-        background: #1c1c1c;
-        font-weight: 700;
-      }
-
-      @media (min-width: 701px) {
-        #site-nav {
-          bottom: 38px;
-          left: 44px;
-        }
-        .hambtn {
-          width: 65px;
-          height: 50px;
-          gap: 5px;
-          border-width: 2px;
-        }
-        .hambtn span {
-          height: 3px;
-        }
-      }
-    </style>
-
-    <button class="hambtn" id="hamBtn" aria-label="Open menu">
-      <span></span>
-      <span></span>
-      <span></span>
-    </button>
-
-    <div class="menu" id="hamMenu">
-      ${NAV_ITEMS.map(item => {
-        const active = item.href.toLowerCase() === current;
-        return `<a href="${item.href}" class="${active ? "active" : ""}">${item.label}</a>`;
-      }).join("")}
+    <div class="hff-nav-inner">
+      <a class="hff-nav-brand" href="${(current === "rep-home.html" || current.startsWith("hustle-u16-")) ? "rep-home.html" : "index.html"}" aria-label="Website home">
+        <img src="${(current === "rep-home.html" || current.startsWith("hustle-u16-")) ? "HanoverHustleLogo.png" : "White Logo.jpg"}" onerror="if(this.src.includes('HanoverHustleLogo.png'))this.src='hustle.png'" alt="${(current === "rep-home.html" || current.startsWith("hustle-u16-")) ? "Hanover Hustle" : "Hanover Flag Football"}">
+      </a>
+      <button class="hff-menu-btn" id="hffMenuBtn" aria-label="Open menu" aria-expanded="false" type="button">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="hff-nav-links" id="hffNavLinks" aria-label="Main navigation">
+        <div class="hff-nav-main">
+          ${NAV_ITEMS.slice(0, 6).map(item => `<a href="${item.href}" class="${item.href.toLowerCase() === current ? "active" : ""}">${item.label}</a>`).join("")}
+        </div>
+        <div class="hff-nav-account">
+          ${NAV_ITEMS.slice(6).map(item => `<a href="${item.href}" class="${item.href.toLowerCase() === current ? "active" : ""}">${item.label}</a>`).join("")}
+        </div>
+      </nav>
     </div>
   `;
 
-  const btn = document.getElementById("hamBtn");
-  const menu = document.getElementById("hamMenu");
+  const btn = document.getElementById("hffMenuBtn");
+  const links = document.getElementById("hffNavLinks");
+  if (!btn || !links) return;
 
   btn.addEventListener("click", (e) => {
     e.stopPropagation();
-    menu.classList.toggle("open");
+    const open = links.classList.toggle("open");
+    btn.setAttribute("aria-expanded", open ? "true" : "false");
   });
 
-  document.addEventListener("click", () => {
-    menu.classList.remove("open");
+  document.addEventListener("click", (e) => {
+    if (!host.contains(e.target)) {
+      links.classList.remove("open");
+      btn.setAttribute("aria-expanded", "false");
+    }
   });
 
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") menu.classList.remove("open");
+    if (e.key === "Escape") {
+      links.classList.remove("open");
+      btn.setAttribute("aria-expanded", "false");
+    }
   });
 })();

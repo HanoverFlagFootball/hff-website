@@ -1,0 +1,868 @@
+// Family Photobook. Only the public Supabase key belongs in browser code.
+const SUPABASE_URL = "https://puthhhnedurxircaglqe.supabase.co";
+const SUPABASE_KEY = "sb_publishable_kbZEajQHaUiB96HqfEutvQ_zFoOwcCB";
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const BUCKET = "family-photos";
+
+const loginForm = document.getElementById("loginForm");
+if (loginForm) {
+  loginForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const message = document.getElementById("loginMessage");
+    message.textContent = "Signing in...";
+    const { data, error } = await db.auth.signInWithPassword({
+      email: document.getElementById("email").value.trim(),
+      password: document.getElementById("password").value
+    });
+    if (error) { message.textContent = error.message; return; }
+    if (data.session) window.location.href = "gallery.html";
+  });
+}
+
+const signOutButton = document.getElementById("signOutButton");
+if (signOutButton) {
+  const el = id => document.getElementById(id);
+  let isPoster = false;
+  let galleryPhotos = [], incompletePhotos = [], allTags = [], links = {};
+  let activeSection = "gallery", currentIndex = -1;
+  let drafts = new Map(), hiddenIds = new Set(), carriedMonth = "", carriedYear = "";
+  let saving = false, deleting = false, saveTimer = null, pickerInstances = {}, fillingForm = false;
+  let managePhotos = [], selectedIds = new Set();
+  let facetOptions = null, facetRequest = 0, facetTimer = null;
+  let galleryMode = "random", galleryRenderVersion = 0;
+  let visibleGalleryPhotos = [], fullPhotoIndex = -1, fullPhotoRequest = 0, touchStartX = null;
+  const GALLERY_PAGE = 40, MANAGE_PAGE = 20;
+  let manageHasMore = false, galleryHasMore = false, manageLoading = false, galleryLoading = false;
+  let galleryTotal = 0, galleryOffset = 0, galleryGeneration = 0;
+  let manageOffset = 0, manageGeneration = 0;
+  const signedCache = new Map(); // Session-only URLs; no private files persisted on shared computers.
+  const photoSelect = "id,storage_path,photo_month,photo_year,caption,original_filename,is_complete,created_at,has_thumbnail";
+  const thumbnailPath = photo => `${photo.storage_path}.thumb.webp`;
+  // A missing thumbnail must NEVER trigger an original download in a grid.
+  // Free-plan image transformations cannot be relied upon.
+  const previewURL = async photo => {
+    if (photo.has_thumbnail !== true) return null;
+    const path = thumbnailPath(photo);
+    const key = 'thumb:' + path;
+    const cached = signedCache.get(key);
+    if (cached && cached.expires > Date.now()) return cached.url;
+    const {data,error} = await db.storage.from(BUCKET).createSignedUrl(path, 3600);
+    if (error) throw error;
+    signedCache.set(key,{url:data.signedUrl,expires:Date.now()+50*60*1000});
+    return data.signedUrl;
+  };
+  // Local placeholder: no request to Supabase or an external image host.
+  const missingPreview = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="480" height="360" viewBox="0 0 480 360"><rect width="480" height="360" fill="#e9ecef"/><path d="M150 140h180v110H150z" fill="none" stroke="#8b949e" stroke-width="8"/><circle cx="205" cy="173" r="15" fill="#8b949e"/><path d="m163 237 58-47 43 32 28-21 26 36" fill="none" stroke="#8b949e" stroke-width="7"/><text x="240" y="290" font-family="Arial,sans-serif" font-size="18" text-anchor="middle" fill="#586069">Preview not generated</text></svg>');
+  async function attachTags(rows) {
+    const ids = rows.map(p=>p.id);
+    if (!ids.length) return;
+    for (let start=0;start<ids.length;start+=100) {
+      const {data,error}=await db.from('photo_tags').select('photo_id,tag_id').in('photo_id',ids.slice(start,start+100));
+      if(error) throw error;
+      for(const id of ids.slice(start,start+100)) links[id]=[];
+      for(const item of data) {const tag=allTags.find(t=>t.id===item.tag_id);if(tag)(links[item.photo_id] ||= []).push(tag);}
+    }
+  }
+  const upsertPhotos = rows => {
+    for(const photo of rows) { const index=galleryPhotos.findIndex(p=>p.id===photo.id); if(index>=0) galleryPhotos[index]=photo; else galleryPhotos.push(photo); }
+  };
+  const norm = s => s.trim().toLocaleLowerCase();
+  const pending = () => el("pendingStatus").textContent = `${drafts.size} photo(s) waiting to save`;
+  const currentList = () => activeSection === "manage" ? managePhotos : galleryPhotos;
+
+  // Camera filenames such as 20230128_123456.jpg contain YYYYMMDD before '_'.
+  // Validate the whole calendar date; never infer from a filename that does not match.
+  function dateFromFilename(filename) {
+    const match = /^(\d{4})(\d{2})(\d{2})_/.exec(filename || "");
+    if (!match) return null;
+    const year = Number(match[1]), month = Number(match[2]), day = Number(match[3]);
+    if (year < 1800 || year > 2200) return null;
+    const date = new Date(Date.UTC(year, month - 1, day));
+    if (date.getUTCFullYear() !== year || date.getUTCMonth() + 1 !== month || date.getUTCDate() !== day) return null;
+    return { year, month };
+  }
+
+
+  // Compact, multi-select dropdown for Gallery filters only. Editor pickers stay unchanged.
+  function compactFilterPicker(id, category, onChange) {
+    const root = el(id), selected = new Map();
+    root.classList.add('compact-filter-picker');
+    const toggle = document.createElement('button');
+    toggle.type = 'button'; toggle.className = 'compact-filter-toggle';
+    toggle.setAttribute('aria-expanded', 'false');
+    const menu = document.createElement('div'); menu.className = 'compact-filter-menu'; menu.hidden = true;
+    const search = document.createElement('input'); search.type = 'search';
+    search.placeholder = 'Search…'; search.setAttribute('aria-label', 'Search '+category);
+    const choices = document.createElement('div'); choices.className = 'compact-filter-choices';
+    menu.append(search, choices); root.replaceChildren(toggle, menu);
+    const key = category === 'person' ? 'people' : category === 'theme' ? 'themes' : 'events';
+    function close() {menu.hidden = true; toggle.setAttribute('aria-expanded','false');}
+    function draw() {
+      const values = [...selected.values()];
+      toggle.textContent = values.length ? (values.length === 1 ? values[0] : values.length+' selected')+' ▾' : 'Any '+(category === 'person'?'person':category === 'theme'?'theme':'event')+' ▾';
+      choices.replaceChildren();
+      const allowed = facetOptions ? new Set(facetOptions[key] || []) : null;
+      const q = norm(search.value);
+      const matches = allTags.filter(t => t.category === category && (selected.has(norm(t.name)) || !allowed || allowed.has(t.id)) && norm(t.name).includes(q));
+      for (const tag of matches) {
+        const label = document.createElement('label'); label.className='compact-filter-option';
+        const check = document.createElement('input'); check.type='checkbox'; check.checked=selected.has(norm(tag.name));
+        check.onchange=()=>{ if(check.checked)selected.set(norm(tag.name),tag.name);else selected.delete(norm(tag.name));draw();onChange?.();};
+        const span=document.createElement('span');span.textContent=tag.name;label.append(check,span);choices.append(label);
+      }
+      if(!matches.length) {const empty=document.createElement('p');empty.className='compact-filter-empty';empty.textContent='No matching options';choices.append(empty);}
+    }
+    toggle.onclick=()=>{const open=menu.hidden;document.querySelectorAll('.compact-filter-menu').forEach(m=>m.hidden=true);document.querySelectorAll('.compact-filter-toggle').forEach(b=>b.setAttribute('aria-expanded','false'));menu.hidden=!open;toggle.setAttribute('aria-expanded',String(open));if(open){search.value='';draw();search.focus();}};
+    search.oninput=draw;
+    document.addEventListener('click', e=>{if(!root.contains(e.target))close();});
+    root.addEventListener('keydown',e=>{if(e.key==='Escape'){close();toggle.focus();}});
+    pickerInstances[id]={get:()=>[...selected.values()],set:values=>{selected.clear();for(const value of values)selected.set(norm(value),value);search.value='';draw();},refresh:draw};
+    draw();
+  }
+
+  // A picker displays existing options, supports typing and selecting many values.
+  function picker(id, category, allowCreate, onChange) {
+    const root = el(id), selected = new Map();
+    const chips = document.createElement("div"), input = document.createElement("input"), suggestions = document.createElement("div");
+    chips.className = "tag-chips"; suggestions.className = "tag-suggestions";
+    input.placeholder = allowCreate ? "Search or add a tag" : "Search existing tags";
+    root.replaceChildren(chips, input, suggestions);
+    function choose(name) { selected.set(norm(name), name); input.value = ""; draw(); onChange?.(); }
+    function draw() {
+      chips.replaceChildren(); suggestions.replaceChildren();
+      for (const [key, name] of selected) {
+        const chip = document.createElement("span"); chip.className = "tag-chip";
+        const label = document.createElement("span"); label.textContent = name;
+        const remove = document.createElement("button"); remove.type = "button"; remove.textContent = "×";
+        remove.setAttribute("aria-label", `Remove ${name}`);
+        remove.onclick = () => { selected.delete(key); draw(); onChange?.(); };
+        chip.append(label, remove); chips.append(chip);
+      }
+      const q = norm(input.value);
+      const facetKey = category === "person" ? "people" : category === "theme" ? "themes" : "events";
+      const allowed = id.startsWith("filter") && facetOptions ? new Set(facetOptions[facetKey] || []) : null;
+      const matches = allTags.filter(t => t.category === category && !selected.has(norm(t.name)) && (!allowed || allowed.has(t.id)) && norm(t.name).includes(q));
+      for (const tag of matches) {
+        const b = document.createElement("button"); b.type = "button"; b.textContent = tag.name;
+        b.onclick = () => choose(tag.name); suggestions.append(b);
+      }
+      if (allowCreate && q && !allTags.some(t => norm(t.name) === q) && !selected.has(q)) {
+        const b = document.createElement("button"); b.type = "button";
+        b.textContent = `+ Create "${input.value.trim()}"`;
+        b.onclick = () => choose(input.value.trim()); suggestions.prepend(b);
+      }
+    }
+    input.addEventListener("input", draw);
+    input.addEventListener("keydown", e => {
+      if (e.key === "Enter" || e.key === ",") {
+        e.preventDefault();
+        const exact = allTags.find(t => t.category === category && norm(t.name) === norm(input.value));
+        if (exact) choose(exact.name);
+        else if (allowCreate && input.value.trim()) choose(input.value.trim());
+      }
+    });
+    pickerInstances[id] = {
+      get: () => [...selected.values()],
+      set: values => { selected.clear(); for (const value of values) selected.set(norm(value), value); input.value = ""; draw(); },
+      refresh: draw
+    };
+    draw();
+  }
+
+  function draftFor(photo) {
+    const filenameDate = dateFromFilename(photo.original_filename);
+    return drafts.get(photo.id) || {
+      month: photo.photo_month == null ? (filenameDate ? String(filenameDate.month) : carriedMonth) : String(photo.photo_month),
+      year: photo.photo_year == null ? (filenameDate ? String(filenameDate.year) : carriedYear) : String(photo.photo_year),
+      caption: photo.caption || "",
+      people: (links[photo.id] || []).filter(t => t.category === "person").map(t => t.name),
+      theme: (links[photo.id] || []).filter(t => t.category === "theme").map(t => t.name),
+      other: (links[photo.id] || []).filter(t => t.category === "other").map(t => t.name)
+    };
+  }
+  function captureDraft() {
+    const photo = currentList()[currentIndex];
+    if (fillingForm || !photo || !isPoster || el("organizer").hidden) return;
+    const data = {
+      month: el("editMonth").value, year: el("editYear").value.trim(),
+      caption: el("editCaption").value,
+      people: pickerInstances.editPeople.get(), theme: pickerInstances.editTheme.get(), other: pickerInstances.editTags.get()
+    };
+    carriedMonth = data.month; carriedYear = data.year;
+    const previous = draftFor(photo);
+    // Only mark a photo pending if values differ from its last loaded/saved state.
+    const baseline = {
+      month: photo.photo_month == null ? "" : String(photo.photo_month),
+      year: photo.photo_year == null ? "" : String(photo.photo_year),
+      caption: photo.caption || "",
+      people: (links[photo.id] || []).filter(t => t.category === "person").map(t => t.name),
+      theme: (links[photo.id] || []).filter(t => t.category === "theme").map(t => t.name),
+      other: (links[photo.id] || []).filter(t => t.category === "other").map(t => t.name)
+    };
+    const same = JSON.stringify(data) === JSON.stringify(baseline);
+    if (same) drafts.delete(photo.id); else drafts.set(photo.id, data);
+    pending();
+    if (!same) scheduleSave();
+  }
+  function scheduleSave() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => saveAll(false), 12000);
+  }
+
+  async function loadData() {
+    // Only tags are loaded globally. Photo rows and relationships are page-scoped.
+    const {data,error}=await db.from('tags').select('id,name,category').order('name');
+    if(error) {el('galleryMessage').textContent=`Could not load tags: ${error.message}`;return;}
+    allTags=data;
+    Object.values(pickerInstances).forEach(p=>p.refresh());
+    renderTagManager();
+    const years=await db.rpc('photobook_years');
+    if(!years.error && Array.isArray(years.data)) {
+      const select=el('filterYear');const old=select.value;
+      select.replaceChildren(new Option('Any year',''),...years.data.map(y=>new Option(String(y),String(y))));select.value=old;
+    }
+    await updateFacetOptions();
+    await renderGallery(true);
+  }
+  async function loadManage(reset=false) {
+    if(!isPoster) return;
+    if(reset) {
+      manageGeneration++; manageOffset=0;manageHasMore=true;managePhotos=[];selectedIds.clear();
+      el('incompleteGallery').replaceChildren();
+    }
+    if(manageLoading)return;
+    if(!manageHasMore)return;
+    const generation=manageGeneration, view=el('manageView').value;
+    manageLoading=true;el('manageLoadMore').disabled=true;
+    try {
+      let query=db.from('photos').select(photoSelect).order('created_at',{ascending:false}).order('id',{ascending:false}).range(manageOffset,manageOffset+MANAGE_PAGE-1);
+      if(view!=='all') query=query.eq('is_complete',view==='complete');
+      const {data,error}=await query;
+      if(error)throw error;
+      if(generation!==manageGeneration)return;
+      await attachTags(data);
+      if(generation!==manageGeneration)return;
+      managePhotos.push(...data);upsertPhotos(data);manageOffset+=data.length;
+      manageHasMore=data.length===MANAGE_PAGE;
+      if(!el('organizer').hidden || activeSection!=='manage')return;
+      await renderTiles(data,el('incompleteGallery'),true,true);
+      updateSelection();
+      el('manageMessage').textContent=`${managePhotos.length} photograph(s) loaded in this view.`;
+    }catch(e){el('manageMessage').textContent=`Unable to load photographs: ${e.message}`;}
+    finally{manageLoading=false;el('manageLoadMore').hidden=!manageHasMore;el('manageLoadMore').disabled=false;}
+  }
+  function filterParameters() {
+    const findIds=id=>pickerInstances[id].get().map(name=>allTags.find(t=>t.name.toLocaleLowerCase()===name.toLocaleLowerCase())?.id).filter(Boolean);
+    return {p_people:findIds('filterPeople'),p_themes:findIds('filterTheme'),p_events:findIds('filterOther'),
+      p_people_mode:el('peopleMode').value,p_year:el('filterYear').value?Number(el('filterYear').value):null,
+      p_month:el('filterMonth').value?Number(el('filterMonth').value):null,
+      p_sort:galleryMode==='random'?'random':el('sortPhotos').value};
+  }
+  // Facet queries contain metadata only; no image egress. Each category ignores its
+  // own selection so users can add more values and always remove existing chips.
+  async function updateFacetOptions() {
+    const request = ++facetRequest;
+    try {
+      const {p_sort, ...params} = filterParameters();
+      const {data,error} = await db.rpc('photobook_filter_options', params);
+      if (error) throw error;
+      if (request !== facetRequest) return;
+      facetOptions = data;
+      ['filterPeople','filterTheme','filterOther'].forEach(id=>pickerInstances[id].refresh());
+      const yearSelect=el('filterYear'), oldYear=yearSelect.value;
+      const years=[...(data.years||[])].map(Number).filter(Number.isInteger).sort((a,b)=>b-a);
+      yearSelect.replaceChildren(new Option('Any year',''), ...years.map(y=>new Option(String(y),String(y))));
+      if (oldYear && !years.includes(Number(oldYear))) yearSelect.add(new Option(oldYear,oldYear));
+      yearSelect.value=oldYear;
+      const monthSelect=el('filterMonth'), oldMonth=monthSelect.value;
+      const months=new Set((data.months||[]).map(Number));
+      monthSelect.replaceChildren(new Option('Any month',''));
+      for(let m=1;m<=12;m++) if(months.has(m)||String(m)===oldMonth)
+        monthSelect.add(new Option(new Date(Date.UTC(2020,m-1,1)).toLocaleString('en-CA',{month:'long',timeZone:'UTC'}),String(m)));
+      monthSelect.value=oldMonth;
+    } catch(e) {
+      // Do not silently present incomplete filter options if the SQL is missing.
+      facetOptions=null;
+      ['filterPeople','filterTheme','filterOther'].forEach(id=>pickerInstances[id].refresh());
+      el('filterStatus').textContent='Dynamic filter options unavailable: '+e.message;
+    }
+  }
+  function scheduleFacetUpdate() {
+    clearTimeout(facetTimer);
+    facetTimer=setTimeout(updateFacetOptions,180);
+  }
+  // Infinite scroll observes a lightweight sentinel, not all photographs.
+  // Only one 40-photo page can be in flight at a time.
+  let galleryScrollObserver = null;
+  function updateGalleryScroll() {
+    const sentinel = el('galleryScrollSentinel');
+    if (!sentinel) return;
+    sentinel.hidden = !(activeSection === 'gallery' && galleryMode === 'results' && galleryHasMore);
+    if (galleryScrollObserver) galleryScrollObserver.disconnect();
+    if (!sentinel.hidden && 'IntersectionObserver' in window) {
+      galleryScrollObserver = new IntersectionObserver(entries => {
+        if (entries.some(entry => entry.isIntersecting) && !galleryLoading && galleryHasMore && activeSection === 'gallery') {
+          loadGalleryPage(false);
+        }
+      }, {rootMargin:'250px 0px', threshold:0});
+      galleryScrollObserver.observe(sentinel);
+    }
+    // Manual button remains available only if IntersectionObserver is unsupported.
+    el('galleryLoadMore').hidden = !galleryHasMore || galleryMode !== 'results' || ('IntersectionObserver' in window);
+  }
+  async function loadGalleryPage(reset=false) {
+    if(galleryLoading)return;
+    if(reset){galleryGeneration++;galleryOffset=0;galleryHasMore=true;visibleGalleryPhotos=[];el('photoGallery').replaceChildren();}
+    if(!galleryHasMore)return;
+    const generation=galleryGeneration, count=galleryMode==='random'?3:GALLERY_PAGE;
+    galleryLoading=true;el('galleryLoadMore').disabled=true;
+    try {
+      const {data,error}=await db.rpc('photobook_gallery_page', {...filterParameters(),p_offset:galleryOffset,p_limit:count});
+      if(error)throw error;
+      if(generation!==galleryGeneration)return;
+      const payload=data||{};
+      const rows=payload.rows||[];galleryTotal=payload.total||0;
+      for(const photo of rows){links[photo.id]=(photo.tag_ids||[]).map(id=>allTags.find(t=>t.id===id)).filter(Boolean);}
+      upsertPhotos(rows);
+      galleryOffset+=rows.length;
+      galleryHasMore=galleryMode!=='random' && galleryOffset<galleryTotal;
+      const shown=rows.filter(p=>!hiddenIds.has(p.id));
+      visibleGalleryPhotos.push(...shown);
+      if(activeSection==='gallery')await renderTiles(shown,el('photoGallery'),false,true);
+      el('filterStatus').textContent=galleryMode==='random'?'Three random photographs. Apply filters and click Show Photos for more.':`${galleryTotal} matching photograph(s) · ${visibleGalleryPhotos.length} loaded`;
+    }catch(e){el('filterStatus').textContent=`Unable to load gallery: ${e.message}. Run the included SQL setup first.`;}
+    finally{galleryLoading=false;el('galleryLoadMore').disabled=false;updateGalleryScroll();}
+  }
+  function matchingGallery() {
+    const people = pickerInstances.filterPeople.get().map(norm);
+    const theme = pickerInstances.filterTheme.get().map(norm);
+    const other = pickerInstances.filterOther.get().map(norm);
+    const year = el("filterYear").value, month = el("filterMonth").value;
+    return galleryPhotos.filter(p => {
+      if (hiddenIds.has(p.id)) return false;
+      if (year && String(p.photo_year) !== year) return false;
+      if (month && String(p.photo_month) !== month) return false;
+      const ts = links[p.id] || [];
+      const has = (category, name) => ts.some(t => t.category === category && norm(t.name) === name);
+      if (people.length && !(el("peopleMode").value === "and" ? people.every(n => has("person",n)) : people.some(n => has("person",n)))) return false;
+      return theme.every(n => has("theme",n)) && other.every(n => has("other",n));
+    });
+  }
+  async function renderTiles(rows, target, editable, append=false) {
+    if(!append)target.replaceChildren();
+    if (!rows.length) { const p = document.createElement("p"); p.className="empty-gallery"; p.textContent="No photographs match."; target.append(p); return; }
+    const figures = rows.map(photo => {
+      const figure = document.createElement("figure"); figure.className="photo-tile";
+      const img = document.createElement("img"); img.loading="lazy"; img.alt=photo.caption || "Family photograph"; img.onerror=()=>{img.onerror=null;img.src=missingPreview;};
+      // Metadata appears over the photograph on hover, focus, or touch.
+      const tags = links[photo.id] || [];
+      const byCategory = category => tags.filter(t => t.category === category).map(t => t.name).join(", ");
+      const details = document.createElement("figcaption");
+      details.className = "photo-details";
+      const lines = [
+        ["Who", byCategory("person")],
+        ["When", photo.photo_month && photo.photo_year
+          ? new Date(Date.UTC(photo.photo_year, photo.photo_month - 1, 1)).toLocaleString("en-CA", {month:"long",year:"numeric",timeZone:"UTC"})
+          : (photo.photo_year ? String(photo.photo_year) : "")],
+        ["Theme", byCategory("theme")],
+        ["Event", byCategory("other")],
+        ["Caption", photo.caption || ""]
+      ];
+      for (const [label,value] of lines) {
+        if (!value) continue;
+        const line = document.createElement("div");
+        const heading = document.createElement("strong"); heading.textContent = `${label}: `;
+        line.append(heading, document.createTextNode(value));
+        details.append(line);
+      }
+      if (!details.childNodes.length) details.textContent = "No details added yet";
+      figure.append(img, details);
+      if (!editable) {
+        // Viewer and grid both use the same optimized thumbnail; never fetch originals.
+        img.tabIndex = 0;
+        img.setAttribute("role", "button");
+        img.setAttribute("aria-label", "Enlarge thumbnail photograph");
+        img.style.cursor = "zoom-in";
+        img.addEventListener("click", () => openFullPhoto(photo));
+        img.addEventListener("keydown", event => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            openFullPhoto(photo);
+          }
+        });
+      }
+      if (editable) {
+        const choose = document.createElement("input"); choose.type="checkbox";
+        choose.className="photo-select"; choose.checked=selectedIds.has(photo.id);
+        choose.setAttribute("aria-label", "Select photograph for bulk deletion");
+        choose.onclick=e=>e.stopPropagation();
+        choose.onchange=()=>{if(choose.checked)selectedIds.add(photo.id);else selectedIds.delete(photo.id);updateSelection();};
+        figure.append(choose);
+        figure.classList.add("editable-tile"); figure.tabIndex=0; figure.setAttribute("role","button");
+        const open = () => openOrganizer(managePhotos.findIndex(p => p.id === photo.id));
+        figure.onclick=open; figure.onkeydown=e => { if (e.key === "Enter" || e.key === " ") {e.preventDefault();open();} };
+      } else {
+        const hide = document.createElement("button"); hide.type="button"; hide.className="hide-photo"; hide.textContent="×";
+        hide.title="Temporarily hide from these results"; hide.setAttribute("aria-label", "Hide photograph");
+        hide.onclick=() => {hiddenIds.add(photo.id);visibleGalleryPhotos=visibleGalleryPhotos.filter(p=>p.id!==photo.id);figure.remove();}; figure.append(hide);
+      }
+      target.append(figure);
+      return {photo,img};
+    });
+    // Fetch signed URLs concurrently rather than waiting for each image sequentially.
+    // Concurrency capped to four; each request serves a small thumbnail, never an original.
+    let next=0;
+    await Promise.all(Array.from({length:Math.min(4,figures.length)},async()=>{
+      while(next<figures.length){
+        const {photo,img}=figures[next++];
+        try { const url=await previewURL(photo);if(img.isConnected)img.src=url || missingPreview; }
+        catch {if(img.isConnected)img.src=missingPreview;img.alt='Thumbnail unavailable.';}
+      }
+    }));
+  }
+  // Thumbnail-only viewer: opening a photograph never fetches the original.
+  async function openFullPhoto(photo) {
+    const index = visibleGalleryPhotos.findIndex(p => p.id === photo.id);
+    if (index < 0) return;
+    fullPhotoIndex = index;
+    const request = ++fullPhotoRequest;
+    const viewer = el("fullPhotoViewer");
+    const image = el("fullPhotoImage");
+    const status = el("fullPhotoStatus");
+    const originalLink = el("fullPhotoOriginal");
+    image.removeAttribute("src");
+    image.alt = photo.caption || "Family photograph thumbnail";
+    status.textContent = "Loading thumbnail...";
+    originalLink.hidden = true;
+    viewer.hidden = false;
+    document.body.classList.add("photo-viewer-open");
+    el("fullPhotoPosition").textContent = `${index + 1} / ${visibleGalleryPhotos.length}`;
+    el("fullPhotoPrevious").disabled = index === 0;
+    el("fullPhotoNext").disabled = index === visibleGalleryPhotos.length - 1;
+    try {
+      const url = await previewURL(photo);
+      if (viewer.hidden || request !== fullPhotoRequest) return;
+      image.src = url || missingPreview;
+      originalLink.removeAttribute("href");
+      originalLink.hidden = true;
+      status.textContent = url ? "" : "Preview not generated";
+    } catch (error) {
+      if (request === fullPhotoRequest) status.textContent = `Unable to load thumbnail: ${error.message}`;
+    }
+  }
+  function moveFullPhoto(step) {
+    const next = fullPhotoIndex + step;
+    if (next >= 0 && next < visibleGalleryPhotos.length) openFullPhoto(visibleGalleryPhotos[next]);
+  }
+  function closeFullPhoto() {
+    ++fullPhotoRequest;
+    fullPhotoIndex = -1;
+    el("fullPhotoViewer").hidden = true;
+    el("fullPhotoImage").removeAttribute("src");
+    document.body.classList.remove("photo-viewer-open");
+  }
+  el("closeFullPhoto").onclick = closeFullPhoto;
+  el("fullPhotoPrevious").onclick = () => moveFullPhoto(-1);
+  el("fullPhotoNext").onclick = () => moveFullPhoto(1);
+  el("fullPhotoViewer").addEventListener("click", event => {
+    if (event.target === el("fullPhotoViewer")) closeFullPhoto();
+  });
+  document.addEventListener("keydown", event => {
+    if (el("fullPhotoViewer").hidden) return;
+    if (event.key === "Escape") closeFullPhoto();
+    if (event.key === "ArrowLeft") { event.preventDefault(); moveFullPhoto(-1); }
+    if (event.key === "ArrowRight") { event.preventDefault(); moveFullPhoto(1); }
+  });
+  el("fullPhotoViewer").addEventListener("touchstart", event => {
+    touchStartX = event.touches.length === 1 ? event.touches[0].clientX : null;
+  }, {passive:true});
+  el("fullPhotoViewer").addEventListener("touchend", event => {
+    if (touchStartX === null || !event.changedTouches.length) return;
+    const distance = event.changedTouches[0].clientX - touchStartX;
+    touchStartX = null;
+    if (Math.abs(distance) > 55) moveFullPhoto(distance < 0 ? 1 : -1);
+  }, {passive:true});
+
+  function sortedPhotos(rows) {
+    const result = [...rows];
+    const mode = el("sortPhotos").value;
+    if (mode === "random") {
+      for (let i = result.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [result[i], result[j]] = [result[j], result[i]];
+      }
+    } else if (mode === "oldest") result.reverse();
+    else if (mode === "dateNewest" || mode === "dateOldest") {
+      const dateKey = p => p.photo_year && p.photo_month ? p.photo_year * 12 + p.photo_month : -1;
+      result.sort((a,b) => mode === "dateNewest" ? dateKey(b)-dateKey(a) : dateKey(a)-dateKey(b));
+    }
+    return result;
+  }
+  async function renderGallery(reset=true) {
+    // Do not fetch a second, invisible grid when Manage Photos is active.
+    if(activeSection!=='gallery')return;
+    await loadGalleryPage(reset);
+  }
+  function renderTagManager() {
+    if (!isPoster) return;
+    const category = el("tagManageCategory").value;
+    const query = norm(el("tagManageSearch").value);
+    const root = el("tagManageList"); root.replaceChildren();
+    const tags = allTags.filter(t => t.category === category && norm(t.name).includes(query))
+      .sort((a,b) => a.name.localeCompare(b.name));
+    if (!tags.length) {root.textContent = "No matching tags."; return;}
+    for (const tag of tags) {
+      const row = document.createElement("div"); row.className = "tag-manage-row";
+      const count = Object.values(links).filter(list => list.some(t => t.id === tag.id)).length; // Loaded photos only
+      const name = document.createElement("span"); name.textContent = `${tag.name} (in ${count} loaded photos)`;
+      const button = document.createElement("button"); button.type = "button";
+      button.className = "danger"; button.textContent = "Delete tag";
+      button.onclick = async () => {
+        if (saving || deleting || drafts.size) {
+          el("tagManageMessage").textContent = "Save pending photo changes before deleting tags.";
+          return;
+        }
+        if (!confirm(`Delete the tag "${tag.name}"?\n\nIt will be removed from ALL photographs using it, including those not loaded. The photographs themselves will NOT be deleted.`)) return;
+        button.disabled = true;
+        const { error } = await db.from("tags").delete().eq("id", tag.id);
+        if (error) {button.disabled = false; el("tagManageMessage").textContent = `Could not delete tag: ${error.message}`; return;}
+        allTags = allTags.filter(t => t.id !== tag.id);
+        for (const id of Object.keys(links)) links[id] = links[id].filter(t => t.id !== tag.id);
+        Object.values(pickerInstances).forEach(p => {p.set(p.get().filter(name => norm(name) !== norm(tag.name))); p.refresh();});
+        el("tagManageMessage").textContent = `Deleted tag "${tag.name}". Photographs were kept.`;
+        renderTagManager();
+        await renderGallery();
+      };
+      row.append(name,button);root.append(row);
+    }
+  }
+  function manageVisible() {return managePhotos;}
+  function updateSelection() {
+    const visible=manageVisible();
+    el("selectedCount").textContent=`${selectedIds.size} selected`;
+    el("deleteSelected").disabled=deleting || saving || selectedIds.size===0;
+    el("selectAllPhotos").checked=visible.length>0 && visible.every(p=>selectedIds.has(p.id));
+    el("selectAllPhotos").indeterminate=visible.some(p=>selectedIds.has(p.id)) && !visible.every(p=>selectedIds.has(p.id));
+  }
+  function showSection(section) {
+    activeSection=section;
+    const incomplete=section==="manage" && isPoster;
+    el("incompleteSection").hidden=!incomplete;
+    el("photoGallery").hidden=incomplete;
+    el("filterPanel").hidden=incomplete;
+    el("galleryLoadActions").hidden=incomplete;
+    updateGalleryScroll();
+    el("galleryTab").classList.toggle("active",!incomplete);
+    el("incompleteTab").classList.toggle("active",incomplete);
+    el("organizer").hidden=true; currentIndex=-1;
+    el("manageBrowse").hidden = !incomplete;
+    if(incomplete){updateSelection();renderTagManager();if(!managePhotos.length)loadManage(true);else renderTiles(managePhotos,el('incompleteGallery'),true);}
+  }
+  function openOrganizer(index) {
+    if (!isPoster || index<0 || index>=managePhotos.length) return;
+    if (currentIndex>=0) captureDraft();
+    currentIndex=index;
+    const photo=managePhotos[index], d=draftFor(photo);
+    el("organizer").hidden=false;
+    // Hide the entire management grid while editing. Removing its thumbnails
+    // cancels their pending image loads and leaves only the active photo visible.
+    el("manageBrowse").hidden=true;
+    el("incompleteGallery").replaceChildren();
+    el("organizerPosition").textContent=`Photo ${index+1} of ${managePhotos.length}`;
+    fillingForm=true;
+    el("editMonth").value=d.month; el("editYear").value=d.year; el("editCaption").value=d.caption;
+    const filenameDate = dateFromFilename(photo.original_filename);
+    el("filenameDateNote").textContent = filenameDate
+      ? `Date detected from original filename: ${filenameDate.year}-${String(filenameDate.month).padStart(2,"0")}. You can change it.`
+      : "No valid date found in filename. You can enter a date or use the previous photo's date.";
+    pickerInstances.editPeople.set(d.people); pickerInstances.editTheme.set(d.theme); pickerInstances.editTags.set(d.other);
+    fillingForm=false;
+    el("organizerMessage").textContent="";
+    const image=el("organizerImage"); image.removeAttribute("src");
+    const id=photo.id;
+    previewURL(photo).then(url => {
+      if(currentList()[currentIndex]?.id===id) {
+        image.src=url || missingPreview;
+        if(!url) el("organizerMessage").textContent="This older photo needs a thumbnail. Use Convert Remaining in Manage Photos. Original remains safely stored.";
+      }
+    }).catch(e => {image.src=missingPreview;el("organizerMessage").textContent=e.message;});
+    pending();
+    el("organizer").scrollIntoView({block:"start",behavior:"instant"});
+  }
+  async function saveOne(id, d) {
+    const year=d.year ? Number(d.year) : null, month=d.month ? Number(d.month) : null;
+    if ((year!==null && (!Number.isInteger(year)||year<1800||year>2200)) || (month!==null && (month<1||month>12))) throw Error("Invalid month/year");
+    const selected=[...d.people.map(name=>({name,category:"person"})),...d.theme.map(name=>({name,category:"theme"})),...d.other.map(name=>({name,category:"other"}))];
+    const ids=[];
+    for(const tag of selected) {
+      let existing=allTags.find(t=>norm(t.name)===norm(tag.name));
+      if(existing && existing.category!==tag.category) throw Error(`"${tag.name}" already exists under ${existing.category}. Use a different name.`);
+      if(!existing) {
+        const {data,error}=await db.from("tags").insert(tag).select("id,name,category").single();
+        if(error) throw error; existing=data; allTags.push(existing);
+      }
+      ids.push(existing.id);
+    }
+    const {data:old,error:readError}=await db.from("photo_tags").select("tag_id").eq("photo_id",id);
+    if(readError) throw readError;
+    const previous=new Set(old.map(t=>t.tag_id)), desired=new Set(ids);
+    const add=[...desired].filter(x=>!previous.has(x)).map(tag_id=>({photo_id:id,tag_id}));
+    const remove=[...previous].filter(x=>!desired.has(x));
+    if(add.length){const {error}=await db.from("photo_tags").insert(add);if(error)throw error;}
+    if(remove.length){const {error}=await db.from("photo_tags").delete().eq("photo_id",id).in("tag_id",remove);if(error)throw error;}
+    const {error}=await db.from("photos").update({photo_month:month,photo_year:year,caption:d.caption.trim()||null,is_complete:ids.length>0}).eq("id",id);
+    if(error)throw error;
+    for(const photo of [...galleryPhotos,...managePhotos].filter(p=>p.id===id)){
+      photo.photo_month=month;photo.photo_year=year;photo.caption=d.caption.trim();photo.is_complete=ids.length>0;
+    }
+    links[id]=ids.map(x=>allTags.find(t=>t.id===x)).filter(Boolean);
+  }
+  async function saveAll(manual=true) {
+    if(saving || !drafts.size) return;
+    saving=true; clearTimeout(saveTimer);
+    el("savePhoto").disabled=true;
+    let saved=0, failures=[];
+    const entries=[...drafts.entries()];
+    for(const [id,d] of entries) {
+      try {await saveOne(id,d); if(drafts.get(id)===d) drafts.delete(id); saved++;}
+      catch(e){failures.push(`${id.slice(0,8)}: ${e.message}`);}
+      pending();
+    }
+    const currentId=managePhotos[currentIndex]?.id;
+    // Do not replace the gallery data with the current 20-item management page.
+    el('incompleteCount').textContent='';
+    saving=false; el("savePhoto").disabled=false;
+    el("organizerMessage").textContent=failures.length ? `Saved ${saved}; ${failures.length} failed: ${failures.join("; ")}` : `Saved ${saved} photograph(s).`;
+    if(currentId && !el("organizer").hidden) {
+      const n=managePhotos.findIndex(p=>p.id===currentId);
+      // Keep the currently displayed image; refresh fields without refetching it.
+      if(n>=0) currentIndex=n;
+    }
+    // Do not rebuild hundreds of thumbnails after each save while editing.
+    if (el("organizer").hidden && activeSection==="gallery") await renderGallery();
+    updateSelection(); renderTagManager();
+    if(drafts.size) scheduleSave();
+  }
+  async function makeThumbnail(file) {
+    const image=await createImageBitmap(file);
+    try {
+      const scale=Math.min(1,480/image.width,360/image.height);
+      const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(image.width*scale));canvas.height=Math.max(1,Math.round(image.height*scale));
+      canvas.getContext('2d').drawImage(image,0,0,canvas.width,canvas.height);
+      return await new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(Error('Thumbnail conversion failed')),'image/webp',0.68));
+    } finally {image.close();}
+  }
+  // Bulk upload does not ask for month, year or tags.
+  el("submitPhotos").onclick=async()=>{
+    if(!isPoster)return;
+    const files=[...el("photoFiles").files], message=el("uploadMessage");
+    if(!files.length){message.textContent="Select photographs first.";return;}
+    el("submitPhotos").disabled=true;let count=0;const errors=[];
+    for(const [i,file] of files.entries()) {
+      message.textContent=`Uploading ${i+1} of ${files.length}...`;
+      if(!file.type.startsWith("image/")){errors.push(`${file.name}: not an image`);continue;}
+      const path=`${crypto.randomUUID()}/${crypto.randomUUID()}`;
+      const {error:uploadError}=await db.storage.from(BUCKET).upload(path,file,{contentType:file.type,upsert:false});
+      if(uploadError){errors.push(`${file.name}: ${uploadError.message}`);continue;}
+      let thumbReady=false;
+      try {
+        const thumbnail=await makeThumbnail(file);
+        const {error:thumbError}=await db.storage.from(BUCKET).upload(`${path}.thumb.webp`,thumbnail,{contentType:'image/webp',upsert:false});
+        if(thumbError)throw thumbError;
+        thumbReady=true;
+      }catch(e){errors.push(`${file.name}: thumbnail not created (${e.message}); the photo will show a placeholder until a thumbnail is generated.`);}
+      const filenameDate = dateFromFilename(file.name);
+      const {error}=await db.from("photos").insert({storage_path:path,has_thumbnail:thumbReady,original_filename:file.name,
+        photo_month:filenameDate?.month ?? null,photo_year:filenameDate?.year ?? null,is_complete:false});
+      if(error){await db.storage.from(BUCKET).remove(thumbReady?[path,`${path}.thumb.webp`]:[path]);errors.push(`${file.name}: ${error.message}`);}else count++;
+    }
+    message.textContent=`${count} uploaded.`+(errors.length?` Errors: ${errors.join("; ")}`:"");
+    el("submitPhotos").disabled=false;
+    if(count){el("photoFiles").value="";showSection("manage");await loadManage(true);}
+  };
+  // One-time repair for already-uploaded photos. Never overwrite saved dates or pending edits.
+  el("fillMissingDates").onclick = async () => {
+    if (!isPoster || saving || deleting) return;
+    const eligible = managePhotos.map(photo => ({photo, date:dateFromFilename(photo.original_filename)}))
+      .filter(({photo,date}) => date && photo.photo_month == null && photo.photo_year == null && !drafts.has(photo.id));
+    const message = el("manageMessage");
+    if (!eligible.length) {message.textContent = "No photographs with missing dates and valid filename dates found.";return;}
+    if (!confirm(`Fill dates from filenames for ${eligible.length} photograph(s)? Existing dates and unsaved edits will not be changed.`)) return;
+    const button = el("fillMissingDates"); button.disabled = true;
+    let updated=0; const failures=[];
+    for (const {photo,date} of eligible) {
+      const {error} = await db.from("photos").update({photo_month:date.month,photo_year:date.year})
+        .eq("id",photo.id).is("photo_month",null).is("photo_year",null);
+      if (error) failures.push(`${photo.original_filename}: ${error.message}`);
+      else {photo.photo_month=date.month;photo.photo_year=date.year;updated++;}
+    }
+    button.disabled=false;
+    message.textContent=`Filled ${updated} missing date(s).` + (failures.length ? ` Errors: ${failures.join("; ")}` : "");
+    el("manageMessage").textContent += " Only the currently loaded batch was checked.";
+  };
+
+  // Delete originals from private Storage first, then remove metadata. A failure is reported,
+  // not silently treated as a success. Database cascades remove photo_tags associations.
+  async function deletePhotos(ids) {
+    if(deleting || saving || !isPoster || !ids.length)return;
+    const photos=ids.map(id=>managePhotos.find(p=>p.id===id)).filter(Boolean);
+    if(!photos.length)return;
+    if(!confirm(`PERMANENTLY DELETE ${photos.length} photograph(s)?\n\nThis removes the original files and cannot be undone.`))return;
+    deleting=true;updateSelection();
+    el("deletePhoto").disabled=true;
+    const errors=[];let removed=0;
+    const activeId=managePhotos[currentIndex]?.id;
+    for(const [i,photo] of photos.entries()) {
+      el("manageMessage").textContent=`Deleting ${i+1} of ${photos.length}...`;
+      try {
+        const {error:storageError}=await db.storage.from(BUCKET).remove(photo.has_thumbnail?[photo.storage_path,thumbnailPath(photo)]:[photo.storage_path]);
+        if(storageError)throw storageError;
+        const {error}=await db.from("photos").delete().eq("id",photo.id);
+        if(error)throw error;
+        drafts.delete(photo.id);selectedIds.delete(photo.id);hiddenIds.delete(photo.id);
+        managePhotos=managePhotos.filter(p=>p.id!==photo.id);
+        removed++;
+      }catch(e){errors.push(`${photo.original_filename || photo.id}: ${e.message}`);}
+    }
+    // Do not replace the gallery data with the current 20-item management page.
+    el('incompleteCount').textContent='';
+    galleryPhotos=galleryPhotos.filter(p=>!ids.includes(p.id));
+    const next=managePhotos.findIndex(p=>p.id===activeId);
+    if(next<0){el("organizer").hidden=true;currentIndex=-1;}
+    else currentIndex=next;
+    deleting=false;el("deletePhoto").disabled=false;
+    el("manageMessage").textContent=`Deleted ${removed} of ${photos.length} photograph(s).` + (errors.length ? ` Errors: ${errors.join("; ")}` : "");
+    if(activeSection==="manage")await loadManage(true);else await renderGallery();updateSelection();pending();
+  }
+  el("deletePhoto").onclick=()=>{
+    if(currentIndex>=0)deletePhotos([managePhotos[currentIndex].id]);
+  };
+  el("deleteSelected").onclick=()=>deletePhotos([...selectedIds]);
+  el("manageView").onchange=()=>loadManage(true);
+  el("selectAllPhotos").onchange=e=>{
+    for(const p of manageVisible()) {if(e.target.checked)selectedIds.add(p.id);else selectedIds.delete(p.id);}
+    el("incompleteGallery").querySelectorAll(".photo-select").forEach(input=>{input.checked=e.target.checked;});updateSelection();
+  };
+  // No original ZIP download. The originals remain archived in Supabase.
+  el("galleryTab").onclick=()=>{if(currentIndex>=0)captureDraft();showSection("gallery");};
+  el("incompleteTab").onclick=()=>{if(currentIndex>=0)captureDraft();showSection("manage");};
+  el("uploadButton").onclick=()=>{
+    const panel = el("uploadPanel");
+    panel.hidden = !panel.hidden;
+    el("uploadButton").setAttribute("aria-expanded", String(!panel.hidden));
+    if (!panel.hidden) {
+      panel.scrollIntoView({behavior:"smooth",block:"start"});
+    }
+  };
+  el("previousPhoto").onclick=()=>openOrganizer(currentIndex-1);
+  el("nextPhoto").onclick=()=>openOrganizer(currentIndex+1);
+  el("closeOrganizer").onclick=()=>{
+    captureDraft();
+    el("organizer").hidden=true;currentIndex=-1;
+    el("manageBrowse").hidden=false;
+    loadManage(true);
+    updateSelection();
+  };
+  el("savePhoto").onclick=()=>{captureDraft();saveAll();};
+  el("showPhotos").onclick = () => {galleryMode = "results"; renderGallery(true);};
+  el("showRandom").onclick = () => {galleryMode = "random"; renderGallery(true);};
+  el("sortPhotos").onchange = () => {if (galleryMode === "results") renderGallery();};
+  el("tagManageCategory").onchange = renderTagManager;
+  el("tagManageSearch").oninput = renderTagManager;
+  el("clearFilters").onclick=()=>{
+    ["filterPeople","filterTheme","filterOther"].forEach(id=>pickerInstances[id].set([]));
+    el("filterYear").value="";el("filterMonth").value="";el("peopleMode").value="or";galleryMode="random";scheduleFacetUpdate();renderGallery();
+  };
+  el("restoreHidden").onclick=()=>{hiddenIds.clear();renderGallery();};
+  el("galleryLoadMore").onclick=()=>loadGalleryPage(false);
+  el("manageLoadMore").onclick=()=>loadManage(false);
+  el("manageRefresh").onclick=()=>loadManage(true);
+  // One-time, resumable legacy migration. Fetch only records lacking thumbnails;
+  // never request originals during Gallery/Manage browsing.
+  let bulkThumbRunning = false, bulkThumbStop = false;
+  el('stopLegacyThumbs').onclick = () => {
+    if (bulkThumbRunning) {
+      bulkThumbStop = true;
+      el('bulkThumbStatus').textContent += ' Stopping after current photograph...';
+    }
+  };
+  el('makeLegacyThumbs').onclick = async () => {
+    if (!isPoster || saving || deleting || bulkThumbRunning) return;
+    if (!confirm('Convert ALL older photos missing thumbnails? Each original will be downloaded once from Supabase and count toward egress. Existing originals will remain unchanged. You can stop after any photo and resume later.')) return;
+    bulkThumbRunning = true; bulkThumbStop = false;
+    const start = el('makeLegacyThumbs'), stop = el('stopLegacyThumbs'), status = el('bulkThumbStatus');
+    start.disabled = true; stop.hidden = false; stop.disabled = false;
+    let created = 0, repaired = 0, attempted = 0, failure = null;
+    const update = (message='') => {status.textContent = `${created} created, ${repaired} existing repaired, ${attempted} checked. ${message}`;};
+    try {
+      // Re-query each batch because successful rows leave the has_thumbnail=false set.
+      // No offset: prevents skipping rows as the set shrinks.
+      while (!bulkThumbStop) {
+        const {data:photos,error:queryError} = await db.from('photos')
+          .select('id,storage_path,has_thumbnail').eq('has_thumbnail',false)
+          .order('created_at',{ascending:true}).limit(10);
+        if (queryError) throw Error(`Could not fetch remaining photos: ${queryError.message}`);
+        if (!photos || !photos.length) {update('All photos now have thumbnails.');break;}
+        for (const photo of photos) {
+          if (bulkThumbStop) break;
+          attempted++; update(`Processing photo ${attempted}...`);
+          try {
+            const path = thumbnailPath(photo);
+            // If a previous run uploaded a thumbnail but failed before updating its flag,
+            // reuse that file instead of downloading the original again.
+            const {data:existing,error:listError} = await db.storage.from(BUCKET)
+              .list(photo.storage_path.split('/').slice(0,-1).join('/'), {search:photo.storage_path.split('/').pop()+'.thumb.webp',limit:10});
+            if (listError) throw Error(`Storage lookup: ${listError.message}`);
+            const exists = (existing||[]).some(f=>f.name===photo.storage_path.split('/').pop()+'.thumb.webp');
+            if (!exists) {
+              const {data:original,error:downloadError} = await db.storage.from(BUCKET).download(photo.storage_path);
+              if (downloadError) throw Error(`Original download: ${downloadError.message}`);
+              const thumb = await makeThumbnail(original);
+              const {error:uploadError} = await db.storage.from(BUCKET).upload(path,thumb,{contentType:'image/webp',upsert:false});
+              if (uploadError) throw Error(`Thumbnail upload: ${uploadError.message}`);
+            }
+            const {data:updated,error:updateError} = await db.from('photos')
+              .update({has_thumbnail:true}).eq('id',photo.id).select('id');
+            if (updateError) throw Error(`Database update: ${updateError.message}`);
+            if (!updated || updated.length!==1) throw Error('Database update affected no row. Check RLS permissions.');
+            signedCache.delete('thumb:'+path);
+            if (exists) repaired++; else created++;
+            update();
+          } catch(e) {
+            failure = `${photo.id.slice(0,8)}: ${e.message}`;
+            bulkThumbStop = true;
+            update(`Stopped on error: ${failure}`);
+            break;
+          }
+        }
+        // Yield to the browser between groups of ten; allow user to press Stop.
+        await new Promise(resolve=>setTimeout(resolve,100));
+      }
+      if (!failure && bulkThumbStop) update('Stopped by user. Click Convert Remaining to resume.');
+    } catch(e) {failure=e.message;update(`Stopped on error: ${failure}`);}
+    finally {
+      bulkThumbRunning=false;start.disabled=false;stop.hidden=true;
+      if(activeSection==='manage' && el('organizer').hidden) await loadManage(true);
+    }
+  };
+  ["filterYear","filterMonth","peopleMode"].forEach(id=>el(id).onchange=()=>{el("filterStatus").textContent="Filters changed. Click Show Photos to apply.";scheduleFacetUpdate();});
+  ["filterPeople","filterTheme","filterOther"].forEach((id,i)=>compactFilterPicker(id,["person","theme","other"][i],()=>{el("filterStatus").textContent="Filters changed. Click Show Photos to apply.";scheduleFacetUpdate();}));
+  ["editPeople","editTheme","editTags"].forEach((id,i)=>picker(id,["person","theme","other"][i],true,()=>{captureDraft();}));
+  ["editMonth","editYear","editCaption"].forEach(id=>el(id).addEventListener("input",captureDraft));
+  window.addEventListener("beforeunload",e=>{if(drafts.size){e.preventDefault();e.returnValue="";}});
+  signOutButton.onclick=async()=>{
+    if(drafts.size && !confirm("You have unsaved photo edits. Sign out anyway?"))return;
+    await db.auth.signOut();location.replace("index.html");
+  };
+  (async()=>{
+    const {data,error}=await db.auth.getUser();
+    if(error||!data.user){location.replace("index.html");return;}
+    const {data:membership,error:memberError}=await db.from("photobook_members").select("role").eq("user_id",data.user.id).single();
+    if(memberError||!membership){await db.auth.signOut();location.replace("index.html");return;}
+    isPoster=membership.role==="poster";
+    el("accountStatus").textContent=isPoster?"Poster":"Viewer";
+    el("uploadButton").hidden=!isPoster;el("incompleteTab").hidden=!isPoster;
+    await loadData();showSection("gallery");
+  })();
+}

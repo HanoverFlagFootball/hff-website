@@ -1,4 +1,4 @@
-console.log("scores-strip.js loaded v13");
+console.log("scores-strip.js loaded v15");
 
 function stripDivision(teamName) {
   return String(teamName || '')
@@ -45,6 +45,9 @@ function formatStripTitle(week, game) {
   const parsedDate = parseDisplayDate(dateSource);
 
   let time = String(game.datetime || '').trim();
+  // Database-backed schedules include the full date in datetime. The score strip
+  // only needs the game time because the date is formatted separately below.
+  if (time.includes('·')) time = time.split('·').pop().trim();
   time = time.replace(' AM', 'AM').replace(' PM', 'PM');
 
   if (!parsedDate) {
@@ -130,6 +133,52 @@ function buildStripGames() {
   return output;
 }
 
+
+// Keep scorecards equal-width, with long team names shortened using an ellipsis.
+// Fill the strip with complete cards only, recalculating when the window changes.
+function sizeScoreStrip(scoreRow) {
+  const gap = 8;
+  const available = scoreRow.clientWidth;
+  if (!available) return;
+  const visible = Math.max(1, Math.min(scoreRow.children.length,
+    Math.floor((available + gap) / (150 + gap))));
+  scoreRow.style.setProperty('--hff-visible-scores', visible);
+  Array.from(scoreRow.children).forEach(function (box, index) {
+    box.style.display = index < visible ? 'flex' : 'none';
+  });
+}
+
+function applyScoreStripSizing(scoreRow) {
+  if (!document.getElementById('hff-score-strip-equal-width')) {
+    const style = document.createElement('style');
+    style.id = 'hff-score-strip-equal-width';
+    style.textContent = `
+      #scoreRow { width: 100%; min-width: 0; }
+      #scoreRow > .score-box {
+        box-sizing: border-box;
+        min-width: 0;
+        max-width: none;
+        flex: 0 0 calc((100% - (var(--hff-visible-scores, 1) - 1) * 8px) / var(--hff-visible-scores, 1));
+        overflow: hidden;
+      }
+      #scoreRow .team-row, #scoreRow .team-left { min-width: 0; }
+      #scoreRow .team-left { flex: 1 1 0; overflow: hidden; }
+      #scoreRow .team-logo { flex: 0 0 22px; }
+      #scoreRow .team-name {
+        display: block; flex: 1 1 0; min-width: 0;
+        overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+      }
+      #scoreRow .team-score { flex: 0 0 auto; }
+    `;
+    document.head.appendChild(style);
+  }
+  sizeScoreStrip(scoreRow);
+  if (!window.__hffScoreStripResize) {
+    window.__hffScoreStripResize = function () { sizeScoreStrip(scoreRow); };
+    window.addEventListener('resize', window.__hffScoreStripResize);
+  }
+}
+
 function renderScoreStrip(targetId) {
   const scoreRow = document.getElementById(targetId || 'scoreRow');
   if (!scoreRow) return false;
@@ -168,11 +217,14 @@ function renderScoreStrip(targetId) {
     scoreRow.appendChild(box);
   });
 
+  applyScoreStripSizing(scoreRow);
+
   if (scoreRow.children.length > 1 && !window.__hffScoreStripRotator) {
     window.__hffScoreStripRotator = setInterval(function () {
       const firstBox = scoreRow.firstElementChild;
       if (firstBox) {
         scoreRow.appendChild(firstBox);
+        sizeScoreStrip(scoreRow);
       }
     }, 5000);
   }

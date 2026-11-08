@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="icon" type="image/jpeg" href="favicon.png">
   <meta charset="UTF-8" />
   <title>Cart</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -224,6 +225,7 @@
       .cart-price, .cart-line-total { display:none; }
     }
   </style>
+  <link rel="stylesheet" href="site-theme.css?v=20260913">
 </head>
 <body>
 
@@ -289,6 +291,8 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="seasonal-settings.js?v=23"></script>
   <!-- nav.js first so it cannot overwrite our checkout handler after -->
   <script src="nav.js"></script>
 
@@ -436,12 +440,15 @@
     });
   }
 
-  function handleCheckout(e) {
+  async function handleCheckout(e) {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
       if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
     }
+
+    const shopOpen = await HFFSeasonal.get('shop_open');
+    if (!shopOpen) { alert('The League Shop is currently closed.'); return; }
 
     const athleteEl = document.getElementById('athleteName');
     const athlete = (athleteEl ? athleteEl.value : '').trim();
@@ -501,7 +508,15 @@
     window.location.replace('loading.html?v=' + Date.now());
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
+    const shopOpen=await HFFSeasonal.get('shop_open');
+    if(!shopOpen){
+      const list=document.getElementById('cartItems'); const summary=document.getElementById('cartSummary');
+      if(list) list.innerHTML='<p class="cart-empty"><strong>The League Shop is currently closed.</strong><br><br>Your saved cart will remain on this device for when the shop reopens.</p>';
+      if(summary) summary.style.display='none';
+      const btn=document.getElementById('checkoutBtn'); if(btn) btn.disabled=true;
+      return;
+    }
     document.getElementById('athleteName').value = localStorage.getItem('athleteName') || '';
 
     const btn = document.getElementById('checkoutBtn');

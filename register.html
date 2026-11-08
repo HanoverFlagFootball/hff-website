@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="icon" type="image/jpeg" href="favicon.png">
   <meta charset="UTF-8" />
-  <title>Register - Flag Football League</title>
+  <title>2027 Registration - Hanover Flag Football</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root { --ink:#fff; --line:#333; --black:#000; }
@@ -105,6 +106,11 @@
     textarea { min-height:80px; resize:vertical; }
     .checkbox-row, .radio-row { margin-bottom:0.6rem; font-size:0.85rem; color:#333; }
     .checkbox-row input, .radio-row input { margin-right:0.35rem; }
+    /* Consistent checkbox column and hanging text indentation */
+    .checkbox-row .consent-label { display:grid; grid-template-columns:18px minmax(0,1fr); column-gap:9px; align-items:start; margin:0; line-height:1.5; }
+    .checkbox-row .consent-label input[type="checkbox"] { width:16px; height:16px; margin:2px 0 0; }
+    .checkbox-row .consent-description { display:block; font-size:0.8rem; color:#555; font-weight:normal; margin-top:0.3rem; }
+
     .radio-group { display:flex; gap:1.5rem; align-items:center; flex-wrap:wrap; }
     .required { color:#c00; margin-left:0.1rem; }
     .signature-note { font-size:0.8rem; color:#555; margin-bottom:0.5rem; }
@@ -142,12 +148,13 @@
       .sponsor-logo { width:22vw; }
     }
   </style>
+  <link rel="stylesheet" href="site-theme.css?v=20260913">
 </head>
 <body>
 
-  <script>
-    const REGISTRATION_OPEN = false; // change to true when you want registration open again
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="seasonal-settings.js?v=23"></script>
+<script>let REGISTRATION_OPEN=false;</script>
 
   <div class="scores-strip">
     <div class="score-row" id="scoreRow"></div>
@@ -173,12 +180,12 @@
 
   <section class="register-page" id="register">
     <div class="register-wrapper">
-      <h1>Player Registration</h1>
+      <h1>Hanover Flag Football 2027 Registration</h1>
       <p class="register-intro">
-        Our season runs for 8 weeks (May to early July), including playoffs. Each week players have both a practice and a game.
+        Our season runs for approximately 8 weeks (May to early July), including playoffs. Games and practices are held on Saturdays, mostly mornings, at Rail Lands Leisure Park in Hanover.
       </p>
       <p class="register-details">
-        Registration fees: <strong>U6 – $80</strong> &nbsp; | &nbsp; <strong>Age 6+ – $185</strong>.
+        Registration fees: <strong>U6 – $80</strong> &nbsp; | &nbsp; <strong>Other divisions – $185</strong>.<br>Jersey, flag belt and flags included. Optional apparel is available through the shop.
       </p>
 
       <div class="credit-banner" id="creditBanner">
@@ -187,7 +194,7 @@
       </div>
 
       <div class="closed-message" id="closedMessage">
-        2026 registration is now closed.
+        2027 registration is currently closed.
       </div>
 
       <form id="registrationForm" novalidate>
@@ -233,8 +240,7 @@
         <div class="form-section">
           <h2>Player Information</h2>
           <p class="info-note">
-            Age divisions will be decided based on registration numbers. No youth division will span more than three
-            birth years, and we aim for two-year groupings (U6, U8, U10, U12, U14, U16, U18).
+            Divisions are tentatively assigned by age as of July 31, 2027. Final age divisions may be adjusted based on registration numbers.
           </p>
 
           <div class="form-grid">
@@ -252,11 +258,9 @@
             </div>
 
             <div class="form-row">
-              <label>Registration Category<span class="required">*</span></label>
-              <div class="radio-group">
-                <label><input type="radio" name="ageGroup" value="U6" /> U6</label>
-                <label><input type="radio" name="ageGroup" value="7plus" /> Age 6+ (U8–U18)</label>
-              </div>
+              <label for="assignedDivision">Tentative Division (automatically assigned)</label>
+              <input type="text" id="assignedDivision" readonly value="Enter date of birth above" aria-live="polite" />
+              <div class="info-note" id="divisionExplanation" style="margin-top:0.4rem;">Age as of July 31, 2027.</div>
             </div>
 
             <div class="form-row">
@@ -302,33 +306,27 @@
         <div class="form-section">
           <h2>Waivers & Permissions</h2>
 
-          <div class="checkbox-row">
-            <label>
-              <input type="checkbox" id="liabilityWaiver" name="liabilityWaiver" />
-              I am the parent/guardian of the player and I understand and accept that participation in flag football
-              involves inherent risks of injury. I have read and agree to the terms of the
-              <a href="Waiver and Release of Liability.pdf" target="_blank" rel="noopener noreferrer">
-                Waiver and Release of Liability
-              </a>,
-              and I release the league, organizers, and coaches from liability to the fullest extent permitted by law.
-              <span class="required">*</span>
+          <div class="checkbox-row" style="margin-bottom:12px;">
+            <label style="display:flex !important; align-items:flex-start !important; gap:10px !important; margin:0 !important; font-weight:600;">
+              <input type="checkbox" id="liabilityWaiver" name="liabilityWaiver" style="display:block; flex:0 0 16px; width:16px; height:16px; margin:1px 0 0 !important; padding:0;" />
+              <span style="display:block; flex:1; min-width:0;">I am the parent/guardian of the player and I understand and accept that participation in flag football involves inherent risks of injury. I have read and agree to the terms of the <a href="Waiver and Release of Liability.pdf" target="_blank" rel="noopener noreferrer">Waiver and Release of Liability</a>, and I release the league, organizers, and coaches from liability to the fullest extent permitted by law.<span class="required">*</span></span>
             </label>
           </div>
 
-          <div class="checkbox-row">
-            <label>
-              <input type="checkbox" id="riskAck" name="riskAck" />
-              I acknowledge that I have reviewed the league rules and risk information, and I agree to support safe play
-              and sportsmanship.<span class="required">*</span>
+          <div class="checkbox-row" style="margin-bottom:12px;">
+            <label style="display:flex !important; align-items:flex-start !important; gap:10px !important; margin:0 !important; font-weight:600;">
+              <input type="checkbox" id="riskAck" name="riskAck" style="display:block; flex:0 0 16px; width:16px; height:16px; margin:1px 0 0 !important; padding:0;" />
+              <span style="display:block; flex:1; min-width:0;">I acknowledge that I have reviewed the league rules and risk information, and I agree to support safe play and sportsmanship.<span class="required">*</span></span>
             </label>
           </div>
 
-          <div class="radio-row">
-            <div>Photo / Video Permission<span class="required">*</span></div>
-            <div class="radio-group">
-              <label><input type="radio" name="photoPermission" value="yes" /> Yes, I give permission for my child to appear in league photos and videos.</label>
-              <label><input type="radio" name="photoPermission" value="no" /> No, please do not include my child in photos or videos.</label>
-            </div>
+          <div class="checkbox-row" style="margin-bottom:12px;">
+            <label style="display:flex !important; align-items:flex-start !important; gap:10px !important; margin:0 !important; font-weight:600;">
+              <input type="checkbox" id="photoConsent" name="photoConsent" required style="display:block; flex:0 0 16px; width:16px; height:16px; margin:1px 0 0 !important; padding:0;" />
+              <span style="display:block; flex:1; min-width:0;"><strong>Photo &amp; Video Consent</strong><span class="required">*</span>
+                <span class="consent-description" style="display:block; font-weight:normal; margin-top:6px;">I understand and agree that Hanover Flag Football may photograph or record my child during league games, practices, tournaments, and other events. I authorize Hanover Flag Football to use these photographs and recordings on its website, social media accounts, and in promotional materials without additional permission or compensation.</span>
+              </span>
+            </label>
           </div>
         </div>
 
@@ -351,6 +349,13 @@
           </div>
         </div>
 
+        <div class="form-section" id="registrationSummary" style="display:none;">
+          <h2>Registration Summary</h2>
+          <p><strong id="summaryProduct"></strong></p>
+          <p>Tentative division: <strong id="summaryDivision"></strong></p>
+          <p>Registration fee: <strong id="summaryFee"></strong></p>
+          <p class="info-note">Final divisions may be adjusted based on registration numbers.</p>
+        </div>
         <div class="submit-row">
           <button type="submit" class="submit-btn">Submit &amp; Continue to Payment</button>
           <div class="small-note">You’ll review your details and complete secure payment on the next step.</div>
@@ -377,11 +382,9 @@
 
   <script>
     // registration open/closed toggle
-    (function () {
-      if (!REGISTRATION_OPEN) {
-        document.body.classList.add('registration-closed');
-      }
-    })();
+    // TEST PAGE ONLY: Force registration open while Supabase is unavailable.
+REGISTRATION_OPEN = true;
+document.body.classList.remove('registration-closed');
 
     // sponsor rotation
     const sponsorTrack = document.getElementById('sponsorTrack');
@@ -448,6 +451,44 @@
       });
     })();
 
+    // Tentative 2027 divisions: player age on July 31, 2027.
+    function get2027Division(value) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(value || '')) return null;
+      const [year, month, day] = value.split('-').map(Number);
+      const date = new Date(Date.UTC(year, month - 1, day));
+      if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null;
+      const age = 2027 - year - ((month > 7 || (month === 7 && day > 31)) ? 1 : 0);
+      if (age < 0 || age >= 18) return null;
+      const division = age < 6 ? 'U6' : age < 9 ? 'U9' : age < 12 ? 'U12' : age < 16 ? 'U16' : 'U18';
+      return { age, division, ageGroup: division === 'U6' ? 'U6' : '7plus', fee: division === 'U6' ? 80 : 185 };
+    }
+    function updateDivisionDisplay() {
+      const dob = document.getElementById('playerDob').value;
+      const result = get2027Division(dob);
+      const assigned = document.getElementById('assignedDivision');
+      const explanation = document.getElementById('divisionExplanation');
+      const summary = document.getElementById('registrationSummary');
+      if (!dob) {
+        assigned.value = 'Enter date of birth above';
+        explanation.textContent = 'Age as of July 31, 2027.';
+        summary.style.display = 'none';
+      } else if (!result) {
+        assigned.value = 'Check date of birth / ineligible';
+        explanation.textContent = 'Please enter a valid date of birth for a player under 18 on July 31, 2027.';
+        summary.style.display = 'none';
+      } else {
+        assigned.value = result.division;
+        explanation.textContent = 'Age ' + result.age + ' on July 31, 2027.';
+        document.getElementById('summaryProduct').textContent = 'Hanover Flag Football 2027 ' + (result.division === 'U6' ? 'U6 ' : '') + 'Registration';
+        document.getElementById('summaryDivision').textContent = result.division;
+        document.getElementById('summaryFee').textContent = '$' + result.fee.toFixed(2) + ' CAD';
+        summary.style.display = 'block';
+      }
+    }
+    document.getElementById('playerDob').addEventListener('input', updateDivisionDisplay);
+    document.getElementById('playerDob').addEventListener('change', updateDivisionDisplay);
+    updateDivisionDisplay();
+
     // submit handler
     document.addEventListener('DOMContentLoaded', () => {
       const form = document.getElementById('registrationForm');
@@ -460,8 +501,8 @@
 
         const liabilityWaiver = document.getElementById('liabilityWaiver');
         const riskAck = document.getElementById('riskAck');
-        const photoPermission = document.querySelector('input[name="photoPermission"]:checked');
-        const ageGroupRadio = document.querySelector('input[name="ageGroup"]:checked');
+        const photoConsent = document.getElementById('photoConsent');
+        const divisionResult = get2027Division(document.getElementById('playerDob').value);
 
         const shirtSizeEl = document.getElementById('shirtSize');
         if (!shirtSizeEl || !shirtSizeEl.value) {
@@ -470,8 +511,9 @@
           return;
         }
 
-        if (!ageGroupRadio) {
-          alert('Please select whether this registration is for U6 or Age 6+.');
+        if (!divisionResult) {
+          document.getElementById('playerDob').focus();
+          alert('Please enter an eligible date of birth for 2027.');
           return;
         }
 
@@ -480,8 +522,9 @@
           return;
         }
 
-        if (!photoPermission) {
-          alert('Please select a photo/video permission option.');
+        if (!photoConsent.checked) {
+          photoConsent.focus();
+          alert('Please acknowledge and consent to the photo/video terms to continue.');
           return;
         }
 
@@ -513,14 +556,18 @@
             shirtSize: document.getElementById('shirtSize').value,
             experience: document.getElementById('experience').value
           },
-          ageGroup: ageGroupRadio.value,
+          ageGroup: divisionResult.ageGroup, // Existing checkout price category
+          tentativeDivision: divisionResult.division,
+          seasonYear: 2027,
+          ageCutoffDate: '2027-07-31',
           coachInterest: document.getElementById('coachInterest').value || null,
           health: { concerns: document.getElementById('healthConcerns').value.trim() },
           buddyRequest: document.getElementById('buddyRequest').value.trim(),
           waivers: {
             liabilityWaiver: liabilityWaiver.checked,
             riskAcknowledgement: riskAck.checked,
-            photoPermission: photoPermission.value
+            photoPermission: photoConsent.checked ? 'yes' : 'no', // preserve existing backend field
+            photoConsent: photoConsent.checked
           },
           signature: {
             name: document.getElementById('signatureName').value.trim(),
@@ -540,5 +587,6 @@
   </script>
 
   <script src="scores-strip.js"></script>
+  <script src="nav.js?v=20260913"></script>
 </body>
 </html>

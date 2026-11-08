@@ -1,762 +1,130 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="icon" type="image/jpeg" href="favicon.png">
   <meta charset="UTF-8" />
   <title>Flag Football League</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    :root {
-      --ink: #fff;
-      --line: #333;
-      --black: #000;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: #000;
-      color: var(--ink);
-    }
+:root{--navy:#000000;--navy2:#000000;--ink:#111827;--muted:#5f6b7a;--line:#d9dee7;--page:#f4f5f7;--white:#fff;--red:#c8102e}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--page);color:var(--ink)}a{color:inherit}
+.site-header{position:relative;background:var(--navy);color:#fff;box-shadow:0 2px 7px rgba(0,0,0,.22)}
+.scores-strip{background:#e9edf2;border-bottom:1px solid #cfd5dd;padding:8px 12px;overflow:hidden}.score-row{display:flex;gap:8px;max-width:1280px;margin:0 auto;overflow:hidden}.score-box{background:#fff;color:#111;border:1px solid #cdd3dc;border-radius:3px;padding:7px 9px;flex:0 0 150px;min-height:78px;display:flex;flex-direction:column;justify-content:center}.score-title{font-size:.64rem;color:#596270;text-align:center;border-bottom:1px solid #e5e7eb;margin-bottom:4px;padding-bottom:3px}.team-row{display:flex;align-items:center;justify-content:space-between;gap:4px}.team-left{display:flex;align-items:center;gap:5px;min-width:0}.team-logo{width:22px;height:22px;object-fit:contain}.team-name{font-size:.72rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.team-score{font-size:.78rem;font-weight:800}.score-status{font-size:.58rem;text-transform:uppercase;text-align:center;margin-top:3px;color:#596270;letter-spacing:.05em}
+.page-wrap{max-width:1280px;margin:0 auto;padding:22px 22px 40px}.section-title{font-size:1.28rem;margin:0 0 14px;font-weight:900;letter-spacing:-.02em}.section-rule{border-top:3px solid var(--navy);padding-top:13px}
+.hero-grid{display:grid;grid-template-columns:minmax(0,2.5fr) minmax(280px,.75fr);gap:22px;align-items:start}.hero-feature{position:relative;width:100%;height:auto;aspect-ratio:16/9;background:var(--navy);overflow:hidden;border-radius:4px;border:1px solid var(--line)}.hero-feature video,.hero-feature .hero-fallback{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:var(--hero-pos-desktop,center center)}.hero-feature .hero-fallback{z-index:0}.hero-feature video{z-index:1}.panel,.story-card,.shop-card{background:#fff;border:1px solid var(--line);border-radius:4px;overflow:hidden}.eyebrow{color:var(--red);font-size:.69rem;text-transform:uppercase;font-weight:900;letter-spacing:.08em;margin-bottom:6px}
+.panel{padding:15px}.panel h2{font-size:1.05rem;margin:0 0 12px;padding-bottom:9px;border-bottom:3px solid var(--navy)}.date-item{display:grid;grid-template-columns:58px 1fr;gap:10px;padding:10px 0;border-bottom:1px solid #e4e7eb;align-items:center}.date-item:last-child{border-bottom:0}.date-thumb{width:58px;height:58px;overflow:hidden;border-radius:3px;background:#eee;cursor:pointer}.date-thumb img{width:100%;height:100%;object-fit:cover;display:block}.date-copy h3{font-size:.88rem;margin:0 0 3px}.date-copy p{font-size:.76rem;line-height:1.35;color:var(--muted);margin:0}
+.content-section{margin-top:28px}.story-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.story-card img{width:100%;aspect-ratio:16/10;object-fit:cover;display:block}.story-copy{padding:11px 12px}.story-copy h3{font-size:.93rem;line-height:1.2;margin:0 0 5px}.story-copy p{font-size:.78rem;line-height:1.4;color:var(--muted);margin:0}
+.shop-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}.shop-card{text-decoration:none;text-align:center;padding:13px 8px 12px;transition:transform .12s ease,box-shadow .12s ease}.shop-card:hover{transform:translateY(-2px);box-shadow:0 5px 14px rgba(0,0,0,.1)}.shop-card img{width:100%;height:100px;object-fit:contain;display:block;margin-bottom:8px}.shop-card span{font-size:.82rem;font-weight:800}.view-all{display:inline-block;margin-top:12px;color:var(--navy);font-size:.84rem;font-weight:800;text-decoration:none}.view-all:hover{text-decoration:underline}
+.sponsor-strip{margin-top:30px;background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:24px 20px 30px;text-align:center}.sponsor-strip h2{font-size:.9rem;color:#4b5563;letter-spacing:.12em;margin:0 0 16px}.sponsor-track-wrapper{overflow:hidden;max-width:1280px;margin:0 auto}.sponsor-track{display:flex;justify-content:center;align-items:center;gap:28px}.sponsor-logo{width:100px;height:100px;border:1px solid #e0e4e9;border-radius:4px;background:#fff;overflow:hidden;cursor:pointer;flex:0 0 auto}.sponsor-logo img{width:100%;height:100%;object-fit:contain;display:block}
+.image-modal-overlay,.sponsor-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);display:none;align-items:center;justify-content:center;z-index:2500;padding:1rem}.image-modal-overlay.show,.sponsor-modal-overlay.show{display:flex}.image-modal-content{max-width:min(90vw,700px);max-height:90vh}.image-modal-content img{max-width:100%;max-height:85vh;display:block;border:3px solid #fff}.image-modal-close,.sponsor-modal-close{position:absolute;top:1rem;right:1rem;background:#fff;color:#111;border:0;border-radius:50%;width:36px;height:36px;font-size:1.35rem;cursor:pointer}.sponsor-modal-box{width:min(92vw,520px);background:#fff;color:#111;border-radius:6px;padding:24px;position:relative;text-align:center}.sponsor-modal-title{font-size:1.05rem;font-weight:900;text-transform:uppercase;margin-bottom:8px}.sponsor-modal-text{line-height:1.45}.sponsor-modal-actions{margin-top:14px}.sponsor-modal-btn{background:var(--navy);color:#fff;border:0;border-radius:3px;padding:10px 18px;font-weight:800;cursor:pointer}
+@media(max-width:980px){.hero-grid{grid-template-columns:1fr;align-items:start}.hero-feature{height:auto;min-height:0;aspect-ratio:16/9}.hero-feature video,.hero-feature .hero-fallback{object-position:var(--hero-pos-mobile,center center)}.story-grid{grid-template-columns:repeat(2,1fr)}.shop-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:700px){.scores-strip{padding:7px 8px}.score-box{flex:0 0 calc((100% - 8px)/2)}.score-box:nth-child(n+3){display:none}.page-wrap{padding:14px 12px 28px}.hero-feature{height:auto;min-height:0;aspect-ratio:16/9}.story-grid{grid-template-columns:1fr 1fr;gap:9px}.story-copy{padding:9px}.shop-grid{grid-template-columns:repeat(2,1fr)}.shop-card img{height:84px}.sponsor-track{justify-content:flex-start;gap:14px}.sponsor-logo{width:84px;height:84px}}
+@media(max-width:430px){.story-grid{grid-template-columns:1fr}.hero-feature{height:auto;min-height:0;aspect-ratio:16/9}}
 
-    /* =========================
-       SCORES STRIP
-       ========================= */
-    .scores-strip {
-      width: 100%;
-      background: #000;
-      padding: 0.35rem 1rem;
-      overflow: hidden;
-    }
-    .score-row {
-  display: flex;
-  gap: 0.5rem;
-  align-items: stretch;
-  justify-content: center;
-  overflow: hidden;
-}
-    .score-box {
-  background: #fff;
-  color: #000;
-  border: 1px solid #ccc;
-  border-radius: 0.5rem;
-  padding: 0.35rem 0.45rem;
-  flex: 0 0 calc((100% - 4.5rem) / 8);
-  min-height: 74px;
+/* HFF flexible homepage hero — top-left titles, bottom-left action */
+.hero-feature .hero-fallback { display: block; }
+.hero-feature .hero-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: clamp(18px, 3.7%, 35px);
+  background: linear-gradient(90deg, rgba(0,0,0,.58) 0%, rgba(0,0,0,.26) 38%, rgba(0,0,0,.03) 78%, transparent 100%);
+  color: #fff;
+  pointer-events: none;
+}
+.hero-overlay-content { max-width: 90%; text-shadow: 0 2px 8px rgba(0,0,0,.45); }
+.hero-kicker { display: none; }
+.hero-kicker { font-size: clamp(.68rem,1.15vw,.95rem); font-weight: 900; letter-spacing: .15em; text-transform: uppercase; margin-bottom: 9px; }
+.hero-headline { font-size: clamp(1.4rem,2.8vw,2.7rem); font-weight: 900; line-height: 1.06; letter-spacing: -.025em; text-transform: uppercase; margin: 0 0 10px; color: #fff; }
+.hero-description { font-size: clamp(.76rem,1.3vw,1.05rem); line-height: 1.35; margin: 0; font-weight: 800; }
+.hero-cta { display: inline-block; padding: 14px 26px; background: #fff; color: #000; text-shadow: none; text-decoration: none; font-size: clamp(.8rem,1.2vw,1rem); font-weight: 900; text-transform: uppercase; border-radius: 5px; box-shadow: 0 4px 14px rgba(0,0,0,.22); pointer-events: auto; }
+.hero-cta:hover, .hero-cta:focus { background: #e8e8e8; }
+.hero-feature.hero-mode-image-only .hero-overlay, .hero-feature.hero-mode-video .hero-overlay { display: none; }
+@media (max-width:700px) {
+  .hero-feature .hero-overlay { padding: 14px; background: linear-gradient(90deg,rgba(0,0,0,.60),rgba(0,0,0,.04)); }
+  .hero-overlay-content { max-width: 94%; }
+  .hero-kicker { font-size: .62rem; margin-bottom: 5px; }
+  .hero-headline { font-size: clamp(1rem,4.5vw,1.65rem); margin-bottom: 6px; }
+  .hero-description { font-size: .67rem; }
+  .hero-cta { padding: 9px 14px; font-size: .72rem; }
 }
 
-.score-box:nth-child(n + 11) {
-  display: none;
-}
-    .score-title {
-      font-size: 0.65rem;
-      text-align: center;
-      border-bottom: 1px solid #ddd;
-      margin-bottom: 0.15rem;
-      padding-bottom: 0.15rem;
-    }
-    .team-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 0.15rem;
-      line-height: 1.05;
-    }
-    .team-left {
-      display: flex;
-      align-items: center;
-      gap: 0.2rem;
-      min-width: 0;
-      flex: 1;
-    }
-    .team-logo {
-      width: 20px;
-      height: 20px;
-      object-fit: contain;
-      background: #fff;
-      border-radius: 4px;
-      padding: 1px;
-    }
-    .team-name {
-      flex: 1;
-      font-size: 0.68rem;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .team-score {
-      width: 1.9rem;
-      text-align: right;
-      font-size: 0.7rem;
-      font-weight: 600;
-    }
-    .score-status {
-      font-size: 0.58rem;
-      text-align: center;
-      margin-top: 0.2rem;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-
-    /* MOBILE: show only 2 boxes */
-    @media (max-width: 700px) {
-      .scores-strip { overflow: hidden; }
-      .score-row { justify-content: center; }
-      .score-box { flex: 0 0 calc((100% - 0.6rem) / 2); }
-      .score-box:nth-child(n + 3) { display: none; }
-    }
-
-    /* =========================
-       TOP BANNER
-       ========================= */
-    .top-banner {
-      width: 100%;
-      background: #000;
-      aspect-ratio: 8 / 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 56px;
-      position: relative;
-    }
-    .top-banner img {
-      height: 82%;
-      width: auto;
-      max-width: 90vw;
-      object-fit: contain;
-      display: block;
-    }
-
-    /* =========================
-       3 COLUMNS
-       ========================= */
-    .three-cols {
-      display: grid;
-      grid-template-columns: 1.2fr 2.6fr 1.2fr;
-      gap: 2px;
-      padding: 1.2vw 2vw 2vw;
-      background: #000;
-    }
-    .col {
-      background: #fff;
-      color: #000;
-      border: 1px solid #333;
-      border-radius: 0;
-      padding: 1.2vw;
-      min-height: 50px;
-      box-shadow: none;
-    }
-
-      .left-col .register-btn {
-  display: block;
-  width: 100%;
-  margin: 1vw 0 0.6vw 0; /* 👈 top and bottom spacing */
-}
-
-    .left-col .register-btn img {
-      width: 100%;
-      height: auto;
-      display: block;
-    }
-
-    .left-col h2 {
-      margin-top: 0;
-    }
-
-    .left-col h3 {
-  margin: 0 0 0.6vw;
-  font-size: clamp(0.9rem, 1.8vw, 1.05rem);
-  text-align: center;
-}
-
-    .left-col .shop-item {
-      display: flex;
-      align-items: center;
-      gap: 0.6vw;
-      text-decoration: none;
-      color: #000;
-      margin-bottom: 1.2vw;
-    }
-
-    .left-col .shop-item img {
-      width: 50px;
-      height: 50px;
-      object-fit: contain;
-      border-radius: 0.4vw;
-      display: block;
-    }
-
-    .left-col .shop-item span {
-      font-size: clamp(0.85rem, 1.6vw, 1rem);
-      font-weight: 600;
-    }
-
-    /* CENTER COLUMN */
-    .center-col h2 {
-      margin-top: 0;
-      font-size: clamp(1.1rem, 2.3vw, 1.4rem);
-      text-align: center;
-      color: #000;
-    }
-
-    .center-col h3 a {
-      color: inherit;
-      text-decoration: none;
-      font: inherit;
-    }
-    .center-col h3 a:hover {
-      text-decoration: none;
-      opacity: 0.85;
-    }
-
-    .news-thumb a,
-    .news-thumb img,
-    .news-item a.news-thumb {
-      display: block;
-      text-decoration: none;
-      color: inherit;
-    }
-
-    .news-item {
-      display: grid;
-      grid-template-columns: minmax(70px, 90px) 1fr;
-      gap: 1vw;
-      margin-bottom: 1.2vw;
-      align-items: start;
-    }
-    .news-thumb {
-      width: 100%;
-      aspect-ratio: 1 / 1;
-      background: #ddd;
-      border-radius: 0.5vw;
-      overflow: hidden;
-    }
-    .news-thumb img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    .news-content h3 {
-      margin: 0;
-      font-size: clamp(0.9rem, 2vw, 1.1rem);
-      color: #000;
-    }
-    .news-content p {
-      margin: 0.3rem 0 0;
-      font-size: clamp(0.75rem, 1.6vw, 0.9rem);
-      line-height: 1.4;
-      color: #000;
-    }
-    .video-box {
-      margin-top: 1vw;
-      background: #000;
-      border-radius: 0.5vw;
-      overflow: hidden;
-      aspect-ratio: 16 / 9;
-    }
-    .video-box iframe {
-      width: 100%;
-      height: 100%;
-      border: 0;
-    }
-
-    /* RIGHT COLUMN */
-    .right-col h3 {
-      margin-top: 0;
-      font-size: clamp(0.9rem, 1.9vw, 1.1rem);
-      text-align: center;
-      color: #000;
-    }
-    .past-item {
-      display: grid;
-      grid-template-columns: minmax(50px, 60px) 1fr;
-      gap: 0.7vw;
-      margin-bottom: 1vw;
-      align-items: start;
-    }
-    .past-thumb {
-      width: 100%;
-      aspect-ratio: 1 / 1;
-      background: #eee;
-      border-radius: 0.4vw;
-      overflow: hidden;
-      cursor: pointer;
-    }
-    .past-thumb img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-    .past-content h4 {
-      margin: 0;
-      font-size: clamp(0.78rem, 1.5vw, 0.9rem);
-      color: #000;
-    }
-    .past-content p {
-      margin: 0.3rem 0 0;
-      font-size: clamp(0.7rem, 1.4vw, 0.8rem);
-      line-height: 1.35;
-      color: #000;
-    }
-
-    @media (max-width: 1050px) {
-      .three-cols { grid-template-columns: 1fr; }
-      .center-col { order: 1; }
-      .left-col   { order: 2; }
-      .right-col  { order: 3; }
-
-      .left-col {
-        padding-top: 1.2vw;
-      }
-
-      .left-col .register-btn {
-        width: 100%;
-        margin: 0 0 0.6vw 0;
-      }
-    }
-
-    /* =========================
-       SPONSORS
-       ========================= */
-    .sponsor-strip {
-      background: #000;
-      color: #fff;
-      padding: 1.5vw 2vw 3vw;
-      text-align: center;
-    }
-    .sponsor-strip h2 {
-      margin: 0 0 1vw;
-      font-size: clamp(1rem, 2.2vw, 1.2rem);
-      letter-spacing: 0.08em;
-    }
-    .sponsor-track-wrapper {
-      overflow: hidden;
-      width: 100%;
-      display: flex;
-      justify-content: center;
-    }
-    .sponsor-track {
-      display: flex;
-      justify-content: space-around;
-      gap: 2.5vw;
-      width: 100%;
-      transition: transform 0.4s ease;
-    }
-    .sponsor-logo {
-      flex: 0 0 auto;
-      width: clamp(80px, 10vw, 130px);
-      aspect-ratio: 1 / 1;
-      border-radius: 1vw;
-      overflow: hidden;
-      background: #fff;
-      cursor: pointer; /* NEW: clickable */
-    }
-    .sponsor-logo img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-    @media (max-width: 600px) {
-      .sponsor-track { gap: 4vw; }
-      .sponsor-logo { width: 22vw; }
-    }
-
-    /* =========================
-       IMAGE MODAL (existing)
-       ========================= */
-    .image-modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.8);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 2000;
-      padding: 1rem;
-    }
-    .image-modal-overlay.show { display: flex; }
-    .image-modal-content {
-      max-width: min(90vw, 700px);
-      max-height: 90vh;
-    }
-    .image-modal-content img {
-      width: 100%;
-      height: auto;
-      display: block;
-      border: 3px solid #fff;
-      border-radius: 8px;
-    }
-    .image-modal-close {
-      position: absolute;
-      top: 1rem;
-      right: 1rem;
-      background: rgba(0,0,0,0.6);
-      color: #fff;
-      border: none;
-      font-size: 1.4rem;
-      cursor: pointer;
-      width: 34px;
-      height: 34px;
-      border-radius: 50%;
-      line-height: 1.2;
-      text-align: center;
-    }
-
-    /* =========================
-       SPONSOR POPUP MODAL (NEW)
-       ========================= */
-    .sponsor-modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.8);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 2500; /* above image modal */
-      padding: 1rem;
-    }
-    .sponsor-modal-overlay.show { display: flex; }
-
-    .sponsor-modal-box {
-      width: min(92vw, 520px);
-      background: #fff;
-      color: #000;
-      border-radius: 12px;
-      border: 2px solid #000;
-      padding: 1.1rem 1.1rem 1rem;
-      position: relative;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
-      text-align: center;
-    }
-
-    .sponsor-modal-title {
-      font-weight: 900;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      margin: 0 0 0.6rem;
-      font-size: 1.05rem;
-    }
-    .sponsor-modal-text {
-      margin: 0;
-      font-size: 0.98rem;
-      line-height: 1.45;
-    }
-
-    .sponsor-modal-actions {
-      margin-top: 0.85rem;
-      display: flex;
-      justify-content: center;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-    }
-    .sponsor-modal-btn {
-      border: none;
-      background: #000;
-      color: #fff;
-      padding: 0.55rem 0.95rem;
-      border-radius: 999px;
-      font-weight: 700;
-      cursor: pointer;
-      font-size: 0.9rem;
-    }
-    .sponsor-modal-btn:hover { opacity: 0.9; }
-
-    .sponsor-modal-close {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      width: 34px;
-      height: 34px;
-      border-radius: 50%;
-      border: none;
-      background: rgba(0,0,0,0.08);
-      cursor: pointer;
-      font-size: 1.25rem;
-      line-height: 1;
-    }
-    .sponsor-modal-close:hover { background: rgba(0,0,0,0.14); }
-  
-    .news-poster-section {
-  margin: 20px 0;
-}
-
-.poster-text {
-  font-size: 16px;
-  font-weight: bold;
-  margin-bottom: 10px;
-  text-align: center;
-}
-
-.poster-link {
-  display: block;
-}
-
-.large-poster {
-  width: 100%;
-  border-radius: 10px;
-  display: block;
-}
-
-  </style>
+/* TEST ONLY: configurable hero buttons */
+.hero-actions{display:flex;gap:9px;flex-wrap:wrap;pointer-events:auto}
+.hero-actions .hero-cta{padding:11px 16px}
+.hero-actions .hero-cta.secondary{background:#000;color:#fff;border:2px solid #fff}
+@media(max-width:700px){.hero-actions{gap:5px}.hero-actions .hero-cta{font-size:.61rem;padding:7px 8px}}
+</style>
+  <link rel="stylesheet" href="site-theme.css?v=20260913">
 </head>
 
-<body>
+<body data-cms-page="hff">
+  <header class="site-header">
+    <div id="site-nav"></div>
+  </header>
 
-  <!-- SCORE STRIP -->
   <div class="scores-strip">
     <div class="score-row" id="scoreRow"></div>
   </div>
 
-  <!-- BANNER with SHARED NAV -->
-  <div class="top-banner">
-    <img src="White Logo.jpg" alt="League Logo">
-    <div id="site-nav"></div>
-  </div>
-
-  <!-- 3 COLUMNS -->
-  <section class="three-cols">
-    <!-- LEFT -->
-    <div class="col left-col">
-           
-      <h3>Shop NFL Flag Gear</h3>
-      <a href="shop.html" class="shop-item">
-        <img src="gloves.png" alt="Team Gloves">
-        <span>Team Gloves</span>
-      </a>
-      <a href="shop.html" class="shop-item">
-        <img src="headband.png" alt="Headband">
-        <span>Team Headband</span>
-      </a>
-      <a href="shop.html" class="shop-item">
-        <img src="sleeve.png" alt="Sleeve">
-        <span>Team Sleeve</span>
-      </a>
-      <a href="shop.html" class="shop-item">
-        <img src="shorts.png" alt="Shorts">
-        <span>Team Shorts</span>
-      </a>
-      <a href="shop.html" class="shop-item">
-        <img src="socks.png" alt="Socks">
-        <span>Team Socks</span>
-      </a>
-      <a href="shop.html" class="shop-item">
-        <img src="belt.png" alt="Belt">
-        <span>Team Belt</span>
-      </a>
-      <a href="shop.html" class="shop-item">
-        <img src="juniorfootball.png" alt="Junior Football">
-        <span>Junior Football</span>
-      </a>
-      <a href="shop.html" class="shop-item">
-        <img src="peeweefootball.png" alt="Peewee Football">
-        <span>Peewee Football</span>
-      </a>
-      <a href="shop.html" class="shop-item">
-        <img src="minifootball.png" alt="Mini Football">
-        <span>Mini Football</span>
-      </a>
-    </div>
-
-      <!-- CENTER -->
-      <div class="col center-col">
-        <h2>Announcements &amp; News</h2>
-        <!--
-        <div class="news-item">
-                 
-          <a href="rep.html" class="news-thumb">
-            <img src="Rep/jersey.png" alt="Rep Jersey">
-          </a>  
-          
-          <div class="news-content">
-            <h3><a>Hanover Hustle is here!</a></h3>
-            <p>Hanover Rep! Bring your skills to the Under Armour tournament Aug 14-16</p>
-          </div>        
-          
-          <a href="adult_team_create.html" class="news-thumb">
-            <img src="AdultFlag.jpeg" alt="Adult Registration is Open">
-          </a>  
-          <div class="news-content">
-            <h3><a href="adult_team_create.html">Join our new Adult Tournament (16+)</a></h3>
-            <p>We are excited to announce the new adult tournament on July 11th! Bring your own team or sign up solo. Register for $30 (no jersey) or $80 and keep an NFL Flag team jersey! See you on the field.</p>
+  <main class="page-wrap">
+    <section class="hero-grid">
+      <article class="hero-feature">
+        <img class="hero-fallback" id="heroFallback" alt="Hanover Flag Football action" style="display:none">
+        <video id="heroVideo" autoplay muted loop playsinline style="display:none" aria-label="Hanover Flag Football highlight video">
+          <source src="" type="video/mp4">
+        </video>
+        <div class="hero-overlay" id="heroOverlay">
+          <div class="hero-overlay-content">
+            <div class="hero-kicker" id="heroKicker"></div>
+            <h1 class="hero-headline" id="heroHeadline"></h1>
+            <p class="hero-description" id="heroDescription"></p>
           </div>
-
+          <div class="hero-actions" id="heroActions"><a class="hero-cta" id="heroCta" href="#"></a></div>
         </div>
-      -->
+      </article>
 
+      <aside class="panel right-col">
+        <h2 data-cms-key="important_dates_heading">Important Dates</h2>
+        <div id="importantDatesList"><p>No upcoming important dates.</p></div>
+      </aside>
+    </section>
 
-<div class="news-poster-section">
-  <p class="poster-text">
-    Hanover Flag Football is going to Hamilton!
-  </p>
-
-  <a href="ticats.html" class="poster-link">
-    <img src="TiCats.png" alt="TiCats Game" class="large-poster">
-  </a>
-</div>
-
-        <div class="news-poster-section">
-  <p class="poster-text">
-    The Hanover Hustle is here! Our HFF Rep Flag Football team is heading to the Under Armour World Cup Tournament this August! 
-  </p>
-
-  <a href="rep.html" class="poster-link">
-    <img src="Rep/jersey.png" alt="Hanover Rep Flag Football Poster" class="large-poster">
-  </a>
-</div>
-<!--
-      <div class="video-box">
-    <iframe
-      class="rumble"
-      src="https://rumble.com/embed/v6thm3z/?pub=4ma38h"
-      title="Semi-Finals Bengals vs Ravens"
-      frameborder="0"
-      allowfullscreen>
-    </iframe>
-  </div>
-        <div class="video-box">
-    <iframe
-      class="rumble"
-      src="https://rumble.com/embed/v6thq9r/?pub=4ma38h"
-      title="Semi-Finals Steelers vs Vikings"
-      frameborder="0"
-      allowfullscreen>
-    </iframe>
-  </div>
--->
-      </div>
-    
-      <!-- RIGHT -->
-      <div class="col right-col">
-  <h3>Important Dates</h3>
-
-  <div class="past-item">
-    <div class="past-thumb">
-      <img src="./June27.png?v=4" alt="June 27">
-    </div>
-    <div class="past-content">
-      <h4>Skills Competition!</h4>
-      <p>U6 (9:15am), U9 (9:00am), U12 & U16 (11:00am)</p>
-    </div>
-  </div>
-
-  <div class="past-item">
-    <div class="past-thumb">
-      <img src="./July4.png?v=4" alt="July 4">
-    </div>
-    <div class="past-content">
-      <h4>Super Bowl Weekend!</h4>
-      <p>Final week of the HFF 2026 season.</p>
-    </div>
-  </div>
-
-  <div class="past-item">
-    <div class="past-thumb">
-      <img src="./July11.png?v=4" alt="July 11">
-    </div>
-    <div class="past-content">
-      <h4>Adult Tournament</h4>
-      <p>HFF's first adult one-day tournament!</p>
-    </div>
-  </div>
-
-  <div class="past-item">
-    <div class="past-thumb">
-      <img src="./August1.png?v=4" alt="August 1">
-    </div>
-    <div class="past-content">
-      <h4>Ti-Cats Day</h4>
-      <p>HFF goes to Hamilton!</p>
-    </div>
-  </div>
-
-
-        <h3>Past Announcements</h3>
-        <div class="past-item">
-          <div class="past-thumb"><img src="thankyou.jpg" alt="Thank you!"></div>
-          <div class="past-content">
-            <h4>Thank you!</h4>
-            <p>Thank you players, coaches, refs & families for a great season!</p>
-          </div>
-        </div>
-        <div class="past-item">
-          <div class="past-thumb"><img src="champions2026u9.jpg" alt="Congratulations U16!"></div>
-          <div class="past-content">
-            <h4>Congratulations!</h4>
-            <p>Congratulations to the U9 Bears on taking home the title!</p>
-          </div>
-        </div>
-        <div class="past-item">
-          <div class="past-thumb"><img src="champions2026u12.jpg" alt="Congratulations U12!"></div>
-          <div class="past-content">
-            <h4>Congratulations!</h4>
-            <p>Congrats U12 Jets on a great season!</p>
-          </div>
-        </div>
-        <div class="past-item">
-          <div class="past-thumb"><img src="champions2026u16.jpg" alt="Congratulations U9!"></div>
-          <div class="past-content">
-            <h4>Congratulations!</h4>
-            <p>Congratulations Vikings, the U16 champions!</p>
-          </div>
-        </div>
-        <div class="past-item">
-          <div class="past-thumb"><img src="adultwinners2026.jpg" alt="Congratulations U9!"></div>
-          <div class="past-content">
-            <h4>Congratulations!</h4>
-            <p>Congratulations Hanover Haymakers on winning the 2026 adult day tournament!</p>
-          </div>
-        </div>
+    <section class="content-section section-rule">
+      <h2 class="section-title" data-cms-key="latest_heading">Latest from HFF</h2>
+      <div class="story-grid" id="latestStories">
+        <p>No recent announcements.</p>
       </div>
     </section>
 
- <!-- SPONSORS -->
-<div class="sponsor-strip">
-  <h2>SPONSORED BY</h2>
-  <div class="sponsor-track-wrapper">
-    <div class="sponsor-track" id="sponsorTrack">
-
-      <!-- REAL SPONSOR (click = enlarge) -->
-      <div class="sponsor-logo" data-sponsor="true">
-        <img src="DC Cab.png" alt="DC Cab">
+    <section class="content-section section-rule">
+      <h2 class="section-title" data-cms-key="shop_heading">Shop NFL Flag Gear</h2>
+      <div class="shop-grid">
+        <a href="shop.html" class="shop-card"><img src="gloves.png" alt="Team Gloves"><span>Team Gloves</span></a>
+        <a href="shop.html" class="shop-card"><img src="headband.png" alt="Team Headband"><span>Team Headband</span></a>
+        <a href="shop.html" class="shop-card"><img src="sleeve.png" alt="Team Sleeve"><span>Team Sleeve</span></a>
+        <a href="shop.html" class="shop-card"><img src="shorts.png" alt="Team Shorts"><span>Team Shorts</span></a>
+        <a href="shop.html" class="shop-card"><img src="Football - Flag.png" alt="Flag Football"><span>Footballs</span></a>
       </div>
+      <a href="shop.html" class="view-all" data-cms-key="shop_link_text">View all HFF gear →</a>
+    </section>
+  </main>
 
-      <!-- NOT A REAL SPONSOR (click = sponsorship popup) -->
-      <div class="sponsor-logo">
-        <img src="YourAdHere.png" alt="Sponsor slot">
-      </div>
-
-      <div class="sponsor-logo">
-        <img src="SponsorFun.png" alt="Sponsor slot">
-      </div>
-
-      <div class="sponsor-logo">
-        <img src="ThankYouSponsors.png" alt="Sponsor slot">
-      </div>
-
-      <div class="sponsor-logo">
-        <img src="YourAdHere.png" alt="Sponsor slot">
-      </div>
-
-      <div class="sponsor-logo">
-        <img src="SponsorFun.png" alt="Sponsor slot">
-      </div>
-
-      <div class="sponsor-logo">
-        <img src="ThankYouSponsors.png" alt="Sponsor slot">
-      </div>
-
-      <div class="sponsor-logo">
-        <img src="YourAdHere.png" alt="Sponsor slot">
-      </div>
-
-    </div>
-  </div>
-</div>
-
+  <section class="sponsor-strip">
+    <h2 data-cms-key="sponsor_heading">SPONSORED BY</h2>
+    <div class="sponsor-track-wrapper"><div class="sponsor-track" id="sponsorTrack">
+      <div class="sponsor-logo" data-sponsor="true"><img src="DC Cab.png" alt="DC Cab"></div>
+      <div class="sponsor-logo"><img src="YourAdHere.png" alt="Sponsor slot"></div>
+      <div class="sponsor-logo"><img src="SponsorFun.png" alt="Sponsor slot"></div>
+      <div class="sponsor-logo"><img src="ThankYouSponsors.png" alt="Sponsor slot"></div>
+      <div class="sponsor-logo"><img src="YourAdHere.png" alt="Sponsor slot"></div>
+      <div class="sponsor-logo"><img src="SponsorFun.png" alt="Sponsor slot"></div>
+    </div></div>
+  </section>
 
   <!-- IMAGE MODAL (existing) -->
   <div class="image-modal-overlay" id="imageModal">
@@ -798,7 +166,7 @@
     const modalImg = document.getElementById('imageModalImg');
     const modalClose = document.getElementById('imageModalClose');
 
-    document.querySelectorAll('.right-col .past-thumb img').forEach(img => {
+    document.querySelectorAll('.right-col .date-thumb img').forEach(img => {
       img.addEventListener('click', () => {
         modalImg.src = img.src;
         modal.classList.add('show');
@@ -881,9 +249,14 @@
     });
   </script>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>window.HFF_HERO_LOCAL_OVERRIDE=true;</script>
+  <script src="homepage-content.js?v=20261017a"></script>
+  <script src="hero-shared.js?v=20261103"></script>
+
   <!-- Shared hamburger nav -->
   <script src="nav.js"></script>
 <script src="season-schedule.js?v=20"></script>
 <script src="scores-strip.js?v=20"></script>
-</body>
+<script src="page-text.js?v=1"></script></body>
 </html>

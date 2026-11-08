@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="icon" type="image/jpeg" href="favicon.png">
   <meta charset="UTF-8" />
   <title>Loading...</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -82,7 +83,8 @@
       white-space:pre-wrap;
     }
   </style>
-</head>
+  <link rel="stylesheet" href="site-theme.css?v=20260913">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="seasonal-settings.js?v=23"></script></head>
 
 <body>
   <div class="top-banner">
@@ -191,11 +193,17 @@
     const ageGroup = reg.ageGroup; // "U6" or "7plus"
     fee = (ageGroup === 'U6') ? 80 : 185;
 
+    const division = ['U6', 'U9', 'U12', 'U16', 'U18'].includes(reg.tentativeDivision)
+      ? reg.tentativeDivision : null;
     lineItemName = isGirlsTeam
       ? 'Girls U18 Team Registration'
-      : (ageGroup === 'U6')
-        ? 'Player Registration (U6)'
-        : 'Player Registration (Age 6+)';
+      : (reg.seasonYear === 2027 && division)
+        ? (division === 'U6'
+            ? 'Hanover Flag Football 2027 U6 Registration'
+            : 'Hanover Flag Football 2027 Registration - ' + division)
+        : (ageGroup === 'U6')
+          ? 'Player Registration (U6)'
+          : 'Player Registration (Age 6+)';
   }
 }
 
@@ -228,6 +236,11 @@
       }
 
       try {
+        if (parsed && parsed.cart) {
+          const shopOpen = await HFFSeasonal.get('shop_open');
+          if (!shopOpen) throw new Error('The League Shop is currently closed.');
+        }
+
         const res = await fetch(BACKEND_URL + '/create-checkout-session', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -255,5 +268,6 @@
       }
     })();
   </script>
+  <script src="nav.js?v=20260913"></script>
 </body>
 </html>

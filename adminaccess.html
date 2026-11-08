@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="icon" type="image/jpeg" href="favicon.png">
   <meta charset="UTF-8" />
   <title>Admin Access</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -382,6 +381,8 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="site-theme.css?v=20260913">
+  <script defer src="admin-nav.js"></script>
 </head>
 
 <body>
@@ -413,7 +414,7 @@
         <h1>Order Tracking</h1>
         <p>Track ordered, processed, stocked, fulfilled, and refunded shop items.</p>
       </div>
-      <button class="logout-btn" id="logoutBtn">Log Out</button>
+      <div style="display:flex;gap:8px"><a href="shop-products-admin.html" class="logout-btn" style="text-decoration:none">Manage Products</a><button class="logout-btn" id="logoutBtn">Log Out</button></div>
     </div>
 
     <section class="summary-grid">

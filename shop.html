@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="icon" type="image/jpeg" href="favicon.png">
   <meta charset="UTF-8" />
   <title>Shop</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -267,12 +268,13 @@
 }
 
   </style>
+  <link rel="stylesheet" href="site-theme.css?v=20260913">
 </head>
 <body>
 
-<script>
-  const SHOP_OPEN = false;
-</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="seasonal-settings.js?v=23"></script>
+<script>let SHOP_OPEN=false;</script>
 
   <!-- BANNER -->
   <div class="top-banner">
@@ -765,6 +767,7 @@
     }
 
     function addToCart(btn) {
+      if (!SHOP_OPEN) { alert('The League Shop is currently closed.'); return; }
       const card = btn.closest('.product-card');
       if (!card) return;
 
@@ -864,9 +867,8 @@
 
   <script src="nav.js"></script>
   <script>
-  if (!SHOP_OPEN) {
-    document.body.classList.add('shop-closed');
-  }
+  document.body.classList.add('shop-closed');
+  HFFSeasonal.get('shop_open').then(open=>{ SHOP_OPEN=open; document.body.classList.toggle('shop-closed',!open); });
 </script>
 </body>
 </html>
