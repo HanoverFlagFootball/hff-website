@@ -65,8 +65,8 @@
 
   host.innerHTML = `
     <div class="hff-nav-inner">
-      <a class="hff-nav-brand" href="${(current === "rep-home.html" || current.startsWith("hustle-u16-")) ? "rep-home.html" : "index.html"}" aria-label="Website home">
-        <img src="${(current === "rep-home.html" || current.startsWith("hustle-u16-")) ? "HanoverHustleLogo.png" : "White Logo.jpg"}" onerror="if(this.src.includes('HanoverHustleLogo.png'))this.src='hustle.png'" alt="${(current === "rep-home.html" || current.startsWith("hustle-u16-")) ? "Hanover Hustle" : "Hanover Flag Football"}">
+      <a class="hff-nav-brand" href="${(current === "rep-home.html" || current === "rep-admin.html" || current.startsWith("hustle-u16-")) ? "rep-home.html" : "index.html"}" aria-label="Website home">
+        <img src="${(current === "rep-home.html" || current === "rep-admin.html" || current.startsWith("hustle-u16-")) ? "HanoverHustleLogo.png" : "White Logo.jpg"}" onerror="if(this.src.includes('HanoverHustleLogo.png'))this.src='hustle.png'" alt="${(current === "rep-home.html" || current === "rep-admin.html" || current.startsWith("hustle-u16-")) ? "Hanover Hustle" : "Hanover Flag Football"}">
       </a>
       <button class="hff-menu-btn" id="hffMenuBtn" aria-label="Open menu" aria-expanded="false" type="button">
         <span></span><span></span><span></span>
