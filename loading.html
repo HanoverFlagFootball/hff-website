@@ -237,6 +237,8 @@
         body = {
           cart: parsed.cart,
           athleteName: parsed.athleteName || '',
+          fulfillmentMethod: parsed.fulfillmentMethod || 'shipping',
+          shippingPolicyAccepted: parsed.shippingPolicyAccepted === true,
           successUrl,
           cancelUrl
         };
