@@ -255,7 +255,7 @@
           <p class="register-intro" id="pageIntro">Register to try out for a 2027 Hanover Hustle representative team.</p></div>
         <div class="rep-header-logo"><img src="hustle.png" alt="Hanover Hustle"></div>
       </div>
-      <div class="preview-banner"><strong>TEST PAGE — FRONTEND ONLY</strong><div>Registrations are not yet saved to Supabase. No payments will be collected.</div></div>
+      <div class="preview-banner"><strong>REGISTRATION SETUP IN PROGRESS</strong><div>Live team availability and fees are shown below. Applications cannot be submitted or paid for yet.</div></div>
       <div class="mode-note" id="modeNote"></div>
       <form id="registrationForm" novalidate>
         <div class="form-section"><h2>Parent / Guardian Information</h2><div class="form-grid">
@@ -273,7 +273,7 @@
         <div class="form-section"><h2 id="teamHeading">Available Tryouts</h2>
           <p class="info-note">Eligible options update automatically based on date of birth and Male/Female selection. Only open registrations appear.</p>
           <div id="teamOptions" class="team-options" aria-live="polite">Enter a date of birth and select Male/Female to see available teams.</div>
-          <p class="info-note" id="eligibilityNote">Team birth-date ranges shown here are examples for testing, not confirmed 2027 eligibility rules.</p>
+          <p class="info-note" id="eligibilityNote">Eligibility dates and fees are provided by Hanover Hustle team administrators.</p>
         </div>
         <div class="form-section" id="uniformSection" hidden><h2>Uniform Information</h2><div class="form-grid">
           <div class="form-row"><label for="shirtSize">Jersey / Shirt Size <span class="required">*</span></label><select id="shirtSize"><option value="">Select size...</option><option value="YS">Youth Small</option><option value="YM">Youth Medium</option><option value="YL">Youth Large</option><option value="YXL">Youth XL</option><option value="AS">Adult Small</option><option value="AM">Adult Medium</option><option value="AL">Adult Large</option><option value="AXL">Adult XL</option><option value="A2XL">Adult 2XL</option></select></div>
@@ -290,7 +290,7 @@
           <div class="form-row"><label for="signatureDate">Date <span class="required">*</span></label><input id="signatureDate" type="date" required></div>
         </div></div>
         <div class="total-row"><span>Registration Total</span><strong id="totalFee">$0.00</strong></div>
-        <div class="submit-row"><button class="submit-btn" type="submit">Preview Registration</button><p class="small-note">Test mode: this does not submit, save, reserve a spot, or start payment.</p></div>
+        <div class="submit-row"><button class="submit-btn" type="submit">Preview Registration</button><p class="small-note">Preview only: no application is saved and no payment is collected.</p></div>
       </form>
       <div id="result" class="result-panel" hidden aria-live="polite"></div>
     </div>
@@ -314,25 +314,18 @@
 
   <script>
     "use strict";
-    // FRONTEND TEST CONFIGURATION ONLY. These birth-date windows and fees are illustrative.
-    // Replace with approved team settings from Supabase before going live.
-    const TEAMS = [
-      { id: 'u12-coed-2027', name: 'U12 Coed', sex: 'coed', dobFrom: '2016-01-01', dobTo: '2020-12-31', tryoutsOpen: true, tryoutFee: 0, teamOpen: true, teamFee: 225 },
-      { id: 'u16-girls-2027', name: 'U16 Girls', sex: 'female', dobFrom: '2012-01-01', dobTo: '2015-12-31', tryoutsOpen: true, tryoutFee: 0, teamOpen: true, teamFee: 250 },
-      { id: 'u16-boys-2027', name: 'U16 Boys', sex: 'male', dobFrom: '2012-01-01', dobTo: '2015-12-31', tryoutsOpen: true, tryoutFee: 0, teamOpen: true, teamFee: 250 },
-      { id: 'u17-coed-2027', name: 'U17 Coed', sex: 'coed', dobFrom: '2011-01-01', dobTo: '2015-12-31', tryoutsOpen: true, tryoutFee: 0, teamOpen: true, teamFee: 275 }
-    ];
-    // Public tryouts: repregister.html
-    // Team-specific registration preview: repregister.html?mode=team&team=u16-girls-2027
+    const API_BASE = 'https://hff-server.onrender.com';
+    let TEAMS = [];
+    let teamsLoaded = false;
     const params = new URLSearchParams(location.search);
-    const isTeamRegistration = params.get('mode') === 'team';
-    const requestedTeamId = params.get('team') || '';
+    const isTeamRegistration = false; // Stage two will require a secure invitation endpoint.
+    const requestedTeamId = ''; // Ignore unverified team registration links.
     const byId = id => document.getElementById(id);
-    const money = amount => new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(amount);
+    const money = cents => new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(cents / 100);
     const chosenTeams = () => [...document.querySelectorAll('input[name="selectedTeam"]:checked')].map(el => TEAMS.find(t => t.id === el.value)).filter(Boolean);
-    const qualifies = (team, dob, sex) => !!dob && !!sex && dob >= team.dobFrom && dob <= team.dobTo && (team.sex === 'coed' || team.sex === sex);
+    const qualifies = (team, dob, sex) => !!dob && !!sex && dob >= team.earliestBirthDate && dob <= team.latestBirthDate && (String(team.gender).toLowerCase() === 'co-ed' || String(team.gender).toLowerCase() === 'coed' || String(team.gender).toLowerCase() === (sex === 'female' ? 'girls' : 'boys'));
     function updateTotal() {
-      const total = chosenTeams().reduce((sum, team) => sum + (isTeamRegistration ? team.teamFee : team.tryoutFee), 0);
+      const total = chosenTeams().reduce((sum, team) => sum + (isTeamRegistration ? team.teamFeeCents : team.tryoutFeeCents), 0);
       byId('totalFee').textContent = money(total);
     }
     function renderTeams() {
@@ -340,8 +333,9 @@
       const sex = byId('playerSex').value;
       const box = byId('teamOptions');
       box.replaceChildren();
-      if (!dob || !sex) { box.textContent = 'Enter a date of birth and select Male/Female to see available teams.'; updateTotal(); return; }
-      const eligible = TEAMS.filter(team => qualifies(team, dob, sex) && (isTeamRegistration ? team.teamOpen && team.id === requestedTeamId : team.tryoutsOpen));
+      if (!teamsLoaded) { box.textContent = 'Unable to load team registration settings. Please refresh and try again.'; updateTotal(); return; }
+       if (!dob || !sex) { box.textContent = 'Enter a date of birth and select Male/Female to see available teams.'; updateTotal(); return; }
+      const eligible = TEAMS.filter(team => qualifies(team, dob, sex) && (isTeamRegistration ? team.teamRegistrationOpen && team.id === requestedTeamId : team.tryoutsOpen));
       if (!eligible.length) {
         box.textContent = isTeamRegistration ? 'This player is not eligible for the selected team, or team registration is closed.' : 'There are currently no Hanover Hustle tryouts accepting registrations for this player.';
         updateTotal(); return;
@@ -355,7 +349,7 @@
         if (isTeamRegistration) input.checked = true;
         input.addEventListener('change', updateTotal);
         const name = document.createElement('span'); name.textContent = team.name;
-        const price = document.createElement('strong'); price.textContent = money(isTeamRegistration ? team.teamFee : team.tryoutFee);
+        const price = document.createElement('strong'); price.textContent = money(isTeamRegistration ? team.teamFeeCents : team.tryoutFeeCents);
         label.append(input, name, price); box.append(label);
       }
       updateTotal();
@@ -366,7 +360,7 @@
       byId('teamHeading').textContent = isTeamRegistration ? 'Selected Rep Team' : 'Available Tryouts';
       byId('pageTitle').textContent = isTeamRegistration ? 'Hanover Hustle Team Registration' : 'Hanover Hustle Tryout Registration';
       byId('pageIntro').textContent = isTeamRegistration ? 'Complete your registration for a selected Hanover Hustle team.' : 'Register for one or more eligible 2027 Hanover Hustle team tryouts.';
-      byId('modeNote').textContent = isTeamRegistration ? (selected ? `Team: ${selected.name} — sample fee ${money(selected.teamFee)}` : 'Invalid team registration link.') : 'Tryout registration — sample fee: $0 per team. Multiple eligible teams may be selected.';
+      byId('modeNote').textContent = isTeamRegistration ? (selected ? `Team: ${selected.name} — sample fee ${money(selected.teamFee)}` : 'Invalid team registration link.') : 'Tryout registration — fees are set individually for each team. Multiple eligible teams may be selected.';
       if (isTeamRegistration && !selected) byId('registrationForm').querySelector('button[type="submit"]').disabled = true;
       renderTeams();
     }
@@ -380,6 +374,7 @@
       e.preventDefault();
       const form = e.currentTarget;
       if (!form.reportValidity()) return;
+       if (!teamsLoaded) { alert('Team registration settings are unavailable. Please try again later.'); return; }
       if (!byId('liabilityWaiver').checked || !byId('riskAck').checked || !byId('photoConsent').checked) { alert('Please accept all three waivers and acknowledgements.'); return; }
       if (isTeamRegistration && (!byId('shirtSize').value || !byId('jerseyNumber').value.trim())) { alert('Please enter jersey size and preferred number.'); return; }
       const teams = chosenTeams();
@@ -390,7 +385,7 @@
       result.replaceChildren();
       const heading = document.createElement('h2'); heading.textContent = 'Registration Preview — NOT SUBMITTED';
       const info = document.createElement('p'); info.textContent = `${byId('playerFirstName').value.trim()} ${byId('playerLastName').value.trim()} — ${teams.map(t=>t.name).join(', ')} — ${money(total)}`;
-      const warning = document.createElement('p'); warning.textContent = 'This is a frontend-only preview. No data was saved to Supabase, no spot was reserved, and no payment was taken.';
+      const warning = document.createElement('p'); warning.textContent = 'This is a preview only. No application was saved, no spot was reserved, and no payment was taken.';
       result.append(heading, info, warning);
       result.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
@@ -399,7 +394,28 @@
     if (menuBtn && menu) menuBtn.addEventListener('click', () => menu.classList.toggle('show'));
     const sponsorTrack = byId('sponsorTrack');
     if (sponsorTrack) setInterval(() => { if (sponsorTrack.firstElementChild) sponsorTrack.append(sponsorTrack.firstElementChild); }, 5000);
-    setupMode();
+    async function loadTeams() {
+      const box = byId('teamOptions');
+      box.textContent = 'Loading Hanover Hustle teams...';
+      try {
+        const response = await fetch(`${API_BASE}/rep/available-teams`, { cache: 'no-store' });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const result = await response.json();
+        if (!Array.isArray(result.teams)) throw new Error('Invalid team response');
+        TEAMS = result.teams;
+        teamsLoaded = true;
+        setupMode();
+        if (!TEAMS.length) {
+          box.textContent = 'Hanover Hustle registration is currently closed.';
+        }
+      } catch (error) {
+        console.error('Unable to load Hanover Hustle teams:', error);
+        teamsLoaded = false;
+        box.textContent = 'Unable to load team registration settings. Please refresh and try again.';
+        byId('modeNote').textContent = 'Team information is temporarily unavailable.';
+      }
+    }
+    loadTeams();
   </script>
 
   <script src="scores-strip.js"></script>
