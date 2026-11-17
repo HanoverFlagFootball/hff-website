@@ -357,3 +357,8 @@ button:disabled { opacity: .55; cursor: wait; }
 .filter-grid .compact-filter-option:hover {background:#f3f3f3;}
 .filter-grid .compact-filter-option input[type=checkbox] {width:16px; height:16px; margin:0; padding:0; flex:none;}
 .filter-grid .compact-filter-empty {margin:8px 4px; color:#777; font-size:13px;}
+
+/* v27: accessible compact recovery forms. */
+#loginForm[hidden], #forgotPasswordForm[hidden], #newPasswordForm[hidden] {display:none!important;}
+.login-card .text-link-button {background:transparent; color:#245b9c; border:0; padding:8px 0; text-decoration:underline; cursor:pointer; width:auto; margin-top:8px;}
+.login-card .text-link-button:hover {background:transparent;}

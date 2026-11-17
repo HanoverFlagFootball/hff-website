@@ -19,6 +19,56 @@ if (loginForm) {
   });
 }
 
+// Password recovery on the login page. Never put tokens into a redirect URL manually.
+const forgotPasswordForm = document.getElementById("forgotPasswordForm");
+if (forgotPasswordForm) {
+  const loginPanel = document.getElementById("loginForm");
+  const resetPanel = document.getElementById("newPasswordForm");
+  const showPanel = (panel) => {
+    for (const form of [loginPanel, forgotPasswordForm, resetPanel]) form.hidden = form !== panel;
+  };
+  const recoveryEmail = document.getElementById("recoveryEmail");
+  document.getElementById("forgotPasswordButton").addEventListener("click", () => {
+    recoveryEmail.value = document.getElementById("email").value.trim();
+    showPanel(forgotPasswordForm);
+  });
+  document.getElementById("backToLoginButton").addEventListener("click", () => showPanel(loginPanel));
+  forgotPasswordForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const message = document.getElementById("recoveryMessage");
+    message.textContent = "Sending reset link...";
+    const redirectTo = new URL("index.html", window.location.href).origin + new URL("index.html", window.location.href).pathname;
+    const { error } = await db.auth.resetPasswordForEmail(recoveryEmail.value.trim(), { redirectTo });
+    message.textContent = error ? error.message : "If an account exists for this email, a reset link will arrive shortly. Check your spam folder too.";
+  });
+  const recoveryLink = new URLSearchParams(window.location.hash.slice(1)).get("type") === "recovery" ||
+    new URLSearchParams(window.location.search).get("type") === "recovery";
+  if (recoveryLink) showPanel(resetPanel);
+  db.auth.onAuthStateChange((event) => {
+    if (event === "PASSWORD_RECOVERY") showPanel(resetPanel);
+  });
+  resetPanel.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const message = document.getElementById("newPasswordMessage");
+    const password = document.getElementById("newPassword").value;
+    if (password !== document.getElementById("confirmNewPassword").value) {
+      message.textContent = "Passwords do not match."; return;
+    }
+    message.textContent = "Updating password...";
+    const { data: sessionData, error: sessionError } = await db.auth.getSession();
+    if (sessionError || !sessionData.session) {
+      message.textContent = "This reset link is expired or invalid. Request a new link from the sign-in page."; return;
+    }
+    const { error } = await db.auth.updateUser({ password });
+    if (error) { message.textContent = error.message; return; }
+    await db.auth.signOut();
+    history.replaceState(null, "", window.location.pathname);
+    resetPanel.reset();
+    showPanel(loginPanel);
+    document.getElementById("loginMessage").textContent = "Password updated. Sign in with your new password.";
+  });
+}
+
 const signOutButton = document.getElementById("signOutButton");
 if (signOutButton) {
   const el = id => document.getElementById(id);
